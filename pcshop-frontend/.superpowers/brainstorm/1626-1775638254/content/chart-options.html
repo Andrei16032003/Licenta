@@ -1,0 +1,60 @@
+<h2>Ce grafice adăugăm în Dashboard Marketing?</h2>
+<p class="subtitle">Toate opțiunile de mai jos funcționează cu datele existente. Selectează ce ți se pare util (poți alege mai multe).</p>
+
+<div class="options" data-multiselect>
+
+  <div class="option" data-choice="revenue_category" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Venituri pe categorie</h3>
+      <p>Pie chart sau bar chart care arată cât venit a generat fiecare categorie (CPU, GPU, RAM etc.). Util pentru a ști unde e concentrată vânzarea.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="top_revenue" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Top produse după venituri</h3>
+      <p>Bar chart orizontal cu top 5-10 produse după valoarea totală vândută (RON), nu după unități. Diferit față de "top vândute" existent.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="stock_health" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Sănătate stoc pe categorie</h3>
+      <p>Stacked bar care arată câte produse au stoc OK vs stoc redus (sub 5) vs zero stoc, grupate pe categorie. Identifici rapid ce categorie are probleme.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="voucher_usage" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Utilizare vouchere</h3>
+      <p>Bar chart care arată rata de utilizare (%) pentru fiecare voucher activ (used_count / usage_limit). Arată ce vouchere sunt populare.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="revenue_time" onclick="toggleSelect(this)">
+    <div class="letter">E</div>
+    <div class="content">
+      <h3>Venituri în timp ⚡ (necesită endpoint nou)</h3>
+      <p>Area chart cu evoluția veniturilor zilnic/săptămânal/lunar. Cel mai puternic grafic, dar necesită un endpoint nou în backend care să returneze date grupate pe dată.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="discount_overview" onclick="toggleSelect(this)">
+    <div class="letter">F</div>
+    <div class="content">
+      <h3>Produse în promoție</h3>
+      <p>Card + mini-tabel cu toate produsele care au discount activ: prețul vechi vs nou, % reducere, data expirare. Totul la un loc pentru campanii.</p>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top: 24px; padding: 16px; background: rgba(14,246,255,0.05); border: 1px solid rgba(14,246,255,0.15); border-radius: 10px;">
+  <p style="color: #9CA3AF; font-size: 13px; margin: 0;">
+    <strong style="color: #0EF6FF;">Deja există:</strong> distribuție rating ★, top 5 vândute (unități), tabel vouchere active, 4 KPI cards. Nu le reproducem.
+  </p>
+</div>

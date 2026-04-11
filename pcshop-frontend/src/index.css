@@ -1,0 +1,362 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-0:    #050910;
+  --bg-1:    #07101C;
+  --bg-2:    #0B1726;
+  --bg-card: #0E1F30;
+  --bg-card-hover: #122436;
+  --bg-raised: #162B3D;
+
+  /* Accent — electric cyan */
+  --cyan:        #0EF6FF;
+  --cyan-mid:    #00C8D4;
+  --cyan-dim:    rgba(14, 246, 255, 0.10);
+  --cyan-glow:   rgba(14, 246, 255, 0.35);
+  --cyan-border: rgba(14, 246, 255, 0.22);
+  --cyan-bright: #3DFBFF;
+
+  /* Accent — amber (prices, primary CTAs) */
+  --amber:       #FF8C00;
+  --amber-dim:   rgba(255, 140, 0, 0.12);
+  --amber-glow:  rgba(255, 140, 0, 0.30);
+  --amber-border:rgba(255, 140, 0, 0.25);
+
+  /* Semantic */
+  --green:  #00E5A0;
+  --red:    #FF4757;
+  --violet: #A78BFA;
+
+  /* Text */
+  --text-1: #EEF2F7;
+  --text-2: #8B9EBA;
+  --text-3: #3E5268;
+
+  /* Borders */
+  --border-subtle:  rgba(255, 255, 255, 0.04);
+  --border-default: rgba(255, 255, 255, 0.07);
+  --border-strong:  rgba(255, 255, 255, 0.13);
+
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+
+  /* Shadows */
+  --shadow-card:     0 4px 24px rgba(0, 0, 0, 0.5);
+  --shadow-elevated: 0 12px 48px rgba(0, 0, 0, 0.7);
+  --shadow-cyan:     0 0 32px rgba(14, 246, 255, 0.18);
+  --shadow-amber:    0 0 32px rgba(255, 140, 0, 0.18);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GLOBAL RESET
+───────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-0);
+  color: var(--text-1);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Subtle circuit-board grid */
+  background-image:
+    linear-gradient(rgba(14, 246, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 246, 255, 0.022) 1px, transparent 1px);
+  background-size: 52px 52px;
+  min-height: 100vh;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar              { width: 4px; height: 4px; }
+::-webkit-scrollbar-track        { background: var(--bg-0); }
+::-webkit-scrollbar-thumb        { background: rgba(14, 246, 255, 0.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--cyan); }
+
+/* ─────────────────────────────────────────────────────────────
+   TYPOGRAPHY
+───────────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Syne', sans-serif;
+  line-height: 1.12;
+  color: var(--text-1);
+  font-weight: 700;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ANIMATIONS
+───────────────────────────────────────────────────────────── */
+@keyframes fadeUpIn {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--cyan-border); }
+  50%       { border-color: var(--cyan); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(14, 246, 255, 0.15); }
+  50%       { box-shadow: 0 0 40px rgba(14, 246, 255, 0.40); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes shimmer-text {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center;  }
+}
+
+@keyframes glow-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ANIMATION UTILITY CLASSES
+───────────────────────────────────────────────────────────── */
+.anim-fade-up   { animation: fadeUpIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.anim-d1        { animation-delay: 0.05s; }
+.anim-d2        { animation-delay: 0.10s; }
+.anim-d3        { animation-delay: 0.15s; }
+.anim-d4        { animation-delay: 0.20s; }
+.anim-d5        { animation-delay: 0.25s; }
+.anim-d6        { animation-delay: 0.30s; }
+.anim-d7        { animation-delay: 0.35s; }
+.anim-d8        { animation-delay: 0.40s; }
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION LABEL CHIP
+───────────────────────────────────────────────────────────── */
+.section-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  border: 1px solid var(--cyan-border);
+  padding: 5px 14px;
+  border-radius: 100px;
+  margin-bottom: 14px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PRICE TYPOGRAPHY
+───────────────────────────────────────────────────────────── */
+.price {
+  font-family: 'Space Mono', monospace;
+  color: var(--amber);
+  font-weight: 700;
+}
+
+.price-old {
+  font-family: 'Space Mono', monospace;
+  color: var(--text-3);
+  text-decoration: line-through;
+  font-size: 0.85em;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PRODUCT CARD SHARED
+───────────────────────────────────────────────────────────── */
+.product-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(14, 246, 255, 0.2);
+  border-color: rgba(14, 246, 255, 0.25);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bg-0);
+  background: var(--cyan);
+  border: none;
+  border-radius: var(--r-md);
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary:hover {
+  background: var(--cyan-bright);
+  box-shadow: 0 6px 24px rgba(14, 246, 255, 0.45);
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  background: var(--bg-raised);
+  color: var(--text-3);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-outline:hover {
+  border-color: var(--cyan-border);
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 4px 0;
+}
+
+.btn-ghost:hover { color: var(--cyan); }
+
+/* ─────────────────────────────────────────────────────────────
+   FORM INPUTS
+───────────────────────────────────────────────────────────── */
+.input-field {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--border-default);
+  color: var(--text-1);
+  padding: 13px 16px;
+  border-radius: var(--r-md);
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field::placeholder { color: var(--text-3); }
+
+.input-field:focus {
+  border-color: var(--cyan-border);
+  box-shadow: 0 0 0 3px rgba(14, 246, 255, 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DIVIDER
+───────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+  border: none;
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PLACEHOLDER
+───────────────────────────────────────────────────────────── */
+::placeholder { color: var(--text-3); }
+
+input, textarea, select, button {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PHOSPHOR ICONS — DUOTONE OPACITY
+───────────────────────────────────────────────────────────── */
+.ph-duotone {
+  --ph-fill-opacity: 0.2;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SEARCH INPUT EXPAND ANIMATION
+───────────────────────────────────────────────────────────── */
+.search-expand {
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PRODUCT IMAGE — white bg for transparent product photos
+───────────────────────────────────────────────────────────── */
+.product-img-bg {
+  background: #f8f9fa;
+}
