@@ -622,7 +622,7 @@ export default function Home() {
                     )}
 
                     {/* Image */}
-                    <div className="product-img-bg mb-4" style={{ border: `1px solid ${catColor}22`, boxShadow: `inset 0 0 40px ${catColor}0A` }}>
+                    <div className="product-img-bg rounded-xl h-[170px] flex items-center justify-center mb-4 overflow-hidden" style={{ border: `1px solid ${catColor}22` }}>
                       {badge && (
                         <div
                           className="absolute top-2 left-2 z-[2] text-white px-[9px] py-[3px] rounded-md text-[11px] font-bold"
@@ -632,7 +632,7 @@ export default function Home() {
                         </div>
                       )}
                       {p.image_url ? (
-                        <img src={imgUrl(p.image_url)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '12px', boxSizing: 'border-box', mixBlendMode: 'multiply' }} />
+                        <img src={imgUrl(p.image_url)} alt={p.name} />
                       ) : (
                         <>
                           <CatIcon size={44} style={{ color: catColor }} />

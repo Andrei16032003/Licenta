@@ -12,7 +12,7 @@ from app.models.product import Product
 from app.models.user_profile import UserAddress
 from app.models.voucher import Voucher
 from app.dependencies import require_role
-_require_orders = require_role("admin", "suport")
+_require_orders = require_role("admin", "suport", "manager")
 from app.models.user import User
 
 router = APIRouter(prefix="/orders", tags=["Comenzi"])
@@ -342,9 +342,25 @@ def get_user_orders(user_id: UUID, db: Session = Depends(get_db)):
 # ── DETALII COMANDA ──────────────────────────────────────────
 @router.get("/{order_id}")
 def get_order(order_id: UUID, db: Session = Depends(get_db)):
-    order = db.query(Order).filter(Order.id == order_id).first()
+    order = (
+        db.query(Order)
+        .options(joinedload(Order.items))
+        .filter(Order.id == order_id)
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Comanda negasita")
+
+    all_product_ids = [i.product_id for i in order.items]
+    products_by_id = {}
+    if all_product_ids:
+        fetched = (
+            db.query(Product)
+            .options(joinedload(Product.images))
+            .filter(Product.id.in_(all_product_ids))
+            .all()
+        )
+        products_by_id = {p.id: p for p in fetched}
 
     return {
         "id":                  str(order.id),
@@ -369,6 +385,9 @@ def get_order(order_id: UUID, db: Session = Depends(get_db)):
                 "quantity":     i.quantity,
                 "unit_price":   float(i.unit_price),
                 "subtotal":     float(i.unit_price) * i.quantity,
+                "image_url":    products_by_id[i.product_id].images[0].url
+                                if i.product_id in products_by_id and products_by_id[i.product_id].images
+                                else None,
             }
             for i in order.items
         ]
@@ -378,6 +397,13 @@ def get_order(order_id: UUID, db: Session = Depends(get_db)):
 @router.get("/admin/all")
 def get_all_orders(db: Session = Depends(get_db), _: User = Depends(_require_orders)):
     orders = db.query(Order).options(joinedload(Order.items)).order_by(Order.created_at.desc()).all()
+
+    all_product_ids = list({i.product_id for o in orders for i in o.items})
+    products_by_id = {}
+    if all_product_ids:
+        fetched = db.query(Product).options(joinedload(Product.images)).filter(Product.id.in_(all_product_ids)).all()
+        products_by_id = {p.id: p for p in fetched}
+
     return [
         {
             "id":                  str(o.id),
@@ -402,6 +428,9 @@ def get_all_orders(db: Session = Depends(get_db), _: User = Depends(_require_ord
                     "brand":        i.product_snapshot.get("brand"),
                     "quantity":     i.quantity,
                     "unit_price":   float(i.unit_price),
+                    "image_url":    products_by_id[i.product_id].images[0].url
+                                    if i.product_id in products_by_id and products_by_id[i.product_id].images
+                                    else None,
                 }
                 for i in o.items
             ],

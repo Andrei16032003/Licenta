@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { wishlistAPI, cartAPI } from '../services/api'
+import { imgUrl } from '../utils/imgUrl'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
 import { Heart, CircleNotch, ShoppingCart, Trash, Desktop } from '@phosphor-icons/react'
@@ -62,8 +63,8 @@ export default function Wishlist() {
     <div className="max-w-[900px] mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-primary text-[26px] font-bold flex items-center gap-2.5">
-          <Heart size={28} weight="bold" className="text-accent" />
-          Wishlist
+          <Heart size={28} weight="fill" className="text-danger" />
+          Favorite
         </h1>
         <span className="text-muted text-sm">
           {items.length} {items.length === 1 ? 'produs' : 'produse'}
@@ -92,8 +93,10 @@ export default function Wishlist() {
             <div key={item.wishlist_id} className="product-card flex flex-col">
               {/* Image placeholder */}
               <Link to={`/product/${item.product_id}`} className="no-underline">
-                <div className="product-img-bg h-[130px] flex items-center justify-center border-b border-default">
-                  <Desktop size={64} className="text-muted/40" />
+                <div className="product-img-bg h-[130px] overflow-hidden flex items-center justify-center border-b border-default">
+                  {item.image_url
+                    ? <img src={imgUrl(item.image_url)} alt={item.name} />
+                    : <Desktop size={64} className="text-muted/40" />}
                 </div>
               </Link>
 

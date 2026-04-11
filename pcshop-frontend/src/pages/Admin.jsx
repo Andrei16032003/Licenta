@@ -996,6 +996,9 @@ export default function Admin() {
             >
               {searchResults.products.map(p => (
                 <SearchRow key={p.id} onClick={() => { setProductSearch(globalSearch); setGlobalSearch(''); goTo('products') }}>
+                  <div className="product-img-bg" style={{ width: '30px', height: '30px', borderRadius: '6px', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '8px' }}>
+                    {p.image_url ? <img src={imgUrl(p.image_url)} alt={p.name} /> : <span style={{ color: '#4B5563', fontSize: '14px' }}>□</span>}
+                  </div>
                   <div style={{ flex: 1 }}>
                     <span style={{ color: '#F1F5F9', fontWeight: '600', fontSize: '13px' }}>{p.name}</span>
                     <span style={{ color: '#4B5563', fontSize: '12px', marginLeft: '8px' }}>{p.brand}</span>
@@ -1063,6 +1066,9 @@ export default function Admin() {
             >
               {searchResults.retururi.map(r => (
                 <SearchRow key={r.id} onClick={() => { setGlobalSearch(''); goTo('retururi') }}>
+                  <div className="product-img-bg" style={{ width: '30px', height: '30px', borderRadius: '6px', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '8px' }}>
+                    {r.image_url ? <img src={imgUrl(r.image_url)} alt={r.product_name} /> : <span style={{ color: '#4B5563', fontSize: '14px' }}>□</span>}
+                  </div>
                   <span style={{ color: '#F1F5F9', fontWeight: '600', fontSize: '13px' }}>{r.product_name}</span>
                   <span style={{ color: '#6B7280', fontFamily: 'monospace', fontSize: '11px', marginLeft: '8px' }}>#{(r.order_id||'').slice(0,8).toUpperCase()}</span>
                   <span style={{ color: '#9CA3AF', fontSize: '12px', marginLeft: '8px' }}>{r.motiv}</span>
@@ -1080,7 +1086,10 @@ export default function Admin() {
               {searchResults.service.map(s => (
                 <SearchRow key={s.id} onClick={() => { setGlobalSearch(''); goTo('service') }}>
                   <span style={{ color: '#FF9800', fontFamily: 'monospace', fontSize: '12px', fontWeight: '700' }}>{s.nr_ticket}</span>
-                  <span style={{ color: '#F1F5F9', fontWeight: '600', fontSize: '13px', marginLeft: '12px' }}>{s.product_name}</span>
+                  <div className="product-img-bg" style={{ width: '30px', height: '30px', borderRadius: '6px', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px', marginRight: '4px' }}>
+                    {s.image_url ? <img src={imgUrl(s.image_url)} alt={s.product_name} /> : <span style={{ color: '#4B5563', fontSize: '14px' }}>□</span>}
+                  </div>
+                  <span style={{ color: '#F1F5F9', fontWeight: '600', fontSize: '13px', marginLeft: '4px' }}>{s.product_name}</span>
                   <span style={{ color: '#9CA3AF', fontSize: '12px', marginLeft: '8px' }}>{(s.descriere||'').slice(0,50)}{s.descriere?.length > 50 ? '…' : ''}</span>
                   <span style={{ marginLeft: 'auto' }}><Badge cfg={serviceStatusCfg} status={s.status} /></span>
                 </SearchRow>
@@ -3712,12 +3721,17 @@ export default function Admin() {
                       const hasChange = (edit.sku !== (p.sku || '')) || (edit.brand !== (p.brand || '')) || (String(edit.warranty_months) !== String(p.warranty_months || ''))
                       return (
                         <div key={p.id} style={{ display: 'grid', gridTemplateColumns: '1fr 150px 140px 100px 120px', borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)', alignItems: 'center' }}>
-                          <div style={{ padding: '8px 14px', minWidth: 0 }}>
-                            <div style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                            <div style={{ display: 'flex', gap: '4px', marginTop: '3px', flexWrap: 'wrap' }}>
-                              {missingFields.map(f => (
-                                <span key={f} style={{ background: 'rgba(255,82,82,0.1)', color: '#FF5252', fontSize: '9px', fontWeight: '700', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase' }}>lipsă {f}</span>
-                              ))}
+                          <div style={{ padding: '8px 14px', minWidth: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div className="product-img-bg" style={{ width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {p.image_url ? <img src={imgUrl(p.image_url)} alt={p.name} /> : <span style={{ color: '#4B5563', fontSize: '16px' }}>□</span>}
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                              <div style={{ display: 'flex', gap: '4px', marginTop: '3px', flexWrap: 'wrap' }}>
+                                {missingFields.map(f => (
+                                  <span key={f} style={{ background: 'rgba(255,82,82,0.1)', color: '#FF5252', fontSize: '9px', fontWeight: '700', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase' }}>lipsă {f}</span>
+                                ))}
+                              </div>
                             </div>
                           </div>
                           <div style={{ padding: '6px 10px' }}>
@@ -3778,9 +3792,14 @@ export default function Admin() {
                       return (
                         <div key={p.id} style={{ display: 'grid', gridTemplateColumns: '130px 1fr 120px 80px 100px 180px', borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
                           <div style={{ padding: '10px 14px', color: '#6B7280', fontSize: '11px', fontFamily: 'monospace', display: 'flex', alignItems: 'center' }}>{p.sku || '—'}</div>
-                          <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-                            <div style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                            {p.warranty_months && <div style={{ color: '#4B5563', fontSize: '10px' }}>Garanție: {p.warranty_months} luni</div>}
+                          <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                            <div className="product-img-bg" style={{ width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {p.image_url ? <img src={imgUrl(p.image_url)} alt={p.name} /> : <span style={{ color: '#4B5563', fontSize: '16px' }}>□</span>}
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                              {p.warranty_months && <div style={{ color: '#4B5563', fontSize: '10px' }}>Garanție: {p.warranty_months} luni</div>}
+                            </div>
                           </div>
                           <div style={{ padding: '10px 14px', color: '#9CA3AF', fontSize: '12px', display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.brand || '—'}</div>
                           <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center' }}>
@@ -4506,11 +4525,16 @@ export default function Admin() {
                                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                             background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '8px 12px',
                                           }}>
-                                            <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                              <div className="product-img-bg" style={{ width: '32px', height: '32px', borderRadius: '6px', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                {item.image_url ? <img src={imgUrl(item.image_url)} alt={item.product_name} /> : <span style={{ color: '#4B5563', fontSize: '14px' }}>□</span>}
+                                              </div>
+                                              <div>
                                               <span style={{ color: '#F1F5F9', fontSize: '13px', fontWeight: '500' }}>
                                                 {item.product_name || item.product_snapshot?.name}
                                               </span>
                                               <span style={{ color: '#4B5563', fontSize: '12px', marginLeft: '8px' }}>x{item.quantity}</span>
+                                              </div>
                                             </div>
                                             <span style={{ color: 'var(--cyan)', fontWeight: '700', fontSize: '13px' }}>
                                               {(item.unit_price * item.quantity).toFixed(2)} RON
@@ -4567,8 +4591,15 @@ export default function Admin() {
                               {r.nr_ticket}
                             </td>
                             <td style={td}>
-                              <div style={{ color: '#F1F5F9', fontWeight: '600', fontSize: '13px' }}>{r.product_name}</div>
-                              <div style={{ color: '#4B5563', fontSize: '11px' }}>#{(r.order_id||'').slice(0,8).toUpperCase()}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div className="product-img-bg" style={{ width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  {r.image_url ? <img src={imgUrl(r.image_url)} alt={r.product_name} /> : <span style={{ color: '#4B5563', fontSize: '16px' }}>□</span>}
+                                </div>
+                                <div>
+                                  <div style={{ color: '#F1F5F9', fontWeight: '600', fontSize: '13px' }}>{r.product_name}</div>
+                                  <div style={{ color: '#4B5563', fontSize: '11px' }}>#{(r.order_id||'').slice(0,8).toUpperCase()}</div>
+                                </div>
+                              </div>
                             </td>
                             <td style={{ ...td, color: '#9CA3AF', fontSize: '12px', maxWidth: '200px' }}>
                               {(r.descriere || '—').slice(0, 55)}{r.descriere?.length > 55 ? '…' : ''}
@@ -4686,7 +4717,12 @@ export default function Admin() {
                         <>
                           <tr key={r.id} className="transition-colors hover:bg-white/[0.02]">
                             <td style={td}>
-                              <div style={{ color: '#F1F5F9', fontWeight: '600', fontSize: '13px' }}>{r.product_name}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div className="product-img-bg" style={{ width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  {r.image_url ? <img src={imgUrl(r.image_url)} alt={r.product_name} /> : <span style={{ color: '#4B5563', fontSize: '16px' }}>□</span>}
+                                </div>
+                                <div style={{ color: '#F1F5F9', fontWeight: '600', fontSize: '13px' }}>{r.product_name}</div>
+                              </div>
                             </td>
                             <td style={{ ...td, color: '#6B7280', fontFamily: 'monospace', fontSize: '11px' }}>
                               #{(r.order_id||'').slice(0,8).toUpperCase()}

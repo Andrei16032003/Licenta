@@ -5,6 +5,7 @@ import { imgUrl } from '../utils/imgUrl'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
 import useCompareStore from '../store/compareStore'
+import useFavoriteStore from '../store/favoriteStore'
 import {
   ArrowLeft, ShoppingCart, Heart, Scales, Star, Check, CircleNotch,
   Warning, Package, Cpu, Monitor, Memory, Circuitry, HardDrive,
@@ -37,6 +38,7 @@ export default function ProductDetail() {
   const { user, isAuthenticated } = useAuthStore()
   const { setCart } = useCartStore()
   const { items: compareItems, categorySlug: compareCategory, add: addToCompare, remove: removeFromCompare } = useCompareStore()
+  const { setFavorites } = useFavoriteStore()
 
   const [product, setProduct] = useState(null)
   const [reviews, setReviews] = useState([])
@@ -110,6 +112,10 @@ export default function ProductDetail() {
         await wishlistAPI.add({ user_id: user.id, product_id: id })
         setInWishlist(true)
       }
+      // Sincronizeaza store-ul global (folosit de dropdown-ul din Navbar)
+      wishlistAPI.get(user.id).then(res => {
+        setFavorites(Array.isArray(res.data) ? res.data : [])
+      }).catch(() => {})
     } catch { /* silent */ }
     finally { setWishlistLoading(false) }
   }
@@ -213,7 +219,7 @@ export default function ProductDetail() {
                 <img
                   src={imgUrl(images[selectedImg]?.url || images[0].url)}
                   alt={product.name}
-                  className="w-full h-full object-contain p-4 box-border mix-blend-multiply"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="text-center">
@@ -239,7 +245,7 @@ export default function ProductDetail() {
                     <img
                       src={imgUrl(img.url)}
                       alt={`${product.name} ${i + 1}`}
-                      className="w-full h-full object-cover mix-blend-multiply"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 ))}
@@ -374,8 +380,12 @@ export default function ProductDetail() {
               <button
                 onClick={handleToggleWishlist}
                 disabled={wishlistLoading}
-                title={inWishlist ? 'Elimina din wishlist' : 'Salveaza la favorite'}
-                className={`btn-outline w-[52px] h-[52px] flex-shrink-0 flex items-center justify-center rounded-xl transition-all ${inWishlist ? 'border-danger/50 text-danger bg-danger/10' : ''} ${wishlistLoading ? 'opacity-60' : ''}`}
+                title={inWishlist ? 'Elimina din favorite' : 'Adauga la favorite'}
+                className={`w-[52px] h-[52px] flex-shrink-0 flex items-center justify-center rounded-xl border transition-all cursor-pointer
+                  ${inWishlist
+                    ? 'border-danger/50 text-danger bg-danger/10 hover:bg-danger/15'
+                    : 'border-white/[0.13] text-secondary hover:text-danger hover:border-danger/40 hover:bg-danger/[0.07]'
+                  } ${wishlistLoading ? 'opacity-60' : ''}`}
               >
                 <Heart size={22} weight={inWishlist ? 'fill' : 'regular'} />
               </button>
@@ -383,7 +393,11 @@ export default function ProductDetail() {
                 onClick={handleCompare}
                 disabled={!isComparing && (compareItems.length >= 3 || !!wrongCategory)}
                 title={isComparing ? 'Elimina din comparare' : wrongCategory ? 'Doar produse din aceeasi categorie' : compareItems.length >= 3 ? 'Maxim 3 produse' : 'Compara produse'}
-                className={`btn-outline w-[52px] h-[52px] flex-shrink-0 flex items-center justify-center rounded-xl transition-all ${isComparing ? 'border-accent text-accent bg-accent-dim' : ''} ${!isComparing && (compareItems.length >= 3 || wrongCategory) ? 'opacity-35 cursor-not-allowed' : ''}`}
+                className={`w-[52px] h-[52px] flex-shrink-0 flex items-center justify-center rounded-xl border transition-all cursor-pointer
+                  ${isComparing
+                    ? 'border-accent/50 text-accent bg-accent-dim hover:bg-accent/15'
+                    : 'border-white/[0.13] text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/[0.07]'
+                  } ${!isComparing && (compareItems.length >= 3 || wrongCategory) ? 'opacity-35 cursor-not-allowed' : ''}`}
               >
                 <Scales size={20} />
               </button>
@@ -758,7 +772,7 @@ export default function ProductDetail() {
                 <div className="bg-base-2 rounded-2xl p-3.5 border border-default transition-all cursor-pointer h-full hover:bg-surface hover:border-accent hover:-translate-y-1">
                   <div className="product-img-bg rounded-xl h-[130px] mb-3 overflow-hidden flex items-center justify-center">
                     {p.image_url
-                      ? <img src={imgUrl(p.image_url)} alt={p.name} className="w-full h-full object-contain p-2 box-border" />
+                      ? <img src={imgUrl(p.image_url)} alt={p.name} className="w-full h-full" />
                       : <Desktop size={36} className="text-muted opacity-20" />
                     }
                   </div>

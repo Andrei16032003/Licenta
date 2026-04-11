@@ -300,7 +300,7 @@ export default function HomePage() {
                          style={{ border: `1px solid ${catColor}22` }}>
                       {p.image_url
                         ? <img src={imgUrl(p.image_url)} alt={p.name}
-                               className="w-full h-full object-contain p-2.5 mix-blend-multiply" />
+                               className="w-full h-full" />
                         : <CatIcon size={46} weight="duotone" style={{ color: catColor }} />
                       }
                     </div>

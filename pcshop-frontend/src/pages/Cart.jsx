@@ -128,9 +128,9 @@ export default function Cart() {
                 <div className="bg-surface border border-default rounded-xl p-4 flex items-center gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-border">
 
                   {/* Imagine */}
-                  <div className="product-img-bg rounded-lg w-20 h-20 object-contain flex-shrink-0 flex items-center justify-center">
+                  <div className="product-img-bg rounded-lg w-20 h-20 flex-shrink-0 overflow-hidden flex items-center justify-center">
                     {item.image_url
-                      ? <img src={imgUrl(item.image_url)} alt={item.name} className="w-full h-full object-contain rounded-lg" />
+                      ? <img src={imgUrl(item.image_url)} alt={item.name} className="w-full h-full" />
                       : <Package size={36} className="text-muted" />}
                   </div>
 

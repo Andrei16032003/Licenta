@@ -9,7 +9,7 @@ from app.database import get_db
 from app.models.user_profile import Review
 from app.models.product import Product
 from app.dependencies import require_role
-_require_reviews = require_role("admin", "suport", "marketing")
+_require_reviews = require_role("admin", "suport", "marketing", "manager")
 from app.models.user import User
 
 router = APIRouter(prefix="/reviews", tags=["Review-uri"])

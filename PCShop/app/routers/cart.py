@@ -5,7 +5,8 @@ from uuid import UUID
 
 from app.database import get_db
 from app.models.order import CartItem
-from app.models.product import Product
+from app.models.product import Product, ProductImage
+from sqlalchemy.orm import joinedload
 
 router = APIRouter(prefix="/cart", tags=["Cos de cumparaturi"])
 
@@ -21,25 +22,37 @@ class CartUpdateRequest(BaseModel):
 @router.get("/{user_id}")
 def get_cart(user_id: UUID, db: Session = Depends(get_db)):
     items = db.query(CartItem).filter(CartItem.user_id == user_id).all()
-    
+
+    product_ids = [i.product_id for i in items]
+    products_by_id = {}
+    if product_ids:
+        fetched = (
+            db.query(Product)
+            .options(joinedload(Product.images))
+            .filter(Product.id.in_(product_ids))
+            .all()
+        )
+        products_by_id = {p.id: p for p in fetched}
+
     result = []
     total = 0
-    
+
     for item in items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        product = products_by_id.get(item.product_id)
         if product:
             subtotal = round(float(product.price) * item.quantity, 2)
             total += subtotal
             result.append({
                 "cart_item_id": str(item.id),
-                "product_id": str(product.id),
-                "name": product.name,
-                "brand": product.brand,
-                "price": float(product.price),
-                "quantity": item.quantity,
-                "subtotal": subtotal,
-                "stock": product.stock,
-                "added_at": item.added_at,
+                "product_id":   str(product.id),
+                "name":         product.name,
+                "brand":        product.brand,
+                "price":        float(product.price),
+                "quantity":     item.quantity,
+                "subtotal":     subtotal,
+                "stock":        product.stock,
+                "image_url":    product.images[0].url if product.images else None,
+                "added_at":     item.added_at,
             })
     
     return {

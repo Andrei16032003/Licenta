@@ -7,8 +7,9 @@ import random, string
 
 from app.database import get_db
 from app.models.service import ServiceRequest
+from app.models.product import Product, ProductImage
 from app.dependencies import require_role
-_require_service = require_role("admin", "suport")
+_require_service = require_role("admin", "suport", "manager")
 from app.models.user import User
 
 router = APIRouter(prefix="/service", tags=["Service"])
@@ -56,11 +57,20 @@ def get_service_user(user_id: UUID, db: Session = Depends(get_db)):
         .order_by(ServiceRequest.created_at.desc())
         .all()
     )
+    product_ids = [r.product_id for r in requests if r.product_id]
+    images_by_product = {}
+    if product_ids:
+        imgs = db.query(ProductImage).filter(ProductImage.product_id.in_(product_ids)).order_by(ProductImage.sort_order).all()
+        for img in imgs:
+            if img.product_id not in images_by_product:
+                images_by_product[img.product_id] = img.url
     return [
         {
             "id":              str(r.id),
             "order_id":        str(r.order_id),
+            "product_id":      str(r.product_id) if r.product_id else None,
             "product_name":    r.product_name,
+            "image_url":       images_by_product.get(r.product_id),
             "descriere":       r.descriere,
             "pickup_address":  r.pickup_address,
             "contact_telefon": r.contact_telefon,
@@ -76,11 +86,20 @@ def get_service_user(user_id: UUID, db: Session = Depends(get_db)):
 @router.get("/admin/all")
 def get_all_service(db: Session = Depends(get_db), _: User = Depends(_require_service)):
     reqs = db.query(ServiceRequest).order_by(ServiceRequest.created_at.desc()).all()
+    product_ids = [r.product_id for r in reqs if r.product_id]
+    images_by_product = {}
+    if product_ids:
+        imgs = db.query(ProductImage).filter(ProductImage.product_id.in_(product_ids)).order_by(ProductImage.sort_order).all()
+        for img in imgs:
+            if img.product_id not in images_by_product:
+                images_by_product[img.product_id] = img.url
     return [
         {
             "id":              str(r.id),
             "order_id":        str(r.order_id),
+            "product_id":      str(r.product_id) if r.product_id else None,
             "product_name":    r.product_name,
+            "image_url":       images_by_product.get(r.product_id),
             "descriere":       r.descriere,
             "pickup_address":  r.pickup_address,
             "contact_telefon": r.contact_telefon,

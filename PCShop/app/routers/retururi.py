@@ -6,8 +6,9 @@ from uuid import UUID
 
 from app.database import get_db
 from app.models.retur import Retur
+from app.models.product import Product, ProductImage
 from app.dependencies import require_role
-_require_retururi = require_role("admin", "suport")
+_require_retururi = require_role("admin", "suport", "manager")
 from app.models.user import User
 
 router = APIRouter(prefix="/retururi", tags=["Retururi"])
@@ -56,11 +57,26 @@ def get_retururi_user(user_id: UUID, db: Session = Depends(get_db)):
         .order_by(Retur.created_at.desc())
         .all()
     )
+    product_ids = [r.product_id for r in retururi if r.product_id]
+    images_by_product = {}
+    if product_ids:
+        imgs = (
+            db.query(ProductImage)
+            .filter(ProductImage.product_id.in_(product_ids))
+            .order_by(ProductImage.sort_order)
+            .all()
+        )
+        for img in imgs:
+            if img.product_id not in images_by_product:
+                images_by_product[img.product_id] = img.url
+
     return [
         {
             "id":             str(r.id),
             "order_id":       str(r.order_id),
+            "product_id":     str(r.product_id) if r.product_id else None,
             "product_name":   r.product_name,
+            "image_url":      images_by_product.get(r.product_id),
             "motiv":          r.motiv,
             "motiv_detalii":  r.motiv_detalii,
             "stare_produs":   r.stare_produs,
@@ -78,11 +94,23 @@ def get_retururi_user(user_id: UUID, db: Session = Depends(get_db)):
 @router.get("/admin/all")
 def get_all_retururi(db: Session = Depends(get_db), _: User = Depends(_require_retururi)):
     retururi = db.query(Retur).order_by(Retur.created_at.desc()).all()
+
+    product_ids = [r.product_id for r in retururi if r.product_id]
+    images_by_product = {}
+    if product_ids:
+        imgs = (db.query(ProductImage).filter(ProductImage.product_id.in_(product_ids))
+                .order_by(ProductImage.sort_order).all())
+        for img in imgs:
+            if img.product_id not in images_by_product:
+                images_by_product[img.product_id] = img.url
+
     return [
         {
             "id":             str(r.id),
             "order_id":       str(r.order_id),
+            "product_id":     str(r.product_id) if r.product_id else None,
             "product_name":   r.product_name,
+            "image_url":      images_by_product.get(r.product_id),
             "motiv":          r.motiv,
             "motiv_detalii":  r.motiv_detalii,
             "stare_produs":   r.stare_produs,

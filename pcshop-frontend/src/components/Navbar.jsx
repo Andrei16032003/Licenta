@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import {
   Lightning, ShoppingCart, User, CaretDown, SignOut,
   Package, Heart, ShieldCheck, ArrowCounterClockwise,
@@ -8,25 +8,35 @@ import {
 } from '@phosphor-icons/react'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
-import { cartAPI } from '../services/api'
+import useFavoriteStore from '../store/favoriteStore'
+import { cartAPI, wishlistAPI } from '../services/api'
+import { imgUrl } from '../utils/imgUrl'
 
 // Navbar fix sticky cu cautare, cos si meniu utilizator cu dropdown
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore()
   const { totalItems, setCart } = useCartStore()
+  const { items: favItems, totalItems: favTotal, setFavorites, clearFavorites } = useFavoriteStore()
   const navigate = useNavigate()
   const location = useLocation()
 
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchVal, setSearchVal] = useState('')
+  const [favOpen, setFavOpen] = useState(false)
+  const [favLoaded, setFavLoaded] = useState(false)
   const dropdownRef = useRef(null)
   const searchRef = useRef(null)
+  const favRef = useRef(null)
   const isActive = (path) => location.pathname === path
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       cartAPI.get(user.id).then(res => setCart(res.data)).catch(() => {})
+      wishlistAPI.get(user.id).then(res => { setFavorites(Array.isArray(res.data) ? res.data : (res.data.items || [])); setFavLoaded(true) }).catch(() => {})
+    } else {
+      clearFavorites()
+      setFavLoaded(false)
     }
   }, [isAuthenticated, user?.id])
 
@@ -34,6 +44,7 @@ export default function Navbar() {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false)
       if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false)
+      if (favRef.current && !favRef.current.contains(e.target)) setFavOpen(false)
     }
     const escHandler = (e) => {
       if (e.key === 'Escape') { setSearchOpen(false); setDropdownOpen(false) }
@@ -47,7 +58,7 @@ export default function Navbar() {
   }, [])
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setDropdownOpen(false); setSearchOpen(false) }, [location.pathname])
+  useEffect(() => { setDropdownOpen(false); setSearchOpen(false); setFavOpen(false) }, [location.pathname])
 
   // Redirectioneaza la catalog cu termenul de cautare ca parametru URL
   const handleSearch = (e) => {
@@ -73,7 +84,7 @@ export default function Navbar() {
     { to: '/profile',                Icon: User,                    label: 'Profilul meu'    },
     { to: '/orders',                 Icon: Package,                 label: 'Comenzile mele'  },
     { to: '/profile?tab=vouchers',   Icon: Tag,                     label: 'Voucherele mele' },
-    { to: '/wishlist',               Icon: Heart,                   label: 'Wishlist'        },
+    { to: '/wishlist',               Icon: Heart,                   label: 'Favorite'        },
     { to: '/profile?tab=warranties', Icon: ShieldCheck,             label: 'Garanții'        },
     { to: '/profile?tab=returns',    Icon: ArrowCounterClockwise,   label: 'Retururi'        },
     { to: '/profile?tab=service',    Icon: Wrench,                  label: 'Service'         },
@@ -150,6 +161,90 @@ export default function Navbar() {
             </button>
           )}
         </div>
+
+        {/* Favorites */}
+        {isAuthenticated && (
+          <div
+            ref={favRef}
+            className="relative flex items-center"
+            onMouseEnter={() => setFavOpen(true)}
+            onMouseLeave={() => setFavOpen(false)}
+          >
+            <Link
+              to="/wishlist"
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
+                          font-medium no-underline transition-all duration-150
+                          ${isActive('/wishlist')
+                            ? 'text-danger bg-danger/10 border border-danger/30'
+                            : 'text-secondary hover:text-danger hover:bg-danger/[0.06] border border-transparent'
+                          }`}
+            >
+              <Heart size={17} weight={isActive('/wishlist') ? 'fill' : 'regular'} />
+              {favTotal > 0 && (
+                <span className="bg-danger text-white text-[10px] font-extrabold font-mono
+                                 min-w-[18px] h-[18px] rounded-full px-1 flex items-center justify-center">
+                  {favTotal > 99 ? '99+' : favTotal}
+                </span>
+              )}
+            </Link>
+
+            {/* Hover dropdown — ultimele 3 favorite */}
+            {favOpen && favLoaded && (
+              <div className="absolute top-[calc(100%+6px)] right-0 bg-base-1 border border-white/[0.09]
+                              rounded-2xl min-w-[280px] shadow-elevated z-[200] animate-fade-in overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                  <span className="text-primary font-semibold text-sm flex items-center gap-2">
+                    <Heart size={14} weight="fill" className="text-danger" /> Favorite
+                  </span>
+                  <span className="text-muted text-[11px]">{favTotal} {favTotal === 1 ? 'produs' : 'produse'}</span>
+                </div>
+
+                {favItems.length === 0 ? (
+                  <div className="px-4 py-5 text-center text-muted text-sm">
+                    Niciun produs favorit încă
+                  </div>
+                ) : (
+                  <>
+                    <div className="py-1.5">
+                      {[...favItems].slice(-3).reverse().map((item) => (
+                        <button
+                          key={item.wishlist_id || item.product_id}
+                          onClick={() => navigate(`/product/${item.product_id}`)}
+                          className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-white/[0.04]
+                                     transition-colors bg-transparent border-none cursor-pointer text-left"
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-[#f8f9fa] flex-shrink-0 flex items-center justify-center overflow-hidden">
+                            {item.image_url
+                              ? <img src={imgUrl(item.image_url)} alt={item.name}
+                                     className="w-full h-full object-contain" />
+                              : <Desktop size={20} className="text-muted/40" />
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-primary text-[13px] font-medium leading-tight truncate">{item.name}</p>
+                            <p className="text-price text-[12px] font-bold font-mono mt-0.5">
+                              {parseFloat(item.price).toLocaleString('ro-RO', { minimumFractionDigits: 2 })} RON
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="px-3 pb-3">
+                      <button
+                        onClick={() => navigate('/wishlist')}
+                        className="w-full py-2 text-center text-accent text-[12px] font-semibold
+                                   bg-accent/[0.06] border border-accent/20 rounded-xl hover:bg-accent/10
+                                   transition-colors cursor-pointer"
+                      >
+                        Vezi toate favoritele →
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Cart */}
         <Link

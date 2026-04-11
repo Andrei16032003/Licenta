@@ -5,7 +5,7 @@ from uuid import UUID
 
 from app.database import get_db
 from app.models.user_profile import Wishlist
-from app.models.product import Product
+from app.models.product import Product, ProductImage
 
 router = APIRouter(prefix="/wishlist", tags=["Wishlist"])
 
@@ -20,6 +20,9 @@ def get_wishlist(user_id: UUID, db: Session = Depends(get_db)):
     for item in items:
         p = db.query(Product).filter(Product.id == item.product_id).first()
         if p:
+            first_img = db.query(ProductImage).filter(
+                ProductImage.product_id == p.id
+            ).order_by(ProductImage.sort_order).first()
             result.append({
                 "wishlist_id": str(item.id),
                 "product_id":  str(p.id),
@@ -29,6 +32,7 @@ def get_wishlist(user_id: UUID, db: Session = Depends(get_db)):
                 "old_price":   float(p.old_price) if p.old_price else None,
                 "stock":       p.stock,
                 "category":    p.category.name if p.category else None,
+                "image_url":   first_img.url if first_img else None,
                 "added_at":    item.added_at,
             })
     return result

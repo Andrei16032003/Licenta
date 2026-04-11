@@ -6,6 +6,7 @@ import {
   Tag, ArrowRight,
 } from '@phosphor-icons/react'
 import { cartAPI, ordersAPI, profileAPI, vouchersAPI } from '../services/api'
+import { imgUrl } from '../utils/imgUrl'
 import useAuthStore from '../store/authStore'
 
 const PAYMENT_OPTIONS = [
@@ -382,8 +383,11 @@ export default function Checkout() {
             <div className="flex flex-col gap-2.5">
               {cart.items.map(item => (
                 <div key={item.cart_item_id} className="flex gap-3.5 items-center p-3 rounded-xl bg-base-2 border border-default">
-                  <div className="product-img-bg w-14 h-14 rounded-lg flex-shrink-0 flex items-center justify-center">
-                    <ShoppingBag size={22} className="text-muted" />
+                  <div className="product-img-bg w-14 h-14 rounded-lg flex-shrink-0 overflow-hidden flex items-center justify-center">
+                    {item.image_url
+                      ? <img src={imgUrl(item.image_url)} alt={item.name} />
+                      : <ShoppingBag size={22} className="text-muted" />
+                    }
                   </div>
                   <div className="flex-1">
                     <p className="text-primary font-semibold text-sm mb-0.5">{item.name}</p>

@@ -14,7 +14,7 @@ from app.models.user_profile import Review
 from app.models.filter_option import FilterOption
 from app.dependencies import require_role
 _require_products  = require_role("admin", "achizitii")
-_require_marketing = require_role("admin", "marketing")
+_require_marketing = require_role("admin", "marketing", "manager")
 from app.models.user import User
 
 # ── SEED DATA (chei exacte din DB) ───────────────────────────

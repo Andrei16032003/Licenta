@@ -610,12 +610,18 @@ export default function Profile() {
                             <p className="text-muted text-[11px] uppercase tracking-wider mb-2.5">Produse</p>
                             <div className="flex flex-col gap-2">
                               {detail.items.map((item, i) => (
-                                <div key={i} className="bg-base-2 rounded-lg p-2.5 flex justify-between items-center">
-                                  <div>
-                                    <p className="text-primary text-[13px] font-medium">{item.product_name}</p>
+                                <div key={i} className="bg-base-2 rounded-lg p-2.5 flex items-center gap-3">
+                                  <div className="product-img-bg w-12 h-12 rounded-lg shrink-0 overflow-hidden flex items-center justify-center">
+                                    {item.image_url
+                                      ? <img src={imgUrl(item.image_url)} alt={item.product_name} />
+                                      : <Desktop size={20} className="text-muted/40" />
+                                    }
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-primary text-[13px] font-medium truncate">{item.product_name}</p>
                                     <p className="text-muted text-[11px]">{item.unit_price} RON × {item.quantity}</p>
                                   </div>
-                                  <span className="text-price font-bold text-sm">{item.subtotal} RON</span>
+                                  <span className="text-price font-bold text-sm shrink-0">{item.subtotal} RON</span>
                                 </div>
                               ))}
                             </div>
@@ -778,8 +784,11 @@ export default function Profile() {
               {wishlist.map(item => (
                 <div key={item.wishlist_id} className="flex items-center gap-3.5 bg-base-2/30 rounded-xl p-3.5 border border-default">
                   <Link to={`/product/${item.product_id}`} className="no-underline shrink-0">
-                    <div className="w-14 h-14 rounded-lg bg-base-2 border border-default flex items-center justify-center shrink-0">
-                      <Desktop size={22} className="text-muted/50" />
+                    <div className="product-img-bg w-14 h-14 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                      {item.image_url
+                        ? <img src={imgUrl(item.image_url)} alt={item.name} />
+                        : <Desktop size={22} className="text-muted/50" />
+                      }
                     </div>
                   </Link>
                   <div className="flex-1 min-w-0">
@@ -905,9 +914,9 @@ export default function Profile() {
                       return (
                         <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '14px 16px', border: `1px solid ${color}18`, display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
                           {/* Image */}
-                          <div className="w-14 h-14 rounded-xl bg-base-2 border border-default shrink-0 flex items-center justify-center overflow-hidden">
+                          <div className="product-img-bg w-14 h-14 rounded-xl shrink-0 overflow-hidden flex items-center justify-center">
                             {item.image_url
-                              ? <img src={imgUrl(item.image_url)} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
+                              ? <img src={imgUrl(item.image_url)} alt={item.product_name} />
                               : <Desktop size={22} className="text-muted/30" />
                             }
                           </div>
@@ -1568,7 +1577,14 @@ export default function Profile() {
                 return (
                   <div key={r.id} className="bg-base-2/30 border border-default rounded-2xl px-4 py-4" style={{ borderLeft: `3px solid ${st.color}` }}>
                     <div className="flex justify-between items-start gap-3 flex-wrap">
-                      <div className="flex-1">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div className="product-img-bg w-12 h-12 rounded-lg shrink-0 overflow-hidden flex items-center justify-center">
+                          {r.image_url
+                            ? <img src={imgUrl(r.image_url)} alt={r.product_name} />
+                            : <Desktop size={18} className="text-muted/40" />
+                          }
+                        </div>
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
                           <p className="text-primary font-bold text-sm m-0">{r.product_name}</p>
                           <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${st.className}`}>
@@ -1583,6 +1599,7 @@ export default function Profile() {
                         <p className="text-muted text-xs m-0">
                           Stare produs: <span className="text-secondary capitalize">{r.stare_produs}</span>
                         </p>
+                      </div>
                       </div>
                       <p className="text-muted text-[11px] m-0 whitespace-nowrap shrink-0">
                         {new Date(r.created_at).toLocaleDateString('ro-RO')}
