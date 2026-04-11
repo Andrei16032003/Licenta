@@ -46,7 +46,11 @@ const serviceStatusCfg = {
 const MENU_ALL = [
   { section: 'divider_general',     divider: true, label: 'GENERAL' },
   { section: 'dashboard',           Icon: ChartBar,              label: 'Dashboard' },
-  { section: 'manager_dashboard',   Icon: ChartLine,             label: 'Dashboard Manager' },
+  { section: 'manager_dashboard',   Icon: ChartLine,             label: 'Prezentare generală' },
+  { section: 'divider_mgr',         divider: true, label: 'MANAGER' },
+  { section: 'manager_financiar',   Icon: ChartBar,              label: 'Rapoarte Financiare' },
+  { section: 'manager_produse',     Icon: Package,               label: 'Analiză Produse' },
+  { section: 'manager_comenzi',     Icon: ShoppingCart,          label: 'Comenzi' },
   { section: 'suport_dashboard',    Icon: Headset,               label: 'Dashboard Suport' },
   { section: 'marketing_dashboard', Icon: Broadcast,             label: 'Dashboard Marketing' },
   { section: 'achizitii_dashboard', Icon: Gauge,                 label: 'Dashboard Achiziții' },
@@ -78,8 +82,8 @@ const MENU_ALL = [
 
 // Sectiunile accesibile per rol
 const ROLE_SECTIONS = {
-  admin:     new Set(['dashboard','manager_dashboard','contact','rapoarte','products','add','orders','service','retururi','clients','reviews','vouchers','team','marketing_dashboard','produse_mkt','grafice_mkt','campanii_mkt','segmentare_mkt','achizitii_dashboard','stoc_achizitii']),
-  manager:   new Set(['manager_dashboard','contact','rapoarte']),
+  admin:     new Set(['dashboard','team','manager_dashboard','suport_dashboard','marketing_dashboard','achizitii_dashboard']),
+  manager:   new Set(['manager_dashboard','manager_financiar','manager_produse','manager_comenzi']),
   achizitii: new Set(['achizitii_dashboard','stoc_achizitii','products','add']),
   marketing: new Set(['marketing_dashboard','produse_mkt','vouchers','grafice_mkt','campanii_mkt','segmentare_mkt']),
   suport:    new Set(['suport_dashboard','contact','orders','service','retururi','clients','reviews']),
@@ -191,7 +195,9 @@ export default function Admin() {
   const location = useLocation()
 
   const userRole = user?.role || 'admin'
-  const MENU = useMemo(() => buildMenu(userRole), [userRole])
+  const [viewAsRole, setViewAsRole] = useState(null)
+  const activeRole = viewAsRole || userRole
+  const MENU = useMemo(() => buildMenu(activeRole), [activeRole])
   const [section, setSection]             = useState(() => {
     // Prioritate: sectiunea transmisa din profil via router state, altfel default per rol
     if (location.state?.section) return location.state.section
@@ -285,6 +291,16 @@ export default function Admin() {
   const [discountSaving, setDiscountSaving]     = useState(false)
   const [campTab, setCampTab]                   = useState('active')  // 'active' | 'all'
 
+  // Manager — filtre interactve
+  const [mgrFinPeriod, setMgrFinPeriod]       = useState(30)          // 7 / 30 / 90 / 365
+  const [mgrFinMetric, setMgrFinMetric]       = useState('revenue')   // revenue | count | avg | delivery
+  const [mgrFinChartType, setMgrFinChartType] = useState('area')      // area | bar
+  const [mgrFinCat, setMgrFinCat]             = useState('')           // '' = toate
+  const [mgrProdSort, setMgrProdSort]         = useState('revenue')   // revenue | units | stock
+  const [mgrProdCat, setMgrProdCat]           = useState('')
+  const [mgrOrdStatus, setMgrOrdStatus]       = useState('')
+  const [mgrOrdSearch, setMgrOrdSearch]       = useState('')
+
   // Achizitii
   const [acqStockFilter, setAcqStockFilter]     = useState('all')   // all | zero | low | ok | incomplete
   const [acqSearch, setAcqSearch]               = useState('')
@@ -338,13 +354,13 @@ export default function Admin() {
     try {
       const needsProducts  = allowed.has('products') || allowed.has('dashboard') || allowed.has('rapoarte') || allowed.has('achizitii_dashboard') || allowed.has('stoc_achizitii') || allowed.has('manager_dashboard')
       const needsOrders    = allowed.has('orders')   || allowed.has('dashboard') || allowed.has('rapoarte') || allowed.has('clients') || allowed.has('manager_dashboard')
-      const needsRetururi  = allowed.has('retururi') || allowed.has('dashboard')
-      const needsService   = allowed.has('service')  || allowed.has('dashboard')
-      const needsReviews   = allowed.has('reviews')
-      const needsVouchers  = allowed.has('vouchers')
-      const needsClients   = allowed.has('clients')  || allowed.has('vouchers')
+      const needsRetururi  = allowed.has('retururi') || allowed.has('dashboard') || allowed.has('manager_dashboard')
+      const needsService   = allowed.has('service')  || allowed.has('dashboard') || allowed.has('manager_dashboard')
+      const needsReviews   = allowed.has('reviews')  || allowed.has('manager_dashboard')
+      const needsVouchers  = allowed.has('vouchers')  || allowed.has('marketing_dashboard')
+      const needsClients   = allowed.has('clients')  || allowed.has('vouchers') || allowed.has('suport_dashboard') || allowed.has('marketing_dashboard')
       const needsTeam      = role === 'admin'
-      const needsContact   = allowed.has('contact')
+      const needsContact   = allowed.has('contact')  || allowed.has('manager_dashboard')
       const needsMktStats  = allowed.has('marketing_dashboard') || allowed.has('produse_mkt')
 
       const [prodRes, catRes, ordRes, retRes, svcRes, revRes, voucherRes, clientsRes, teamRes, contactRes, mktRes, timelineRes, segmentsRes] = await Promise.all([
@@ -842,7 +858,9 @@ export default function Admin() {
               <div style={{ color: 'var(--cyan)', fontWeight: '800', fontSize: '15px', letterSpacing: '0.5px' }}>
                 PCShop
               </div>
-              <div style={{ color: '#4B5563', fontSize: '10px', letterSpacing: '1px' }}>ADMIN PANEL</div>
+              <div style={{ color: '#4B5563', fontSize: '10px', letterSpacing: '1px' }}>
+                {viewAsRole ? ({ manager: 'MANAGER', suport: 'SUPORT', marketing: 'MARKETING', achizitii: 'ACHIZITII' }[viewAsRole]) : 'ADMIN PANEL'}
+              </div>
             </div>
           )}
           <button onClick={() => setCollapsed(c => !c)} style={{
@@ -874,7 +892,7 @@ export default function Admin() {
                         : item.section === 'reviews' ? pendingReviews
                         : item.section === 'contact' ? contactMessages.filter(m => !m.is_resolved).length : 0
             return (
-              <button key={item.section} onClick={() => goTo(item.section)} style={{
+              <button key={item.section} onClick={() => { if (item.section === 'dashboard') setViewAsRole(null); goTo(item.section) }} style={{
                 width: '100%', display: 'flex', alignItems: 'center',
                 gap: '10px', padding: collapsed ? '10px 0' : '10px 16px',
                 justifyContent: collapsed ? 'center' : 'flex-start',
@@ -923,6 +941,27 @@ export default function Admin() {
 
       {/* ── MAIN CONTENT ── */}
       <main style={{ flex: 1, padding: '28px', overflowX: 'hidden', minWidth: 0 }}>
+
+        {/* Banner "Vizualizezi ca rol" */}
+        {viewAsRole && userRole === 'admin' && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', marginBottom: '20px', background: 'rgba(14,246,255,0.06)', border: '1px solid rgba(14,246,255,0.2)', borderRadius: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Eye size={16} color="#0EF6FF" weight="bold" />
+              <span style={{ color: '#0EF6FF', fontSize: '13px', fontWeight: '600' }}>
+                Vizualizezi ca: <strong>{{ manager: 'Manager', suport: 'Suport Clienți', marketing: 'Marketing', achizitii: 'Achiziții' }[viewAsRole]}</strong>
+              </span>
+              <span style={{ color: '#4B5563', fontSize: '12px' }}>— acesta este dashboardul pe care îl vede angajatul cu acest rol</span>
+            </div>
+            <button
+              onClick={() => { setViewAsRole(null); setSection('dashboard'); setGlobalSearch('') }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', background: 'rgba(14,246,255,0.1)', border: '1px solid rgba(14,246,255,0.3)', borderRadius: '8px', color: '#0EF6FF', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(14,246,255,0.18)'}
+              onMouseLeave={e => e.currentTarget.style.background='rgba(14,246,255,0.1)'}
+            >
+              <ArrowCounterClockwise size={13} weight="bold" /> Înapoi la Admin
+            </button>
+          </div>
+        )}
 
         {/* Flash message */}
         {message && (
@@ -1064,114 +1103,828 @@ export default function Admin() {
             SUPORT DASHBOARD
         ══════════════════════════════════════════════════════ */}
         {section === 'manager_dashboard' && (() => {
+          // ── Calcule financiare ───────────────────────────────────────
           const today      = new Date()
-          const todayStr   = today.toISOString().slice(0, 10)
           const thisMonth  = today.toISOString().slice(0, 7)
-          const nonCancelled = orders.filter(o => o.status !== 'cancelled')
-          const revenueToday  = orders.filter(o => (o.created_at||'').startsWith(todayStr) && o.status !== 'cancelled').reduce((s,o) => s + parseFloat(o.total_price||0), 0)
-          const revenueMonth  = orders.filter(o => (o.created_at||'').startsWith(thisMonth) && o.status !== 'cancelled').reduce((s,o) => s + parseFloat(o.total_price||0), 0)
-          const revenueTotal  = nonCancelled.reduce((s,o) => s + parseFloat(o.total_price||0), 0)
-          const avgOrder      = nonCancelled.length ? revenueTotal / nonCancelled.length : 0
-          const deliveredPct  = orders.length ? Math.round(orders.filter(o => o.status === 'delivered').length / orders.length * 100) : 0
-          const cancelledPct  = orders.length ? Math.round(orders.filter(o => o.status === 'cancelled').length / orders.length * 100) : 0
-          const ordersByStatus = ['pending','confirmed','processing','shipped','delivered','cancelled'].map(s => ({
-            status: s, label: orderStatusCfg[s]?.label || s, count: orders.filter(o => o.status === s).length, color: orderStatusCfg[s]?.color || '#6B7280',
+          const lastMonth  = new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString().slice(0, 7)
+
+          const nonCancelled   = orders.filter(o => o.status !== 'cancelled')
+          const revenueMonth   = orders.filter(o => (o.created_at||'').startsWith(thisMonth)  && o.status !== 'cancelled').reduce((s,o) => s + parseFloat(o.total_price||0), 0)
+          const revenueLastMo  = orders.filter(o => (o.created_at||'').startsWith(lastMonth)  && o.status !== 'cancelled').reduce((s,o) => s + parseFloat(o.total_price||0), 0)
+          const revenueTotal   = nonCancelled.reduce((s,o) => s + parseFloat(o.total_price||0), 0)
+          const avgOrder       = nonCancelled.length ? revenueTotal / nonCancelled.length : 0
+          const deliveredCount = orders.filter(o => o.status === 'delivered').length
+          const cancelledCount = orders.filter(o => o.status === 'cancelled').length
+          const deliveredPct   = orders.length ? Math.round(deliveredCount / orders.length * 100) : 0
+          const monthGrowth    = revenueLastMo > 0 ? ((revenueMonth - revenueLastMo) / revenueLastMo * 100) : null
+
+          // ── Venituri pe categorie ────────────────────────────────────
+          const catChartData = revenueByCategory.slice(0, 8).map(([cat, val]) => ({
+            name: cat.length > 14 ? cat.slice(0, 13) + '…' : cat,
+            Venituri: Math.round(val),
           }))
-          const maxStatusCount = Math.max(...ordersByStatus.map(s => s.count), 1)
-          const top5 = topProducts.slice(0, 5)
+
+          // ── Top produse vândute ──────────────────────────────────────
+          const top8 = [...topProducts].sort((a,b) => b.revenue - a.revenue).slice(0, 8)
+          const maxTop8Rev = top8[0]?.revenue || 1
+
+          // ── Produse care blochează stocul ────────────────────────────
+          // = produse cu stoc mare dar vânzări zero sau foarte mici
+          const soldProductIds = new Set(topProducts.map(p => p.id).filter(Boolean))
+          const deadStock = products
+            .filter(p => p.stock >= 10 && !soldProductIds.has(String(p.id)))
+            .sort((a,b) => b.stock - a.stock)
+            .slice(0, 8)
+          const slowMovers = products
+            .filter(p => {
+              const sold = topProducts.find(tp => String(tp.id) === String(p.id))
+              return p.stock >= 10 && sold && sold.quantity <= 2
+            })
+            .sort((a,b) => b.stock - a.stock)
+            .slice(0, 4)
+
+          // ── Performanță echipă ───────────────────────────────────────
+          const svcTotal      = serviceReqs.length
+          const svcResolved   = serviceReqs.filter(s => s.status === 'rezolvat').length
+          const svcOpenCount  = serviceReqs.filter(s => !['rezolvat','respins'].includes(s.status)).length
+          const svcResPct     = svcTotal > 0 ? Math.round(svcResolved / svcTotal * 100) : 0
+
+          const retTotal      = retururi.length
+          const retRate       = deliveredCount > 0 ? (retTotal / deliveredCount * 100).toFixed(1) : '0'
+
+          const ctTotal       = contactMessages.length
+          const ctResolved    = contactMessages.filter(m => m.is_resolved).length
+          const ctResPct      = ctTotal > 0 ? Math.round(ctResolved / ctTotal * 100) : 0
+
+          const revTotal      = adminReviews.length
+          const revProcessed  = adminReviews.filter(r => r.is_approved || r.rejection_reason).length
+          const revProcPct    = revTotal > 0 ? Math.round(revProcessed / revTotal * 100) : 0
+
+          // ── Chart tooltip ────────────────────────────────────────────
+          const ttStyle = { contentStyle: { background: '#0D1421', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#F1F5F9', fontSize: '12px' }, labelStyle: { color: '#9CA3AF', fontSize: '11px' }, cursor: { fill: 'rgba(255,255,255,0.04)' } }
           const areaData = revenue7.map(d => ({ zi: d.day, Venituri: Math.round(d.val) }))
-          const tooltipStyleMgr = { contentStyle: { background: '#0D1421', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#F1F5F9', fontSize: '12px' }, labelStyle: { color: '#9CA3AF', fontSize: '11px' }, cursor: { fill: 'rgba(255,255,255,0.04)' } }
-          const zeroStockCount = products.filter(p => p.stock === 0).length
-          const lowStockCount  = products.filter(p => p.stock > 0 && p.stock <= 5).length
-          const openService  = serviceReqs.filter(s => !['rezolvat','respins'].includes(s.status)).length
-          const openRetururi = retururi.filter(r => r.status === 'in_asteptare').length
+          const ACCENT = ['#0EF6FF','#00E676','#CE93D8','#42A5F5','#FFD700','#FF9800','#FF5252','#4FC3F7']
+
           return (
-            <div>
-              <h1 style={{ color: '#F1F5F9', fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>Dashboard Manager</h1>
-              <p style={{ color: '#4B5563', fontSize: '13px', marginBottom: '20px' }}>Situație generală afacere — venituri, comenzi, stoc, operațional</p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+              {/* ══ HEADER ══════════════════════════════════════════════ */}
+              <div>
+                <h1 style={{ color: '#F1F5F9', fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>
+                  Performanță & Analize Strategice
+                </h1>
+                <p style={{ color: '#4B5563', fontSize: '13px', lineHeight: '1.5' }}>
+                  Rapoarte financiare, top produse, stoc și performanța echipei — acces <span style={{ color: '#0EF6FF', fontWeight: '600' }}>read-only</span> pentru decizii strategice
+                </p>
+              </div>
+
+              {/* ══ KPI FINANCIAR — 4 carduri ═══════════════════════════ */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                 {[
-                  { label: 'Venituri azi',          value: revenueToday.toFixed(0) + ' RON', color: '#0EF6FF', sub: 'comenzi neanulate' },
-                  { label: 'Venituri luna curentă',  value: revenueMonth.toFixed(0) + ' RON', color: '#00E676', sub: today.toLocaleString('ro-RO', { month: 'long', year: 'numeric' }) },
-                  { label: 'Valoare medie comandă',  value: avgOrder.toFixed(0) + ' RON',     color: '#CE93D8', sub: `din ${orders.length} comenzi total` },
-                  { label: 'Livrare succes',         value: deliveredPct + '%',               color: '#42A5F5', sub: `anulare ${cancelledPct}%` },
+                  {
+                    label: 'Venituri totale', value: revenueTotal.toFixed(0) + ' RON',
+                    sub: `din ${nonCancelled.length} comenzi active`, color: '#0EF6FF',
+                  },
+                  {
+                    label: 'Venituri ' + today.toLocaleString('ro-RO', { month: 'long' }),
+                    value: revenueMonth.toFixed(0) + ' RON',
+                    sub: monthGrowth !== null
+                      ? (monthGrowth >= 0 ? `▲ +${monthGrowth.toFixed(1)}% vs luna trecută` : `▼ ${monthGrowth.toFixed(1)}% vs luna trecută`)
+                      : 'primele date disponibile',
+                    subColor: monthGrowth !== null ? (monthGrowth >= 0 ? '#00E676' : '#FF5252') : '#4B5563',
+                    color: '#00E676',
+                  },
+                  {
+                    label: 'Valoare medie comandă', value: avgOrder.toFixed(0) + ' RON',
+                    sub: `${orders.length} comenzi total`, color: '#CE93D8',
+                  },
+                  {
+                    label: 'Rata de livrare', value: deliveredPct + '%',
+                    sub: `${deliveredCount} livrate · ${cancelledCount} anulate`, color: deliveredPct >= 75 ? '#00E676' : '#FFD700',
+                  },
                 ].map(k => (
-                  <div key={k.label} style={{ background: '#0F1923', border: `1px solid ${k.color}33`, borderRadius: '14px', padding: '20px' }}>
-                    <div style={{ color: k.color, fontSize: '10px', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>{k.label}</div>
-                    <div style={{ color: '#F1F5F9', fontSize: '32px', fontWeight: '800', lineHeight: 1 }}>{k.value}</div>
-                    <div style={{ color: '#4B5563', fontSize: '11px', marginTop: '5px' }}>{k.sub}</div>
+                  <div key={k.label} style={{ background: '#0F1923', border: `1px solid ${k.color}20`, borderRadius: '14px', padding: '20px', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: `linear-gradient(90deg, ${k.color}60, transparent)` }} />
+                    <div style={{ color: '#6B7280', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '10px' }}>{k.label}</div>
+                    <div style={{ color: '#F1F5F9', fontSize: '26px', fontWeight: '800', lineHeight: 1, marginBottom: '6px' }}>{k.value}</div>
+                    <div style={{ color: k.subColor || '#4B5563', fontSize: '11px' }}>{k.sub}</div>
                   </div>
                 ))}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px', marginBottom: '20px' }}>
-                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '22px' }}>
-                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '15px', marginBottom: '18px' }}>Venituri — ultimele 7 zile</div>
+
+              {/* ══ RAPOARTE FINANCIARE — grafice ═══════════════════════ */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+
+                {/* Venituri pe categorie */}
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>Venituri pe categorie</div>
+                  <div style={{ color: '#4B5563', fontSize: '11px', marginBottom: '16px' }}>Marje și distribuție revenue per segment de produse</div>
+                  {catChartData.length === 0 ? (
+                    <p style={{ color: '#4B5563', fontSize: '13px' }}>Nu există date de vânzări.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={catChartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v > 0 ? (v/1000).toFixed(0)+'k' : ''} width={36} />
+                        <Tooltip {...ttStyle} formatter={v => [v + ' RON', 'Venituri']} />
+                        <Bar dataKey="Venituri" radius={[5, 5, 0, 0]}>
+                          {catChartData.map((_, i) => <Cell key={i} fill={ACCENT[i % ACCENT.length]} fillOpacity={0.85} />)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                {/* Trend venituri 7 zile */}
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>Trend venituri — 7 zile</div>
+                  <div style={{ color: '#4B5563', fontSize: '11px', marginBottom: '16px' }}>
+                    Total săptămână: <span style={{ color: '#0EF6FF', fontWeight: '700' }}>{revenue7.reduce((s,d) => s+d.val, 0).toFixed(0)} RON</span>
+                  </div>
                   <ResponsiveContainer width="100%" height={200}>
-                    <AreaChart data={areaData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                      <defs><linearGradient id="mgrRev" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0EF6FF" stopOpacity={0.25} /><stop offset="95%" stopColor="#0EF6FF" stopOpacity={0} /></linearGradient></defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <AreaChart data={areaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="mgr7dGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0EF6FF" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#0EF6FF" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                       <XAxis dataKey="zi" tick={{ fill: '#6B7280', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: '#6B7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => v > 0 ? v + ' RON' : ''} width={72} />
-                      <Tooltip {...tooltipStyleMgr} formatter={v => [v + ' RON', 'Venituri']} />
-                      <Area type="monotone" dataKey="Venituri" stroke="#0EF6FF" strokeWidth={2} fill="url(#mgrRev)" dot={{ fill: '#0EF6FF', r: 3 }} activeDot={{ r: 5 }} />
+                      <YAxis tick={{ fill: '#6B7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => v > 0 ? v + ' RON' : ''} width={68} />
+                      <Tooltip {...ttStyle} formatter={v => [v + ' RON', 'Venituri']} />
+                      <Area type="monotone" dataKey="Venituri" stroke="#0EF6FF" strokeWidth={2} fill="url(#mgr7dGrad)" dot={{ fill: '#0EF6FF', r: 3 }} activeDot={{ r: 5 }} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '22px' }}>
-                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '15px', marginBottom: '18px' }}>Comenzi pe status</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {ordersByStatus.map(s => (
-                      <div key={s.status}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <span style={{ color: '#9CA3AF', fontSize: '11px' }}>{s.label}</span>
-                          <span style={{ color: s.color, fontSize: '12px', fontWeight: '700' }}>{s.count}</span>
+              </div>
+
+              {/* ══ TOP PRODUSE + STOC BLOCAT ════════════════════════════ */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+
+                {/* Top 8 produse după venituri */}
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>Top produse vândute</div>
+                  <div style={{ color: '#4B5563', fontSize: '11px', marginBottom: '14px' }}>Clasificate după venituri generate</div>
+                  {top8.length === 0 ? (
+                    <p style={{ color: '#4B5563', fontSize: '13px' }}>Nu există date de vânzări.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {top8.map((p, i) => (
+                        <div key={i}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0 }}>
+                              <span style={{ color: ACCENT[i], fontSize: '10px', fontWeight: '800', width: '20px', flexShrink: 0, fontFamily: 'monospace' }}>#{i+1}</span>
+                              <span style={{ color: '#E2E8F0', fontSize: '12px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                            </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '8px' }}>
+                              <span style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '700' }}>{p.revenue.toFixed(0)} RON</span>
+                              <span style={{ color: '#4B5563', fontSize: '10px', marginLeft: '6px' }}>{p.quantity} buc</span>
+                            </div>
+                          </div>
+                          <div style={{ height: '3px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${(p.revenue / maxTop8Rev) * 100}%`, background: ACCENT[i], borderRadius: '2px' }} />
+                          </div>
                         </div>
-                        <div style={{ height: '5px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${(s.count / maxStatusCount) * 100}%`, background: s.color, borderRadius: '3px' }} />
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Produse care blochează stocul */}
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,152,0,0.2)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>Produse cu stoc blocat</div>
+                  <div style={{ color: '#4B5563', fontSize: '11px', marginBottom: '14px' }}>
+                    Stoc ≥10 buc. fără vânzări recente — blochează capital
                   </div>
+                  {deadStock.length === 0 && slowMovers.length === 0 ? (
+                    <div style={{ color: '#00E676', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Check size={16} weight="bold" /> Toate produsele au rotație activă
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', maxHeight: '280px', overflowY: 'auto' }}>
+                      {deadStock.length > 0 && (
+                        <div style={{ color: '#FF5252', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '4px', marginTop: '2px' }}>
+                          Niciodată vândute ({deadStock.length})
+                        </div>
+                      )}
+                      {deadStock.map(p => (
+                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'rgba(255,82,82,0.05)', borderRadius: '7px', borderLeft: '3px solid #FF5252' }}>
+                          <span style={{ color: '#D1D5DB', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{p.name}</span>
+                          <span style={{ color: '#FF5252', fontSize: '11px', fontWeight: '700', flexShrink: 0, marginLeft: '8px' }}>{p.stock} buc</span>
+                        </div>
+                      ))}
+                      {slowMovers.length > 0 && (
+                        <div style={{ color: '#FF9800', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase', margin: '6px 0 4px' }}>
+                          Vânzări foarte mici ({slowMovers.length})
+                        </div>
+                      )}
+                      {slowMovers.map(p => {
+                        const sold = topProducts.find(tp => String(tp.id) === String(p.id))
+                        return (
+                          <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'rgba(255,152,0,0.05)', borderRadius: '7px', borderLeft: '3px solid #FF9800' }}>
+                            <span style={{ color: '#D1D5DB', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>{p.name}</span>
+                            <span style={{ color: '#9CA3AF', fontSize: '10px', flexShrink: 0, marginLeft: '6px' }}>stoc {p.stock} · {sold?.quantity||0} vândute</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '22px' }}>
-                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '15px', marginBottom: '16px' }}>Top 5 produse vândute</div>
-                  {top5.length === 0 ? <p style={{ color: '#4B5563', fontSize: '13px' }}>Nu există date despre vânzări.</p> : top5.map((p, i) => {
-                    const maxQ = top5[0].quantity || 1
-                    return (
-                      <div key={i} style={{ marginBottom: i < top5.length - 1 ? '14px' : 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                          <span style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' }}>{p.name}</span>
-                          <span style={{ color: '#9CA3AF', fontSize: '11px', flexShrink: 0, marginLeft: '8px' }}>{p.quantity} buc · {p.revenue.toFixed(0)} RON</span>
-                        </div>
-                        <div style={{ height: '5px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${(p.quantity / maxQ) * 100}%`, background: ['#0EF6FF','#00E676','#CE93D8','#42A5F5','#FFD700'][i], borderRadius: '3px' }} />
-                        </div>
+
+              {/* ══ PERFORMANȚĂ ECHIPĂ ══════════════════════════════════ */}
+              <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>Performanță echipă</div>
+                <div style={{ color: '#4B5563', fontSize: '11px', marginBottom: '18px' }}>Volum de activitate și rate de rezolvare per departament</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
+                  {[
+                    {
+                      dept: 'Service & Reparații',
+                      metric: svcResPct + '%',
+                      metricLabel: 'rată rezolvare',
+                      color: '#CE93D8',
+                      details: [
+                        { label: 'Total tichete', val: svcTotal },
+                        { label: 'Rezolvate', val: svcResolved, color: '#00E676' },
+                        { label: 'Deschise', val: svcOpenCount, color: svcOpenCount > 0 ? '#FF9800' : '#00E676' },
+                      ],
+                      pct: svcResPct,
+                    },
+                    {
+                      dept: 'Gestionare Retururi',
+                      metric: retRate + '%',
+                      metricLabel: 'rată de retur',
+                      color: '#FFD700',
+                      details: [
+                        { label: 'Total retururi', val: retTotal },
+                        { label: 'Comenzi livrate', val: deliveredCount },
+                        { label: 'Așteptare', val: retururi.filter(r=>r.status==='in_asteptare').length, color: retururi.filter(r=>r.status==='in_asteptare').length > 0 ? '#FF9800' : '#00E676' },
+                      ],
+                      pct: Math.min(parseFloat(retRate) * 10, 100),
+                      invertColor: true,
+                    },
+                    {
+                      dept: 'Suport Contact',
+                      metric: ctResPct + '%',
+                      metricLabel: 'rată răspuns',
+                      color: '#42A5F5',
+                      details: [
+                        { label: 'Total mesaje', val: ctTotal },
+                        { label: 'Rezolvate', val: ctResolved, color: '#00E676' },
+                        { label: 'Nerezolvate', val: ctTotal - ctResolved, color: (ctTotal-ctResolved) > 0 ? '#FF5252' : '#00E676' },
+                      ],
+                      pct: ctResPct,
+                    },
+                    {
+                      dept: 'Moderare Recenzii',
+                      metric: revProcPct + '%',
+                      metricLabel: 'procesate',
+                      color: '#0EF6FF',
+                      details: [
+                        { label: 'Total recenzii', val: revTotal },
+                        { label: 'Procesate', val: revProcessed, color: '#00E676' },
+                        { label: 'În așteptare', val: revTotal - revProcessed, color: (revTotal-revProcessed) > 0 ? '#FFD700' : '#00E676' },
+                      ],
+                      pct: revProcPct,
+                    },
+                  ].map(t => (
+                    <div key={t.dept} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '16px', border: `1px solid ${t.color}18` }}>
+                      {/* Departament */}
+                      <div style={{ color: t.color, fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '10px' }}>{t.dept}</div>
+                      {/* Metric principal */}
+                      <div style={{ color: '#F1F5F9', fontSize: '28px', fontWeight: '800', lineHeight: 1 }}>{t.metric}</div>
+                      <div style={{ color: '#4B5563', fontSize: '10px', marginBottom: '12px', marginTop: '3px' }}>{t.metricLabel}</div>
+                      {/* Progress bar */}
+                      <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden', marginBottom: '12px' }}>
+                        <div style={{ height: '100%', width: `${t.pct}%`, background: t.invertColor ? (parseFloat(t.metric) < 5 ? '#00E676' : parseFloat(t.metric) < 15 ? '#FFD700' : '#FF5252') : t.color, borderRadius: '3px' }} />
                       </div>
-                    )
-                  })}
+                      {/* Detalii */}
+                      {t.details.map(d => (
+                        <div key={d.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                          <span style={{ color: '#6B7280', fontSize: '11px' }}>{d.label}</span>
+                          <span style={{ color: d.color || '#9CA3AF', fontSize: '11px', fontWeight: '600' }}>{d.val}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
                 </div>
-                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '22px' }}>
-                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '15px', marginBottom: '16px' }}>Indicatori operaționali</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {[
-                      { label: 'Produse catalog',    value: products.length,                       color: '#42A5F5',  sub: 'total SKU-uri active' },
-                      { label: 'Stoc zero',          value: zeroStockCount,                        color: zeroStockCount > 0 ? '#FF5252' : '#00E676',  sub: zeroStockCount > 0 ? 'necesită aprovizionare urgentă' : 'totul aprovizionat ✓' },
-                      { label: 'Stoc redus (≤5)',    value: lowStockCount,                         color: lowStockCount > 0 ? '#FF9800' : '#00E676',   sub: lowStockCount > 0 ? 'sub pragul de alertă' : 'stoc în regulă ✓' },
-                      { label: 'Service deschis',    value: openService,                           color: openService > 0 ? '#CE93D8' : '#00E676',     sub: 'tichete nerezolvate' },
-                      { label: 'Retururi așteptare', value: openRetururi,                          color: openRetururi > 0 ? '#FFD700' : '#00E676',    sub: 'necesită procesare' },
-                      { label: 'Venituri totale',    value: revenueTotal.toFixed(0) + ' RON',      color: '#0EF6FF',  sub: 'toate comenzile active' },
-                    ].map(item => (
-                      <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                        <div>
-                          <div style={{ color: '#9CA3AF', fontSize: '11px' }}>{item.label}</div>
-                          <div style={{ color: '#4B5563', fontSize: '10px' }}>{item.sub}</div>
-                        </div>
-                        <div style={{ color: item.color, fontSize: '18px', fontWeight: '800' }}>{item.value}</div>
+              </div>
+
+              {/* ══ ACCES READ-ONLY — comenzi recente + stoc pe categorie ══ */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+
+                {/* Comenzi recente — read only */}
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px' }}>Comenzi recente</span>
+                    <span style={{ color: '#0EF6FF', fontSize: '10px', fontWeight: '600', background: 'rgba(14,246,255,0.08)', padding: '2px 8px', borderRadius: '6px', border: '1px solid rgba(14,246,255,0.2)' }}>READ-ONLY</span>
+                  </div>
+                  <div style={{ color: '#4B5563', fontSize: '11px', marginBottom: '14px' }}>Ultimele 8 comenzi, fără opțiuni de modificare</div>
+                  {orders.length === 0 ? (
+                    <p style={{ color: '#4B5563', fontSize: '13px' }}>Nu există comenzi.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      {[...orders].sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0)).slice(0, 8).map(o => {
+                        const cfg = orderStatusCfg[o.status] || { color: '#6B7280', label: o.status }
+                        const dt  = o.created_at ? new Date(o.created_at).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short' }) : '—'
+                        return (
+                          <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 10px', background: 'rgba(255,255,255,0.015)', borderRadius: '8px', borderLeft: `3px solid ${cfg.color}` }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ color: '#E2E8F0', fontSize: '12px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {o.shipping_address?.full_name || 'Client'}
+                              </div>
+                              <div style={{ color: '#4B5563', fontSize: '10px' }}>{o.invoice_number || '#'+o.id.slice(0,8).toUpperCase()} · {dt}</div>
+                            </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              <div style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '700' }}>{parseFloat(o.total_price||0).toFixed(0)} RON</div>
+                              <div style={{ color: cfg.color, fontSize: '10px', fontWeight: '600' }}>{cfg.label}</div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Stoc pe categorie — read only */}
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px' }}>Stoc per categorie</span>
+                    <span style={{ color: '#0EF6FF', fontSize: '10px', fontWeight: '600', background: 'rgba(14,246,255,0.08)', padding: '2px 8px', borderRadius: '6px', border: '1px solid rgba(14,246,255,0.2)' }}>READ-ONLY</span>
+                  </div>
+                  <div style={{ color: '#4B5563', fontSize: '11px', marginBottom: '14px' }}>Distribuție stoc curent și sănătate inventar per segment</div>
+                  {categories.length === 0 ? (
+                    <p style={{ color: '#4B5563', fontSize: '13px' }}>Nu există categorii.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {categories.slice(0, 8).map((cat, i) => {
+                        const catProds    = products.filter(p => p.category === cat.slug || p.category === cat.name)
+                        const totalStock  = catProds.reduce((s,p) => s + (p.stock || 0), 0)
+                        const zeroCount   = catProds.filter(p => p.stock === 0).length
+                        const healthColor = zeroCount > catProds.length * 0.3 ? '#FF5252' : zeroCount > 0 ? '#FFD700' : '#00E676'
+                        return (
+                          <div key={cat.slug || cat.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: ACCENT[i % ACCENT.length], flexShrink: 0 }} />
+                              <div>
+                                <div style={{ color: '#D1D5DB', fontSize: '12px', fontWeight: '600' }}>{cat.name || cat.slug}</div>
+                                <div style={{ color: '#4B5563', fontSize: '10px' }}>{catProds.length} SKU-uri</div>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '700' }}>{totalStock} buc</div>
+                              {zeroCount > 0 && <div style={{ color: healthColor, fontSize: '10px' }}>{zeroCount} fără stoc</div>}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          )
+        })()}
+
+        {/* ══════════════════════════════════════════════════════
+            MANAGER — RAPOARTE FINANCIARE
+        ══════════════════════════════════════════════════════ */}
+        {section === 'manager_financiar' && (() => {
+          const ACCENT = ['#0EF6FF','#00E676','#CE93D8','#42A5F5','#FFD700','#FF9800','#FF5252','#4FC3F7']
+          const ttStyle = { contentStyle: { background: '#0D1421', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#F1F5F9', fontSize: '12px' }, labelStyle: { color: '#9CA3AF', fontSize: '11px' }, cursor: { fill: 'rgba(255,255,255,0.04)' } }
+
+          // Filtrare comenzi după perioadă
+          const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - mgrFinPeriod)
+          const periodOrders = orders.filter(o => o.status !== 'cancelled' && new Date(o.created_at||0) >= cutoff)
+          const prevCutoff = new Date(); prevCutoff.setDate(prevCutoff.getDate() - mgrFinPeriod * 2)
+          const prevOrders = orders.filter(o => o.status !== 'cancelled' && new Date(o.created_at||0) >= prevCutoff && new Date(o.created_at||0) < cutoff)
+
+          // Filtrare după categorie dacă e selectată
+          const catFilteredOrders = mgrFinCat
+            ? periodOrders.filter(o => (o.items||[]).some(it => {
+                const p = products.find(p => String(p.id) === String(it.product_id))
+                return (p?.category || it.product_snapshot?.category || '') === mgrFinCat
+              }))
+            : periodOrders
+
+          // Timeline data — grupare zilnică / săptămânală / lunară
+          const groupBy = mgrFinPeriod <= 30 ? 'day' : mgrFinPeriod <= 90 ? 'week' : 'month'
+          const timelineMap = {}
+          catFilteredOrders.forEach(o => {
+            const d = new Date(o.created_at||0)
+            let key
+            if (groupBy === 'day') key = d.toISOString().slice(0, 10)
+            else if (groupBy === 'week') { const w = new Date(d); w.setDate(d.getDate() - d.getDay()); key = 'Săpt ' + w.toISOString().slice(5, 10) }
+            else key = d.toISOString().slice(0, 7)
+            if (!timelineMap[key]) timelineMap[key] = { revenue: 0, count: 0, total: 0 }
+            timelineMap[key].revenue += parseFloat(o.total_price||0)
+            timelineMap[key].count += 1
+            timelineMap[key].total += parseFloat(o.total_price||0)
+          })
+          const timelineKeys = Object.keys(timelineMap).sort()
+          const metricFn = (v) => {
+            if (mgrFinMetric === 'revenue') return Math.round(v.revenue)
+            if (mgrFinMetric === 'count') return v.count
+            if (mgrFinMetric === 'avg') return v.count > 0 ? Math.round(v.revenue / v.count) : 0
+            return 0
+          }
+          const chartData = timelineKeys.map(k => ({
+            label: groupBy === 'day' ? k.slice(5) : k,
+            val: metricFn(timelineMap[k]),
+          }))
+
+          // KPIs curente vs precedente
+          const curRev  = catFilteredOrders.reduce((s,o) => s + parseFloat(o.total_price||0), 0)
+          const prevRev = prevOrders.reduce((s,o) => s + parseFloat(o.total_price||0), 0)
+          const revDiff = prevRev > 0 ? ((curRev - prevRev) / prevRev * 100) : null
+          const curAvg  = catFilteredOrders.length ? curRev / catFilteredOrders.length : 0
+          const prevAvg = prevOrders.length ? prevOrders.reduce((s,o)=>s+parseFloat(o.total_price||0),0)/prevOrders.length : 0
+          const avgDiff = prevAvg > 0 ? ((curAvg - prevAvg) / prevAvg * 100) : null
+          const delPct  = periodOrders.length ? Math.round(periodOrders.filter(o=>o.status==='delivered').length/periodOrders.length*100) : 0
+          const cancelPct = periodOrders.length ? Math.round(periodOrders.filter(o=>o.status==='cancelled').length/periodOrders.length*100) : 0
+
+          // Venituri pe categorie pentru perioada selectată
+          const catRevMap = {}
+          catFilteredOrders.forEach(o => (o.items||[]).forEach(it => {
+            const p = products.find(p => String(p.id) === String(it.product_id))
+            const cat = p?.category || it.product_snapshot?.category || 'Altele'
+            catRevMap[cat] = (catRevMap[cat]||0) + parseFloat(it.unit_price)*it.quantity
+          }))
+          const catData = Object.entries(catRevMap).sort((a,b)=>b[1]-a[1]).slice(0,8)
+          const pieData = catData.map(([name, value]) => ({ name, value: Math.round(value) }))
+
+          const metricLabel = { revenue: 'Venituri (RON)', count: 'Nr. comenzi', avg: 'Val. medie (RON)', delivery: 'Rată livrare (%)' }[mgrFinMetric]
+          const periodLabel = { 7: 'Ultimele 7 zile', 30: 'Ultimele 30 zile', 90: 'Ultimele 90 zile', 365: 'Ultimul an' }[mgrFinPeriod]
+
+          const FilterBtn = ({ active, onClick, children }) => (
+            <button onClick={onClick} style={{ padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: active ? '700' : '500', cursor: 'pointer', border: `1px solid ${active ? 'rgba(14,246,255,0.4)' : 'rgba(255,255,255,0.08)'}`, background: active ? 'rgba(14,246,255,0.1)' : 'rgba(255,255,255,0.02)', color: active ? '#0EF6FF' : '#6B7280', transition: 'all 0.15s' }}>{children}</button>
+          )
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div>
+                <h1 style={{ color: '#F1F5F9', fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>Rapoarte Financiare</h1>
+                <p style={{ color: '#4B5563', fontSize: '13px' }}>Analizează performanța financiară cu filtre interactive pe perioadă, metrică și categorie</p>
+              </div>
+
+              {/* ── Bara de filtre ── */}
+              <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '16px 20px', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ color: '#4B5563', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Perioadă</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {[7,30,90,365].map(p => <FilterBtn key={p} active={mgrFinPeriod===p} onClick={()=>setMgrFinPeriod(p)}>{p===365?'1 An':p+' zile'}</FilterBtn>)}
+                  </div>
+                </div>
+                <div style={{ width: '1px', height: '36px', background: 'rgba(255,255,255,0.06)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ color: '#4B5563', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Metrică</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {[['revenue','Venituri'],['count','Nr. comenzi'],['avg','Val. medie']].map(([k,l]) => <FilterBtn key={k} active={mgrFinMetric===k} onClick={()=>setMgrFinMetric(k)}>{l}</FilterBtn>)}
+                  </div>
+                </div>
+                <div style={{ width: '1px', height: '36px', background: 'rgba(255,255,255,0.06)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ color: '#4B5563', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Tip grafic</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <FilterBtn active={mgrFinChartType==='area'} onClick={()=>setMgrFinChartType('area')}>Area</FilterBtn>
+                    <FilterBtn active={mgrFinChartType==='bar'} onClick={()=>setMgrFinChartType('bar')}>Bar</FilterBtn>
+                  </div>
+                </div>
+                <div style={{ width: '1px', height: '36px', background: 'rgba(255,255,255,0.06)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ color: '#4B5563', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Categorie</span>
+                  <select value={mgrFinCat} onChange={e=>setMgrFinCat(e.target.value)} style={{ background: '#0D1421', border: '1px solid rgba(255,255,255,0.08)', color: mgrFinCat ? '#0EF6FF' : '#6B7280', padding: '5px 10px', borderRadius: '8px', fontSize: '12px', outline: 'none', cursor: 'pointer' }}>
+                    <option value="">Toate categoriile</option>
+                    {categories.map(c => <option key={c.slug||c.name} value={c.name||c.slug}>{c.name||c.slug}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* ── KPI-uri cu comparație ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                {[
+                  { label: 'Venituri ' + periodLabel, value: curRev.toFixed(0) + ' RON', diff: revDiff, color: '#0EF6FF' },
+                  { label: 'Nr. comenzi', value: catFilteredOrders.length, diff: null, sub: `${prevOrders.length} perioada anterioară`, color: '#00E676' },
+                  { label: 'Valoare medie', value: curAvg.toFixed(0) + ' RON', diff: avgDiff, color: '#CE93D8' },
+                  { label: 'Livrate / Anulate', value: delPct + '%', diff: null, sub: `${cancelPct}% anulate`, color: delPct>=75?'#00E676':'#FFD700' },
+                ].map(k => (
+                  <div key={k.label} style={{ background: '#0F1923', border: `1px solid ${k.color}18`, borderRadius: '14px', padding: '18px', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: `linear-gradient(90deg, ${k.color}60, transparent)` }} />
+                    <div style={{ color: '#6B7280', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '8px' }}>{k.label}</div>
+                    <div style={{ color: '#F1F5F9', fontSize: '24px', fontWeight: '800', lineHeight: 1, marginBottom: '5px' }}>{k.value}</div>
+                    {k.diff !== null && k.diff !== undefined
+                      ? <div style={{ color: k.diff>=0?'#00E676':'#FF5252', fontSize: '11px', fontWeight: '600' }}>{k.diff>=0?'▲ +':'▼ '}{Math.abs(k.diff).toFixed(1)}% vs anterior</div>
+                      : <div style={{ color: '#4B5563', fontSize: '11px' }}>{k.sub}</div>
+                    }
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Grafic timeline ── */}
+              <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>{metricLabel} — {periodLabel}{mgrFinCat ? ` · ${mgrFinCat}` : ''}</div>
+                <div style={{ color: '#4B5563', fontSize: '11px', marginBottom: '16px' }}>Evoluție în timp, grupată {groupBy === 'day' ? 'zilnic' : groupBy === 'week' ? 'săptămânal' : 'lunar'}</div>
+                {chartData.length === 0 ? <p style={{ color: '#4B5563', fontSize: '13px' }}>Nu există date pentru perioada selectată.</p> : (
+                  <ResponsiveContainer width="100%" height={220}>
+                    {mgrFinChartType === 'area' ? (
+                      <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="mgrFinGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#0EF6FF" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="#0EF6FF" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                        <XAxis dataKey="label" tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} width={50} tickFormatter={v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v} />
+                        <Tooltip {...ttStyle} formatter={v => [v + (mgrFinMetric==='revenue'||mgrFinMetric==='avg'?' RON':''), metricLabel]} />
+                        <Area type="monotone" dataKey="val" stroke="#0EF6FF" strokeWidth={2} fill="url(#mgrFinGrad)" dot={{ fill: '#0EF6FF', r: 3 }} activeDot={{ r: 5 }} />
+                      </AreaChart>
+                    ) : (
+                      <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} width={50} tickFormatter={v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v} />
+                        <Tooltip {...ttStyle} formatter={v => [v + (mgrFinMetric==='revenue'||mgrFinMetric==='avg'?' RON':''), metricLabel]} />
+                        <Bar dataKey="val" radius={[5,5,0,0]} fill="#0EF6FF" fillOpacity={0.85} />
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
+                )}
+              </div>
+
+              {/* ── Breakdown categorie ── */}
+              {catData.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                    <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '14px' }}>Venituri pe categorie — {periodLabel}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {catData.map(([cat, rev], i) => {
+                        const pct = Math.round(rev / curRev * 100)
+                        return (
+                          <div key={cat}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                              <span style={{ color: '#D1D5DB', fontSize: '12px' }}>{cat}</span>
+                              <span style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '700' }}>{Math.round(rev).toLocaleString()} RON <span style={{ color: '#4B5563', fontWeight: '400' }}>({pct}%)</span></span>
+                            </div>
+                            <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px' }}>
+                              <div style={{ height: '100%', width: pct + '%', background: ACCENT[i%ACCENT.length], borderRadius: '3px' }} />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                    <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '14px' }}>Distribuție categorii</div>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={3} dataKey="value">
+                          {pieData.map((_, i) => <Cell key={i} fill={ACCENT[i%ACCENT.length]} />)}
+                        </Pie>
+                        <Tooltip contentStyle={{ background: '#0D1421', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#F1F5F9', fontSize: '12px' }} formatter={v => [v.toLocaleString() + ' RON', '']} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
+        {/* ══════════════════════════════════════════════════════
+            MANAGER — ANALIZĂ PRODUSE
+        ══════════════════════════════════════════════════════ */}
+        {section === 'manager_produse' && (() => {
+          const ACCENT = ['#0EF6FF','#00E676','#CE93D8','#42A5F5','#FFD700','#FF9800','#FF5252','#4FC3F7']
+          const ttStyle = { contentStyle: { background: '#0D1421', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#F1F5F9', fontSize: '12px' }, labelStyle: { color: '#9CA3AF', fontSize: '11px' }, cursor: { fill: 'rgba(255,255,255,0.04)' } }
+
+          // Produse cu date de vânzări
+          const enriched = products
+            .filter(p => !mgrProdCat || p.category === mgrProdCat)
+            .map(p => {
+              const sold = topProducts.find(tp => String(tp.id) === String(p.id) || tp.name === p.name)
+              return { ...p, soldQty: sold?.quantity||0, soldRev: sold?.revenue||0 }
+            })
+
+          const sorted = [...enriched].sort((a,b) => {
+            if (mgrProdSort === 'revenue') return b.soldRev - a.soldRev
+            if (mgrProdSort === 'units')   return b.soldQty - a.soldQty
+            return b.stock - a.stock
+          })
+
+          const top10 = sorted.slice(0, 10)
+          const maxVal = mgrProdSort === 'revenue' ? (top10[0]?.soldRev||1) : mgrProdSort === 'units' ? (top10[0]?.soldQty||1) : (top10[0]?.stock||1)
+
+          const zeroStock   = enriched.filter(p => p.stock === 0)
+          const critStock   = enriched.filter(p => p.stock > 0 && p.stock <= 3)
+          const neverSold   = enriched.filter(p => p.soldQty === 0 && p.stock >= 10)
+          const slowMovers2 = enriched.filter(p => p.soldQty > 0 && p.soldQty <= 2 && p.stock >= 5)
+
+          const FilterBtn = ({ active, onClick, children }) => (
+            <button onClick={onClick} style={{ padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: active?'700':'500', cursor: 'pointer', border: `1px solid ${active?'rgba(14,246,255,0.4)':'rgba(255,255,255,0.08)'}`, background: active?'rgba(14,246,255,0.1)':'rgba(255,255,255,0.02)', color: active?'#0EF6FF':'#6B7280', transition: 'all 0.15s' }}>{children}</button>
+          )
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div>
+                <h1 style={{ color: '#F1F5F9', fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>Analiză Produse</h1>
+                <p style={{ color: '#4B5563', fontSize: '13px' }}>Performanță produse, stoc și produse care blochează capital</p>
+              </div>
+
+              {/* Filtre */}
+              <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '16px 20px', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ color: '#4B5563', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Sortare</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <FilterBtn active={mgrProdSort==='revenue'} onClick={()=>setMgrProdSort('revenue')}>Venituri</FilterBtn>
+                    <FilterBtn active={mgrProdSort==='units'}   onClick={()=>setMgrProdSort('units')}>Unități</FilterBtn>
+                    <FilterBtn active={mgrProdSort==='stock'}   onClick={()=>setMgrProdSort('stock')}>Stoc</FilterBtn>
+                  </div>
+                </div>
+                <div style={{ width: '1px', height: '36px', background: 'rgba(255,255,255,0.06)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ color: '#4B5563', fontSize: '10px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Categorie</span>
+                  <select value={mgrProdCat} onChange={e=>setMgrProdCat(e.target.value)} style={{ background: '#0D1421', border: '1px solid rgba(255,255,255,0.08)', color: mgrProdCat?'#0EF6FF':'#6B7280', padding: '5px 10px', borderRadius: '8px', fontSize: '12px', outline: 'none', cursor: 'pointer' }}>
+                    <option value="">Toate categoriile</option>
+                    {categories.map(c => <option key={c.slug||c.name} value={c.name||c.slug}>{c.name||c.slug}</option>)}
+                  </select>
+                </div>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+                  {[
+                    { label: 'Fără stoc', count: zeroStock.length, color: '#FF5252' },
+                    { label: 'Stoc critic', count: critStock.length, color: '#FF9800' },
+                    { label: 'Nevândute', count: neverSold.length, color: '#FFD700' },
+                  ].map(s => (
+                    <div key={s.label} style={{ textAlign: 'center' }}>
+                      <div style={{ color: s.color, fontSize: '18px', fontWeight: '800' }}>{s.count}</div>
+                      <div style={{ color: '#4B5563', fontSize: '10px' }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top 10 produse grafic */}
+              <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>
+                  Top 10 produse după {mgrProdSort === 'revenue' ? 'venituri' : mgrProdSort === 'units' ? 'unități vândute' : 'stoc'}
+                </div>
+                <div style={{ color: '#4B5563', fontSize: '11px', marginBottom: '16px' }}>{mgrProdCat || 'Toate categoriile'}</div>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={top10.map(p => ({ name: p.name.length>18?p.name.slice(0,17)+'…':p.name, val: mgrProdSort==='revenue'?Math.round(p.soldRev):mgrProdSort==='units'?p.soldQty:p.stock }))} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                    <XAxis type="number" tick={{ fill: '#6B7280', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v>=1000?(v/1000).toFixed(0)+'k':v} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#D1D5DB', fontSize: 11 }} axisLine={false} tickLine={false} width={130} />
+                    <Tooltip {...ttStyle} formatter={v => [v + (mgrProdSort==='revenue'?' RON':mgrProdSort==='units'?' buc':' buc stoc'), '']} />
+                    <Bar dataKey="val" radius={[0,5,5,0]}>
+                      {top10.map((_, i) => <Cell key={i} fill={ACCENT[i%ACCENT.length]} fillOpacity={0.85} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Probleme stoc */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,82,82,0.2)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ color: '#FF5252', fontWeight: '700', fontSize: '14px', marginBottom: '12px' }}>Produse nevândute cu stoc mare ({neverSold.length})</div>
+                  {neverSold.length === 0
+                    ? <p style={{ color: '#4B5563', fontSize: '13px' }}>Nicio problemă detectată.</p>
+                    : <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '260px', overflowY: 'auto' }}>
+                        {neverSold.map(p => (
+                          <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(255,82,82,0.04)', borderRadius: '8px', borderLeft: '3px solid #FF5252' }}>
+                            <div>
+                              <div style={{ color: '#D1D5DB', fontSize: '12px', fontWeight: '600' }}>{p.name}</div>
+                              <div style={{ color: '#4B5563', fontSize: '10px' }}>{p.category}</div>
+                            </div>
+                            <span style={{ color: '#FF5252', fontSize: '12px', fontWeight: '700', flexShrink: 0 }}>{p.stock} buc</span>
+                          </div>
+                        ))}
                       </div>
+                  }
+                </div>
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,152,0,0.2)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ color: '#FF9800', fontWeight: '700', fontSize: '14px', marginBottom: '12px' }}>Mișcare lentă (≤2 vânzări) ({slowMovers2.length})</div>
+                  {slowMovers2.length === 0
+                    ? <p style={{ color: '#4B5563', fontSize: '13px' }}>Nicio problemă detectată.</p>
+                    : <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '260px', overflowY: 'auto' }}>
+                        {slowMovers2.map(p => (
+                          <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(255,152,0,0.04)', borderRadius: '8px', borderLeft: '3px solid #FF9800' }}>
+                            <div>
+                              <div style={{ color: '#D1D5DB', fontSize: '12px', fontWeight: '600' }}>{p.name}</div>
+                              <div style={{ color: '#4B5563', fontSize: '10px' }}>{p.category}</div>
+                            </div>
+                            <span style={{ color: '#9CA3AF', fontSize: '11px', flexShrink: 0 }}>stoc {p.stock} · {p.soldQty} vânzări</span>
+                          </div>
+                        ))}
+                      </div>
+                  }
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* ══════════════════════════════════════════════════════
+            MANAGER — COMENZI (read-only)
+        ══════════════════════════════════════════════════════ */}
+        {section === 'manager_comenzi' && (() => {
+          const ACCENT = ['#0EF6FF','#00E676','#CE93D8','#42A5F5','#FFD700','#FF9800','#FF5252','#4FC3F7']
+          const ttStyle = { contentStyle: { background: '#0D1421', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#F1F5F9', fontSize: '12px' }, labelStyle: { color: '#9CA3AF', fontSize: '11px' } }
+
+          const statusList = ['pending','confirmed','processing','shipped','delivered','cancelled']
+          const statusLabels = { pending:'În așteptare', confirmed:'Confirmat', processing:'În procesare', shipped:'Expediat', delivered:'Livrat', cancelled:'Anulat' }
+          const statusColors = { pending:'#FFD700', confirmed:'#42A5F5', processing:'#CE93D8', shipped:'#0EF6FF', delivered:'#00E676', cancelled:'#FF5252' }
+
+          const q = mgrOrdSearch.toLowerCase()
+          const filtered = orders.filter(o => {
+            if (mgrOrdStatus && o.status !== mgrOrdStatus) return false
+            if (q) {
+              const match = (o.invoice_number||'').toLowerCase().includes(q) || o.id.toLowerCase().includes(q) || (o.shipping_address?.full_name||'').toLowerCase().includes(q)
+              if (!match) return false
+            }
+            return true
+          }).sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0))
+
+          const statusCounts = statusList.map(s => ({ status: s, label: statusLabels[s], count: orders.filter(o=>o.status===s).length, color: statusColors[s] }))
+          const pieData = statusCounts.filter(s=>s.count>0).map(s => ({ name: s.label, value: s.count, color: s.color }))
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <div>
+                  <h1 style={{ color: '#F1F5F9', fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>Comenzi</h1>
+                  <p style={{ color: '#4B5563', fontSize: '13px' }}>Vizualizare read-only comenzi — fără opțiuni de modificare</p>
+                </div>
+                <span style={{ color: '#0EF6FF', fontSize: '10px', fontWeight: '600', background: 'rgba(14,246,255,0.08)', padding: '4px 10px', borderRadius: '8px', border: '1px solid rgba(14,246,255,0.2)', marginTop: '4px' }}>READ-ONLY</span>
+              </div>
+
+              {/* Status summary + pie */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '14px' }}>
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '14px' }}>Distribuție status comenzi</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    {statusCounts.map(s => (
+                      <button key={s.status} onClick={()=>setMgrOrdStatus(mgrOrdStatus===s.status?'':s.status)}
+                        style={{ padding: '12px', background: mgrOrdStatus===s.status?`${s.color}15`:'rgba(255,255,255,0.02)', border: `1px solid ${mgrOrdStatus===s.status?s.color+'40':'rgba(255,255,255,0.06)'}`, borderRadius: '10px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
+                        <div style={{ color: s.color, fontSize: '20px', fontWeight: '800' }}>{s.count}</div>
+                        <div style={{ color: '#6B7280', fontSize: '11px', marginTop: '3px' }}>{s.label}</div>
+                      </button>
                     ))}
                   </div>
+                </div>
+                <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '20px' }}>
+                  <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '14px', marginBottom: '8px' }}>Proporții</div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={3} dataKey="value">
+                        {pieData.map((s,i) => <Cell key={i} fill={s.color} />)}
+                      </Pie>
+                      <Tooltip {...ttStyle} formatter={v=>[v+' comenzi','']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Filtre + tabel */}
+              <div style={{ background: '#0F1923', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', overflow: 'hidden' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input value={mgrOrdSearch} onChange={e=>setMgrOrdSearch(e.target.value)} placeholder="Caută după client, ID..." style={{ flex: 1, minWidth: '180px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#F1F5F9', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', outline: 'none' }} />
+                  <select value={mgrOrdStatus} onChange={e=>setMgrOrdStatus(e.target.value)} style={{ background: '#0D1421', border: '1px solid rgba(255,255,255,0.08)', color: mgrOrdStatus?'#0EF6FF':'#6B7280', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', outline: 'none', cursor: 'pointer' }}>
+                    <option value="">Toate statusurile</option>
+                    {statusList.map(s => <option key={s} value={s}>{statusLabels[s]}</option>)}
+                  </select>
+                  <span style={{ color: '#4B5563', fontSize: '12px' }}>{filtered.length} comenzi</span>
+                </div>
+                <div style={{ overflowX: 'auto', maxHeight: '400px', overflowY: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead style={{ position: 'sticky', top: 0, background: '#0F1923', zIndex: 1 }}>
+                      <tr>
+                        {['ID','Client','Oraș','Total','Plată','Status','Data'].map(h => (
+                          <th key={h} style={{ textAlign: 'left', padding: '10px 14px', color: '#6B7280', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid rgba(255,255,255,0.06)', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.slice(0,50).map(o => {
+                        const sc = orderStatusCfg[o.status] || { color: '#6B7280', label: o.status }
+                        return (
+                          <tr key={o.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                            <td style={{ padding: '10px 14px', color: '#6B7280', fontSize: '11px', fontFamily: 'monospace' }}>#{(o.invoice_number||o.id.slice(0,8)).toUpperCase()}</td>
+                            <td style={{ padding: '10px 14px', color: '#F1F5F9', fontSize: '12px', fontWeight: '600' }}>{o.shipping_address?.full_name||'—'}</td>
+                            <td style={{ padding: '10px 14px', color: '#6B7280', fontSize: '12px' }}>{o.shipping_address?.city||'—'}</td>
+                            <td style={{ padding: '10px 14px', color: '#0EF6FF', fontSize: '12px', fontWeight: '700' }}>{parseFloat(o.total_price||0).toFixed(0)} RON</td>
+                            <td style={{ padding: '10px 14px', color: '#CE93D8', fontSize: '11px', textTransform: 'uppercase' }}>{o.payment_method_type}</td>
+                            <td style={{ padding: '10px 14px' }}><span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', background: sc.color+'18', color: sc.color, border: `1px solid ${sc.color}30`, fontWeight: '700' }}>{sc.label}</span></td>
+                            <td style={{ padding: '10px 14px', color: '#4B5563', fontSize: '11px', whiteSpace: 'nowrap' }}>{o.created_at ? new Date(o.created_at).toLocaleDateString('ro-RO') : '—'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                  {filtered.length === 0 && <p style={{ textAlign: 'center', color: '#4B5563', padding: '28px' }}>Nicio comandă găsită.</p>}
                 </div>
               </div>
             </div>
@@ -3063,156 +3816,54 @@ export default function Admin() {
         })()}
 
         {section === 'dashboard' && (
-          <div>
-            <h1 style={{ color: '#F1F5F9', fontSize: '22px', fontWeight: '800', marginBottom: '6px' }}>
-              Dashboard
-            </h1>
-            <p style={{ color: '#4B5563', fontSize: '13px', marginBottom: '24px' }}>
-              Privire de ansamblu asupra afacerii
-            </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <h1 style={{ color: '#F1F5F9', fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>Panou Administrator</h1>
+              <p style={{ color: '#4B5563', fontSize: '13px' }}>Selectează un rol pentru a vedea dashboardul său sau gestionează echipa</p>
+            </div>
 
-            {/* STATS GRID */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '28px' }}>
+            {/* ── Gestionează echipa ─────────────────────────────── */}
+            <button
+              onClick={() => goTo('team')}
+              style={{ display: 'flex', alignItems: 'center', gap: '18px', padding: '20px 24px', background: '#0F1923', border: '1px solid rgba(14,246,255,0.18)', borderRadius: '14px', cursor: 'pointer', textAlign: 'left', width: '100%' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(14,246,255,0.45)'; e.currentTarget.style.background='rgba(14,246,255,0.04)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(14,246,255,0.18)'; e.currentTarget.style.background='#0F1923' }}
+            >
+              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: 'rgba(14,246,255,0.1)', border: '1px solid rgba(14,246,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Users size={24} color="#0EF6FF" weight="bold" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: '#F1F5F9', fontSize: '15px', fontWeight: '800' }}>Gestionează echipa</div>
+                <div style={{ color: '#4B5563', fontSize: '12px', marginTop: '3px' }}>Adaugă, modifică sau șterge membrii echipei și rolurile lor de acces</div>
+              </div>
+              <CaretRight size={16} color="#4B5563" />
+            </button>
+
+            {/* ── 4 roluri ───────────────────────────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
               {[
-                { label: 'Produse in catalog', val: stats.products,          Icon: Package,      color: '#42A5F5' },
-                { label: 'Total comenzi',       val: stats.orders,            Icon: ShoppingCart, color: '#CE93D8' },
-                { label: 'Venituri totale',     val: stats.revenue.toFixed(0) + ' RON', Icon: ShoppingCart, color: '#00E676' },
-                { label: 'Tichete active',      val: stats.svcActive + stats.retActive, Icon: Wrench,       color: '#FF9800' },
-              ].map(s => (
-                <div key={s.label} style={{
-                  background: 'rgba(255,255,255,0.03)', border: `1px solid ${s.color}22`,
-                  borderRadius: '14px', padding: '18px 20px',
-                  display: 'flex', alignItems: 'center', gap: '14px',
-                }}>
-                  <div style={{
-                    width: '44px', height: '44px', borderRadius: '12px',
-                    background: `${s.color}18`, display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <s.Icon size={22} style={{ color: s.color }} />
+                { section: 'manager_dashboard',   role: 'manager',   label: 'Manager',        Icon: ChartLine, color: '#0EF6FF', desc: 'Analize financiare, top produse, stoc blocat și performanța echipei' },
+                { section: 'suport_dashboard',    role: 'suport',    label: 'Suport Clienți', Icon: Headset,   color: '#CE93D8', desc: 'Tichete service, retururi, recenzii și mesaje de contact' },
+                { section: 'marketing_dashboard', role: 'marketing', label: 'Marketing',      Icon: Broadcast, color: '#00E676', desc: 'Campanii, vouchere, grafice de vânzări și segmentare clienți' },
+                { section: 'achizitii_dashboard', role: 'achizitii', label: 'Achiziții',      Icon: Stack,     color: '#FFD700', desc: 'Gestiune stoc, produse cu stoc critic și aprovizionare' },
+              ].map(r => (
+                <button
+                  key={r.section}
+                  onClick={() => { setViewAsRole(r.role); setSection(r.section); setGlobalSearch('') }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '18px', padding: '28px 24px', background: '#0F1923', border: `1px solid ${r.color}20`, borderRadius: '14px', cursor: 'pointer', textAlign: 'left', width: '100%', minHeight: '120px' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor=r.color+'50'; e.currentTarget.style.background=`${r.color}06` }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor=r.color+'20'; e.currentTarget.style.background='#0F1923' }}
+                >
+                  <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: `${r.color}12`, border: `1px solid ${r.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <r.Icon size={26} color={r.color} weight="bold" />
                   </div>
-                  <div>
-                    <div style={{ color: s.color, fontSize: '22px', fontWeight: '800', lineHeight: 1 }}>{s.val}</div>
-                    <div style={{ color: '#6B7280', fontSize: '11px', marginTop: '3px' }}>{s.label}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: '#F1F5F9', fontSize: '16px', fontWeight: '800', marginBottom: '6px' }}>{r.label}</div>
+                    <div style={{ color: '#4B5563', fontSize: '12px', lineHeight: '1.5' }}>{r.desc}</div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px', marginBottom: '24px' }}>
-
-              {/* REVENUE CHART */}
-              <div style={{ ...tableWrap, padding: '22px' }}>
-                <div style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '15px', marginBottom: '20px' }}>
-                  Venituri ultimele 7 zile
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '140px' }}>
-                  {revenue7.map((d, i) => (
-                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', height: '100%', justifyContent: 'flex-end' }}>
-                      <div style={{ color: '#6B7280', fontSize: '10px' }}>
-                        {d.val > 0 ? Math.round(d.val) : ''}
-                      </div>
-                      <div style={{
-                        width: '100%', borderRadius: '6px 6px 0 0',
-                        background: d.val > 0 ? 'var(--cyan)' : 'rgba(255,255,255,0.05)',
-                        height: `${Math.max((d.val / maxRev) * 100, d.val > 0 ? 6 : 2)}%`,
-                        transition: 'height 0.4s ease',
-                        minHeight: '2px',
-                      }} />
-                      <div style={{ color: '#4B5563', fontSize: '10px', whiteSpace: 'nowrap' }}>{d.day}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* LOW STOCK ALERTS */}
-              <div style={{ ...tableWrap, padding: '22px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                  <Warning size={18} className="text-price" />
-                  <span style={{ color: '#FF9800', fontWeight: '700', fontSize: '15px' }}>Stoc critic</span>
-                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ color: '#6B7280', fontSize: '11px' }}>Prag:</span>
-                    <input type="number" min="1" max="20" value={stockThreshold}
-                      onChange={e => setStockThreshold(parseInt(e.target.value) || 3)}
-                      style={{ width: '48px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,152,0,0.3)', color: '#FF9800', padding: '2px 6px', borderRadius: '6px', fontSize: '12px', outline: 'none', textAlign: 'center' }}
-                    />
-                    <span style={{ color: '#6B7280', fontSize: '11px' }}>buc</span>
-                  </div>
-                  <span style={{ background: 'rgba(255,152,0,0.15)', color: '#FF9800', borderRadius: '10px', padding: '1px 8px', fontSize: '11px', fontWeight: '700' }}>{lowStock.length}</span>
-                </div>
-                {lowStock.length === 0 ? (
-                  <p style={{ color: '#4B5563', fontSize: '13px' }}>Toate produsele au stoc suficient</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '160px' }}>
-                    {lowStock.map(p => (
-                      <div key={p.id} style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        background: 'rgba(255,152,0,0.06)', borderRadius: '8px', padding: '8px 12px',
-                        border: '1px solid rgba(255,152,0,0.15)',
-                      }}>
-                        <div>
-                          <div style={{ color: '#F1F5F9', fontSize: '12px', fontWeight: '600' }}>{p.name}</div>
-                          <div style={{ color: '#6B7280', fontSize: '11px' }}>{p.brand}</div>
-                        </div>
-                        <span style={{
-                          background: p.stock === 1 ? 'rgba(255,82,82,0.15)' : 'rgba(255,152,0,0.15)',
-                          color: p.stock === 1 ? '#FF5252' : '#FF9800',
-                          borderRadius: '8px', padding: '2px 8px', fontSize: '11px', fontWeight: '800',
-                        }}>{p.stock} buc</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* RECENT ORDERS */}
-            <div style={tableWrap}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#F1F5F9', fontWeight: '700', fontSize: '15px' }}>Comenzi recente</span>
-                <button onClick={() => goTo('orders')} className="bg-accent/10 border border-accent/25 text-accent px-3 py-1 rounded-md cursor-pointer text-xs font-semibold hover:bg-accent/20 transition-colors">
-                  Vezi toate →
+                  <CaretRight size={16} color={r.color} style={{ flexShrink: 0, opacity: 0.6 }} />
                 </button>
-              </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    {['ID', 'Client', 'Total', 'Metoda', 'Status', 'Data'].map(h => (
-                      <th key={h} style={th}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentOrds.map(o => {
-                    return (
-                      <tr key={o.id} className="transition-colors hover:bg-white/[0.02]">
-                        <td style={{ ...td, fontFamily: 'monospace', fontSize: '12px', color: '#6B7280' }}>
-                          #{o.id.slice(0,8).toUpperCase()}
-                        </td>
-                        <td style={td}>
-                          <div style={{ color: '#F1F5F9', fontSize: '13px' }}>
-                            {o.shipping_address?.full_name || '—'}
-                          </div>
-                          <div style={{ color: '#4B5563', fontSize: '11px' }}>
-                            {o.shipping_address?.city}
-                          </div>
-                        </td>
-                        <td style={{ ...td, color: 'var(--cyan)', fontWeight: '700' }}>{o.total_price} RON</td>
-                        <td style={{ ...td, color: '#CE93D8', fontSize: '12px', textTransform: 'uppercase' }}>
-                          {o.payment_method_type}
-                        </td>
-                        <td style={td}><Badge cfg={orderStatusCfg} status={o.status} /></td>
-                        <td style={{ ...td, color: '#6B7280', fontSize: '12px' }}>
-                          {new Date(o.created_at).toLocaleDateString('ro-RO')}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-              {recentOrds.length === 0 && (
-                <p style={{ textAlign: 'center', color: '#4B5563', padding: '32px' }}>Nu exista comenzi</p>
-              )}
+              ))}
             </div>
           </div>
         )}
