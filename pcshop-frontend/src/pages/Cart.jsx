@@ -136,9 +136,11 @@ export default function Cart() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-primary font-bold text-base mb-0.5 truncate">
-                      {item.name}
-                    </h3>
+                    <Link to={`/product/${item.product_id}`} className="no-underline hover:text-accent transition-colors">
+                      <h3 className="text-primary font-bold text-base mb-0.5 truncate">
+                        {item.name}
+                      </h3>
+                    </Link>
                     <p className="text-muted text-sm mb-2">{item.brand}</p>
                     <p className="text-accent font-bold text-sm">
                       {item.price} RON / buc

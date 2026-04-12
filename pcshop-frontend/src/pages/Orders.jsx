@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { ordersAPI } from '../services/api'
 import useAuthStore from '../store/authStore'
 import {
@@ -188,7 +188,9 @@ export default function Orders() {
                             {detail.items.map((item, i) => (
                               <div key={i} className="bg-base-2 rounded-lg p-2.5 flex justify-between items-center">
                                 <div>
+                                  <Link to={`/product/${item.product_id}`} className="no-underline hover:text-accent transition-colors">
                                   <p className="text-primary text-[13px] font-medium">{item.product_name}</p>
+                                </Link>
                                   <p className="text-muted text-[11px]">{item.unit_price} RON × {item.quantity}</p>
                                 </div>
                                 <span className="text-price font-bold text-sm">{item.subtotal} RON</span>

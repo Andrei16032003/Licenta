@@ -618,7 +618,9 @@ export default function Profile() {
                                     }
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-primary text-[13px] font-medium truncate">{item.product_name}</p>
+                                    <Link to={`/product/${item.product_id}`} className="no-underline hover:text-accent transition-colors">
+                                      <p className="text-primary text-[13px] font-medium truncate">{item.product_name}</p>
+                                    </Link>
                                     <p className="text-muted text-[11px]">{item.unit_price} RON × {item.quantity}</p>
                                   </div>
                                   <span className="text-price font-bold text-sm shrink-0">{item.subtotal} RON</span>
@@ -925,9 +927,11 @@ export default function Profile() {
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-start gap-2.5 mb-2">
                               <div className="min-w-0">
-                                <p className="text-primary font-bold text-sm m-0 mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap">
-                                  {item.product_name}
-                                </p>
+                                <Link to={`/product/${item.product_id}`} className="no-underline hover:text-accent transition-colors">
+                                  <p className="text-primary font-bold text-sm m-0 mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap">
+                                    {item.product_name}
+                                  </p>
+                                </Link>
                                 {item.brand && <p className="text-muted text-xs m-0">{item.brand}</p>}
                               </div>
                               <span style={{ background: `${color}18`, border: `1px solid ${color}45`, color, fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px', flexShrink: 0, whiteSpace: 'nowrap' }}>
@@ -1211,7 +1215,10 @@ export default function Profile() {
                     <div className="flex justify-between items-start gap-3 flex-wrap">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                          <p className="text-primary font-bold text-sm m-0">{r.product_name}</p>
+                          {r.product_id
+                            ? <Link to={`/product/${r.product_id}`} className="no-underline hover:text-accent transition-colors"><p className="text-primary font-bold text-sm m-0">{r.product_name}</p></Link>
+                            : <p className="text-primary font-bold text-sm m-0">{r.product_name}</p>
+                          }
                           <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${st.className}`}>
                             {st.label}
                           </span>
@@ -1586,7 +1593,10 @@ export default function Profile() {
                         </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <p className="text-primary font-bold text-sm m-0">{r.product_name}</p>
+                          {r.product_id
+                            ? <Link to={`/product/${r.product_id}`} className="no-underline hover:text-accent transition-colors"><p className="text-primary font-bold text-sm m-0">{r.product_name}</p></Link>
+                            : <p className="text-primary font-bold text-sm m-0">{r.product_name}</p>
+                          }
                           <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${st.className}`}>
                             {st.label}
                           </span>

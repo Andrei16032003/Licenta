@@ -1,0 +1,799 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - link "ALEX COMPUTERS" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img [ref=e7]
+      - generic [ref=e9]: ALEX COMPUTERS
+    - generic [ref=e10]:
+      - link "Acasă" [ref=e11] [cursor=pointer]:
+        - /url: /
+        - img [ref=e12]
+        - text: Acasă
+      - link "Catalog" [ref=e14] [cursor=pointer]:
+        - /url: /catalog
+        - img [ref=e15]
+        - text: Catalog
+      - link "PC Builder" [ref=e18] [cursor=pointer]:
+        - /url: /builder
+        - img [ref=e19]
+        - text: PC Builder
+      - link "Prebuilt PC" [ref=e21] [cursor=pointer]:
+        - /url: /chat
+        - img [ref=e22]
+        - text: Prebuilt PC
+      - link "FAQ" [ref=e24] [cursor=pointer]:
+        - /url: /faq
+        - img [ref=e25]
+        - text: FAQ
+      - link "Despre noi" [ref=e27] [cursor=pointer]:
+        - /url: /despre-noi
+        - img [ref=e28]
+        - text: Despre noi
+      - link "Contact" [ref=e30] [cursor=pointer]:
+        - /url: /contact
+        - img [ref=e31]
+        - text: Contact
+    - generic [ref=e33]:
+      - button [ref=e35] [cursor=pointer]:
+        - img [ref=e36]
+      - link "Coș" [ref=e38] [cursor=pointer]:
+        - /url: /cart
+        - img [ref=e39]
+        - generic [ref=e41]: Coș
+      - link "Autentificare" [ref=e43] [cursor=pointer]:
+        - /url: /login
+      - link "Cont nou" [ref=e44] [cursor=pointer]:
+        - /url: /register
+  - main [ref=e45]:
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - img [ref=e49]
+        - heading "Construieste PC-ul perfect" [level=1] [ref=e51]
+        - paragraph [ref=e52]: Cele mai bune componente PC la cele mai bune prețuri din România
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - img [ref=e55]
+            - generic [ref=e57]: 26+
+            - generic [ref=e58]: Produse
+          - generic [ref=e59]:
+            - img [ref=e60]
+            - generic [ref=e62]: 100%
+            - generic [ref=e63]: Garantie
+          - generic [ref=e64]:
+            - img [ref=e65]
+            - generic [ref=e67]: 24/7
+            - generic [ref=e68]: Suport
+          - generic [ref=e69]:
+            - img [ref=e70]
+            - generic [ref=e72]: 500+
+            - generic [ref=e73]: Clienti
+      - generic [ref=e74]:
+        - button "Toate" [ref=e75] [cursor=pointer]
+        - button "Procesoare" [ref=e76] [cursor=pointer]:
+          - img [ref=e77]
+          - text: Procesoare
+        - button "Placi video" [ref=e79] [cursor=pointer]:
+          - img [ref=e80]
+          - text: Placi video
+        - button "Memorii RAM" [ref=e82] [cursor=pointer]:
+          - img [ref=e83]
+          - text: Memorii RAM
+        - button "Placi de baza" [ref=e85] [cursor=pointer]:
+          - img [ref=e86]
+          - text: Placi de baza
+        - button "Stocare SSD/HDD" [ref=e88] [cursor=pointer]:
+          - img [ref=e89]
+          - text: Stocare SSD/HDD
+        - button "Surse de alimentare" [ref=e91] [cursor=pointer]:
+          - img [ref=e92]
+          - text: Surse de alimentare
+        - button "Carcase" [ref=e94] [cursor=pointer]:
+          - img [ref=e95]
+          - text: Carcase
+        - button "Coolere" [ref=e97] [cursor=pointer]:
+          - img [ref=e98]
+          - text: Coolere
+        - button "Monitoare" [ref=e100] [cursor=pointer]:
+          - img [ref=e101]
+          - text: Monitoare
+        - button "Mouse" [ref=e103] [cursor=pointer]:
+          - img [ref=e104]
+          - text: Mouse
+        - button "Tastaturi" [ref=e106] [cursor=pointer]:
+          - img [ref=e107]
+          - text: Tastaturi
+        - button "Casti" [ref=e109] [cursor=pointer]:
+          - img [ref=e110]
+          - text: Casti
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - generic [ref=e114]:
+            - generic [ref=e115]: Cauta produs
+            - generic [ref=e116]:
+              - img
+              - 'textbox "ex: Ryzen, RTX, Samsung..." [ref=e117]'
+          - generic [ref=e118]:
+            - generic [ref=e119]: Categorie
+            - combobox [ref=e120] [cursor=pointer]:
+              - option "Toate categoriile"
+              - option "Procesoare" [selected]
+              - option "Placi video"
+              - option "Memorii RAM"
+              - option "Placi de baza"
+              - option "Stocare SSD/HDD"
+              - option "Surse de alimentare"
+              - option "Carcase"
+              - option "Coolere"
+              - option "Monitoare"
+              - option "Mouse"
+              - option "Tastaturi"
+              - option "Casti"
+          - generic [ref=e121]:
+            - generic [ref=e122]: Pret min
+            - spinbutton [ref=e123]
+          - generic [ref=e124]:
+            - generic [ref=e125]: Pret max
+            - spinbutton [ref=e126]
+          - generic [ref=e127]:
+            - generic [ref=e128]: Sorteaza
+            - combobox [ref=e129] [cursor=pointer]:
+              - option "Cele mai noi" [selected]
+              - option "Pret crescator"
+              - option "Pret descrescator"
+              - option "Nume A-Z"
+          - generic [ref=e130]:
+            - generic [ref=e131]: Disponibilitate
+            - button "Doar in stoc" [ref=e132] [cursor=pointer]
+          - button "Filtreaza" [ref=e133] [cursor=pointer]:
+            - img [ref=e134]
+            - text: Filtreaza
+          - button "Reset" [ref=e136] [cursor=pointer]:
+            - img [ref=e137]
+            - text: Reset
+        - generic [ref=e139]:
+          - generic [ref=e140]:
+            - generic [ref=e141]:
+              - generic [ref=e143]: Brand
+              - generic [ref=e144]:
+                - generic [ref=e147] [cursor=pointer]: AMD
+                - generic [ref=e150] [cursor=pointer]: Intel
+            - generic [ref=e151]:
+              - generic [ref=e153]: Socket
+              - generic [ref=e154]:
+                - generic [ref=e157] [cursor=pointer]: LGA1700
+                - generic [ref=e160] [cursor=pointer]: AM5
+                - generic [ref=e163] [cursor=pointer]: AM4
+            - generic [ref=e164]:
+              - generic [ref=e166]: Nuclee
+              - generic [ref=e167]:
+                - generic [ref=e170] [cursor=pointer]: "4"
+                - generic [ref=e173] [cursor=pointer]: "6"
+                - generic [ref=e176] [cursor=pointer]: "8"
+                - generic [ref=e179] [cursor=pointer]: "10"
+                - generic [ref=e182] [cursor=pointer]: "12"
+                - generic [ref=e185] [cursor=pointer]: "14"
+                - generic [ref=e188] [cursor=pointer]: "16"
+                - generic [ref=e191] [cursor=pointer]: "24"
+            - generic [ref=e192]:
+              - generic [ref=e194]: Tip Memorie
+              - generic [ref=e195]:
+                - generic [ref=e198] [cursor=pointer]: DDR4
+                - generic [ref=e201] [cursor=pointer]: DDR5
+            - generic [ref=e202]:
+              - generic [ref=e204]: TDP (W)
+              - generic [ref=e205]:
+                - generic [ref=e208] [cursor=pointer]: "65"
+                - generic [ref=e211] [cursor=pointer]: "105"
+                - generic [ref=e214] [cursor=pointer]: "120"
+                - generic [ref=e217] [cursor=pointer]: "125"
+                - generic [ref=e220] [cursor=pointer]: "150"
+                - generic [ref=e223] [cursor=pointer]: "170"
+          - generic [ref=e224]:
+            - generic [ref=e225]:
+              - paragraph [ref=e226]:
+                - text: 26 produse
+                - generic [ref=e227]: in Procesoare
+              - paragraph [ref=e228]: Pagina 1 din 2
+            - generic [ref=e229]:
+              - link "-12% AMD Ryzen 5 7600 Procesoare AMD Ryzen 5 7600 AMD ★ ★ ★ ★ ★ 4.2 (27) 749.99 RON849.99 Stoc Cos" [ref=e230] [cursor=pointer]:
+                - /url: /product/08dcb33b-c872-4615-b7f2-deadcadb8670
+                - generic [ref=e231]:
+                  - generic [ref=e232]:
+                    - generic [ref=e233]: "-12%"
+                    - img "AMD Ryzen 5 7600" [ref=e234]
+                  - generic [ref=e235]:
+                    - generic [ref=e236]: Procesoare
+                    - heading "AMD Ryzen 5 7600" [level=3] [ref=e237]
+                    - paragraph [ref=e238]: AMD
+                    - generic [ref=e239]:
+                      - generic [ref=e240]:
+                        - generic [ref=e241]: ★
+                        - generic [ref=e242]: ★
+                        - generic [ref=e243]: ★
+                        - generic [ref=e244]: ★
+                        - generic [ref=e245]: ★
+                      - generic [ref=e246]: "4.2"
+                      - generic [ref=e247]: (27)
+                    - generic [ref=e248]:
+                      - generic [ref=e249]:
+                        - generic [ref=e250]: 749.99 RON
+                        - text: "849.99"
+                      - generic [ref=e251]: Stoc
+                    - generic [ref=e252]:
+                      - button "Cos" [ref=e253]:
+                        - img [ref=e254]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e256]:
+                        - img [ref=e257]
+                      - button "Adauga la PC Build" [ref=e259]:
+                        - img [ref=e260]
+              - link "-12% Intel Core i5-13400F Procesoare Intel Core i5-13400F Intel ★ ★ ★ ★ ★ 4.1 (28) 749.99 RON849.99 Stoc Cos" [ref=e262] [cursor=pointer]:
+                - /url: /product/4f592a43-8139-456c-bfe8-64855de15e33
+                - generic [ref=e263]:
+                  - generic [ref=e264]:
+                    - generic [ref=e265]: "-12%"
+                    - img "Intel Core i5-13400F" [ref=e266]
+                  - generic [ref=e267]:
+                    - generic [ref=e268]: Procesoare
+                    - heading "Intel Core i5-13400F" [level=3] [ref=e269]
+                    - paragraph [ref=e270]: Intel
+                    - generic [ref=e271]:
+                      - generic [ref=e272]:
+                        - generic [ref=e273]: ★
+                        - generic [ref=e274]: ★
+                        - generic [ref=e275]: ★
+                        - generic [ref=e276]: ★
+                        - generic [ref=e277]: ★
+                      - generic [ref=e278]: "4.1"
+                      - generic [ref=e279]: (28)
+                    - generic [ref=e280]:
+                      - generic [ref=e281]:
+                        - generic [ref=e282]: 749.99 RON
+                        - text: "849.99"
+                      - generic [ref=e283]: Stoc
+                    - generic [ref=e284]:
+                      - button "Cos" [ref=e285]:
+                        - img [ref=e286]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e288]:
+                        - img [ref=e289]
+                      - button "Adauga la PC Build" [ref=e291]:
+                        - img [ref=e292]
+              - link "-16% AMD Ryzen 7 5700X Procesoare AMD Ryzen 7 5700X AMD ★ ★ ★ ★ ★ 4.0 (21) 799.99 RON949.99 Stoc Cos" [ref=e294] [cursor=pointer]:
+                - /url: /product/324d47f4-3494-424a-a309-627ba72e898b
+                - generic [ref=e295]:
+                  - generic [ref=e296]:
+                    - generic [ref=e297]: "-16%"
+                    - img "AMD Ryzen 7 5700X" [ref=e298]
+                  - generic [ref=e299]:
+                    - generic [ref=e300]: Procesoare
+                    - heading "AMD Ryzen 7 5700X" [level=3] [ref=e301]
+                    - paragraph [ref=e302]: AMD
+                    - generic [ref=e303]:
+                      - generic [ref=e304]:
+                        - generic [ref=e305]: ★
+                        - generic [ref=e306]: ★
+                        - generic [ref=e307]: ★
+                        - generic [ref=e308]: ★
+                        - generic [ref=e309]: ★
+                      - generic [ref=e310]: "4.0"
+                      - generic [ref=e311]: (21)
+                    - generic [ref=e312]:
+                      - generic [ref=e313]:
+                        - generic [ref=e314]: 799.99 RON
+                        - text: "949.99"
+                      - generic [ref=e315]: Stoc
+                    - generic [ref=e316]:
+                      - button "Cos" [ref=e317]:
+                        - img [ref=e318]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e320]:
+                        - img [ref=e321]
+                      - button "Adauga la PC Build" [ref=e323]:
+                        - img [ref=e324]
+              - link "-10% Intel Core i5-13600K Procesoare Intel Core i5-13600K Intel ★ ★ ★ ★ ★ 4.2 (22) 899.99 RON999.99 Stoc Cos" [ref=e326] [cursor=pointer]:
+                - /url: /product/e689d316-c7f7-4446-ba6f-91ccae09ebda
+                - generic [ref=e327]:
+                  - generic [ref=e328]:
+                    - generic [ref=e329]: "-10%"
+                    - img "Intel Core i5-13600K" [ref=e330]
+                  - generic [ref=e331]:
+                    - generic [ref=e332]: Procesoare
+                    - heading "Intel Core i5-13600K" [level=3] [ref=e333]
+                    - paragraph [ref=e334]: Intel
+                    - generic [ref=e335]:
+                      - generic [ref=e336]:
+                        - generic [ref=e337]: ★
+                        - generic [ref=e338]: ★
+                        - generic [ref=e339]: ★
+                        - generic [ref=e340]: ★
+                        - generic [ref=e341]: ★
+                      - generic [ref=e342]: "4.2"
+                      - generic [ref=e343]: (22)
+                    - generic [ref=e344]:
+                      - generic [ref=e345]:
+                        - generic [ref=e346]: 899.99 RON
+                        - text: "999.99"
+                      - generic [ref=e347]: Stoc
+                    - generic [ref=e348]:
+                      - button "Cos" [ref=e349]:
+                        - img [ref=e350]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e352]:
+                        - img [ref=e353]
+                      - button "Adauga la PC Build" [ref=e355]:
+                        - img [ref=e356]
+              - link "-14% Intel Core i5-12400F Procesoare Intel Core i5-12400F Intel ★ ★ ★ ★ ★ 4.0 (25) 599.99 RON699.99 Stoc Cos" [ref=e358] [cursor=pointer]:
+                - /url: /product/92d181f7-bfc2-465a-aff5-8d5cb03cd73d
+                - generic [ref=e359]:
+                  - generic [ref=e360]:
+                    - generic [ref=e361]: "-14%"
+                    - img "Intel Core i5-12400F" [ref=e362]
+                  - generic [ref=e363]:
+                    - generic [ref=e364]: Procesoare
+                    - heading "Intel Core i5-12400F" [level=3] [ref=e365]
+                    - paragraph [ref=e366]: Intel
+                    - generic [ref=e367]:
+                      - generic [ref=e368]:
+                        - generic [ref=e369]: ★
+                        - generic [ref=e370]: ★
+                        - generic [ref=e371]: ★
+                        - generic [ref=e372]: ★
+                        - generic [ref=e373]: ★
+                      - generic [ref=e374]: "4.0"
+                      - generic [ref=e375]: (25)
+                    - generic [ref=e376]:
+                      - generic [ref=e377]:
+                        - generic [ref=e378]: 599.99 RON
+                        - text: "699.99"
+                      - generic [ref=e379]: Stoc
+                    - generic [ref=e380]:
+                      - button "Cos" [ref=e381]:
+                        - img [ref=e382]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e384]:
+                        - img [ref=e385]
+                      - button "Adauga la PC Build" [ref=e387]:
+                        - img [ref=e388]
+              - link "-15% AMD Ryzen 5 5600X Procesoare AMD Ryzen 5 5600X AMD ★ ★ ★ ★ ★ 4.1 (28) 549.99 RON649.99 Stoc Cos" [ref=e390] [cursor=pointer]:
+                - /url: /product/cc04948e-3395-4ffa-a06f-4aa1678d86d7
+                - generic [ref=e391]:
+                  - generic [ref=e392]:
+                    - generic [ref=e393]: "-15%"
+                    - img "AMD Ryzen 5 5600X" [ref=e394]
+                  - generic [ref=e395]:
+                    - generic [ref=e396]: Procesoare
+                    - heading "AMD Ryzen 5 5600X" [level=3] [ref=e397]
+                    - paragraph [ref=e398]: AMD
+                    - generic [ref=e399]:
+                      - generic [ref=e400]:
+                        - generic [ref=e401]: ★
+                        - generic [ref=e402]: ★
+                        - generic [ref=e403]: ★
+                        - generic [ref=e404]: ★
+                        - generic [ref=e405]: ★
+                      - generic [ref=e406]: "4.1"
+                      - generic [ref=e407]: (28)
+                    - generic [ref=e408]:
+                      - generic [ref=e409]:
+                        - generic [ref=e410]: 549.99 RON
+                        - text: "649.99"
+                      - generic [ref=e411]: Stoc
+                    - generic [ref=e412]:
+                      - button "Cos" [ref=e413]:
+                        - img [ref=e414]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e416]:
+                        - img [ref=e417]
+                      - button "Adauga la PC Build" [ref=e419]:
+                        - img [ref=e420]
+              - link "Intel Core i3-13100F Procesoare Intel Core i3-13100F Intel ★ ★ ★ ★ ★ 4.2 (23) 329.99 RON Stoc Cos" [ref=e422] [cursor=pointer]:
+                - /url: /product/c69087a1-c29e-4841-af8d-64e8dba5dc02
+                - generic [ref=e423]:
+                  - img "Intel Core i3-13100F" [ref=e425]
+                  - generic [ref=e426]:
+                    - generic [ref=e427]: Procesoare
+                    - heading "Intel Core i3-13100F" [level=3] [ref=e428]
+                    - paragraph [ref=e429]: Intel
+                    - generic [ref=e430]:
+                      - generic [ref=e431]:
+                        - generic [ref=e432]: ★
+                        - generic [ref=e433]: ★
+                        - generic [ref=e434]: ★
+                        - generic [ref=e435]: ★
+                        - generic [ref=e436]: ★
+                      - generic [ref=e437]: "4.2"
+                      - generic [ref=e438]: (23)
+                    - generic [ref=e439]:
+                      - generic [ref=e441]: 329.99 RON
+                      - generic [ref=e442]: Stoc
+                    - generic [ref=e443]:
+                      - button "Cos" [ref=e444]:
+                        - img [ref=e445]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e447]:
+                        - img [ref=e448]
+                      - button "Adauga la PC Build" [ref=e450]:
+                        - img [ref=e451]
+              - link "AMD Ryzen 5 5600 Procesoare AMD Ryzen 5 5600 AMD ★ ★ ★ ★ ★ 4.0 (21) 599.99 RON Stoc Cos" [ref=e453] [cursor=pointer]:
+                - /url: /product/2d241d33-58e7-4d3b-b146-fb1fceb0a2be
+                - generic [ref=e454]:
+                  - img "AMD Ryzen 5 5600" [ref=e456]
+                  - generic [ref=e457]:
+                    - generic [ref=e458]: Procesoare
+                    - heading "AMD Ryzen 5 5600" [level=3] [ref=e459]
+                    - paragraph [ref=e460]: AMD
+                    - generic [ref=e461]:
+                      - generic [ref=e462]:
+                        - generic [ref=e463]: ★
+                        - generic [ref=e464]: ★
+                        - generic [ref=e465]: ★
+                        - generic [ref=e466]: ★
+                        - generic [ref=e467]: ★
+                      - generic [ref=e468]: "4.0"
+                      - generic [ref=e469]: (21)
+                    - generic [ref=e470]:
+                      - generic [ref=e472]: 599.99 RON
+                      - generic [ref=e473]: Stoc
+                    - generic [ref=e474]:
+                      - button "Cos" [ref=e475]:
+                        - img [ref=e476]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e478]:
+                        - img [ref=e479]
+                      - button "Adauga la PC Build" [ref=e481]:
+                        - img [ref=e482]
+              - link "Stoc limitat Intel Core i9-13900KS Procesoare Intel Core i9-13900KS Intel 2199.99 RON2499.99 Stoc Cos" [ref=e484] [cursor=pointer]:
+                - /url: /product/dbfbcfc9-3244-4689-9e95-5223a4796972
+                - generic [ref=e485]:
+                  - generic [ref=e486]:
+                    - generic [ref=e487]: Stoc limitat
+                    - img "Intel Core i9-13900KS" [ref=e488]
+                  - generic [ref=e489]:
+                    - generic [ref=e490]: Procesoare
+                    - heading "Intel Core i9-13900KS" [level=3] [ref=e491]
+                    - paragraph [ref=e492]: Intel
+                    - generic [ref=e493]:
+                      - generic [ref=e494]:
+                        - generic [ref=e495]: 2199.99 RON
+                        - text: "2499.99"
+                      - generic [ref=e496]: Stoc
+                    - generic [ref=e497]:
+                      - button "Cos" [ref=e498]:
+                        - img [ref=e499]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e501]:
+                        - img [ref=e502]
+                      - button "Adauga la PC Build" [ref=e504]:
+                        - img [ref=e505]
+              - link "Stoc limitat AMD Ryzen 9 7950X3D Procesoare AMD Ryzen 9 7950X3D AMD 2799.99 RON3199.99 Stoc Cos" [ref=e507] [cursor=pointer]:
+                - /url: /product/0df9b6d4-af72-445b-8d85-a09756e0c8ad
+                - generic [ref=e508]:
+                  - generic [ref=e509]:
+                    - generic [ref=e510]: Stoc limitat
+                    - img "AMD Ryzen 9 7950X3D" [ref=e511]
+                  - generic [ref=e512]:
+                    - generic [ref=e513]: Procesoare
+                    - heading "AMD Ryzen 9 7950X3D" [level=3] [ref=e514]
+                    - paragraph [ref=e515]: AMD
+                    - generic [ref=e516]:
+                      - generic [ref=e517]:
+                        - generic [ref=e518]: 2799.99 RON
+                        - text: "3199.99"
+                      - generic [ref=e519]: Stoc
+                    - generic [ref=e520]:
+                      - button "Cos" [ref=e521]:
+                        - img [ref=e522]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e524]:
+                        - img [ref=e525]
+                      - button "Adauga la PC Build" [ref=e527]:
+                        - img [ref=e528]
+              - link "-9% Intel Core i9-14900K Procesoare Intel Core i9-14900K Intel 2999.99 RON3299.99 Stoc Cos" [ref=e530] [cursor=pointer]:
+                - /url: /product/ede9a681-cb44-474e-9018-b4600d591e3c
+                - generic [ref=e531]:
+                  - generic [ref=e532]:
+                    - generic [ref=e533]: "-9%"
+                    - img "Intel Core i9-14900K" [ref=e534]
+                  - generic [ref=e535]:
+                    - generic [ref=e536]: Procesoare
+                    - heading "Intel Core i9-14900K" [level=3] [ref=e537]
+                    - paragraph [ref=e538]: Intel
+                    - generic [ref=e539]:
+                      - generic [ref=e540]:
+                        - generic [ref=e541]: 2999.99 RON
+                        - text: "3299.99"
+                      - generic [ref=e542]: Stoc
+                    - generic [ref=e543]:
+                      - button "Cos" [ref=e544]:
+                        - img [ref=e545]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e547]:
+                        - img [ref=e548]
+                      - button "Adauga la PC Build" [ref=e550]:
+                        - img [ref=e551]
+              - link "-13% Intel Core i3-13100 Procesoare Intel Core i3-13100 Intel 349.99 RON399.99 Stoc Cos" [ref=e553] [cursor=pointer]:
+                - /url: /product/0c470f16-117e-4116-a2c6-7a5fca914024
+                - generic [ref=e554]:
+                  - generic [ref=e555]:
+                    - generic [ref=e556]: "-13%"
+                    - img "Intel Core i3-13100" [ref=e557]
+                  - generic [ref=e558]:
+                    - generic [ref=e559]: Procesoare
+                    - heading "Intel Core i3-13100" [level=3] [ref=e560]
+                    - paragraph [ref=e561]: Intel
+                    - generic [ref=e562]:
+                      - generic [ref=e563]:
+                        - generic [ref=e564]: 349.99 RON
+                        - text: "399.99"
+                      - generic [ref=e565]: Stoc
+                    - generic [ref=e566]:
+                      - button "Cos" [ref=e567]:
+                        - img [ref=e568]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e570]:
+                        - img [ref=e571]
+                      - button "Adauga la PC Build" [ref=e573]:
+                        - img [ref=e574]
+              - link "-14% AMD Ryzen 3 4100 Procesoare AMD Ryzen 3 4100 AMD 299.99 RON349.99 Stoc Cos" [ref=e576] [cursor=pointer]:
+                - /url: /product/92beea09-84d8-4b63-a8a3-b3a99ee2dbbe
+                - generic [ref=e577]:
+                  - generic [ref=e578]:
+                    - generic [ref=e579]: "-14%"
+                    - img "AMD Ryzen 3 4100" [ref=e580]
+                  - generic [ref=e581]:
+                    - generic [ref=e582]: Procesoare
+                    - heading "AMD Ryzen 3 4100" [level=3] [ref=e583]
+                    - paragraph [ref=e584]: AMD
+                    - generic [ref=e585]:
+                      - generic [ref=e586]:
+                        - generic [ref=e587]: 299.99 RON
+                        - text: "349.99"
+                      - generic [ref=e588]: Stoc
+                    - generic [ref=e589]:
+                      - button "Cos" [ref=e590]:
+                        - img [ref=e591]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e593]:
+                        - img [ref=e594]
+                      - button "Adauga la PC Build" [ref=e596]:
+                        - img [ref=e597]
+              - link "-13% AMD Ryzen 9 7900X Procesoare AMD Ryzen 9 7900X AMD 1299.99 RON1499.99 Stoc Cos" [ref=e599] [cursor=pointer]:
+                - /url: /product/cc99bc58-954e-4371-ae0b-d45c50bee65b
+                - generic [ref=e600]:
+                  - generic [ref=e601]:
+                    - generic [ref=e602]: "-13%"
+                    - img "AMD Ryzen 9 7900X" [ref=e603]
+                  - generic [ref=e604]:
+                    - generic [ref=e605]: Procesoare
+                    - heading "AMD Ryzen 9 7900X" [level=3] [ref=e606]
+                    - paragraph [ref=e607]: AMD
+                    - generic [ref=e608]:
+                      - generic [ref=e609]:
+                        - generic [ref=e610]: 1299.99 RON
+                        - text: "1499.99"
+                      - generic [ref=e611]: Stoc
+                    - generic [ref=e612]:
+                      - button "Cos" [ref=e613]:
+                        - img [ref=e614]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e616]:
+                        - img [ref=e617]
+                      - button "Adauga la PC Build" [ref=e619]:
+                        - img [ref=e620]
+              - link "-9% AMD Ryzen 7 7700 Procesoare AMD Ryzen 7 7700 AMD ★ ★ ★ ★ ★ 4.1 (10) 999.99 RON1099.99 Stoc Cos" [ref=e622] [cursor=pointer]:
+                - /url: /product/fb81208c-5b83-4af3-937d-60d81db03824
+                - generic [ref=e623]:
+                  - generic [ref=e624]:
+                    - generic [ref=e625]: "-9%"
+                    - img "AMD Ryzen 7 7700" [ref=e626]
+                  - generic [ref=e627]:
+                    - generic [ref=e628]: Procesoare
+                    - heading "AMD Ryzen 7 7700" [level=3] [ref=e629]
+                    - paragraph [ref=e630]: AMD
+                    - generic [ref=e631]:
+                      - generic [ref=e632]:
+                        - generic [ref=e633]: ★
+                        - generic [ref=e634]: ★
+                        - generic [ref=e635]: ★
+                        - generic [ref=e636]: ★
+                        - generic [ref=e637]: ★
+                      - generic [ref=e638]: "4.1"
+                      - generic [ref=e639]: (10)
+                    - generic [ref=e640]:
+                      - generic [ref=e641]:
+                        - generic [ref=e642]: 999.99 RON
+                        - text: "1099.99"
+                      - generic [ref=e643]: Stoc
+                    - generic [ref=e644]:
+                      - button "Cos" [ref=e645]:
+                        - img [ref=e646]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e648]:
+                        - img [ref=e649]
+                      - button "Adauga la PC Build" [ref=e651]:
+                        - img [ref=e652]
+              - link "-15% Intel Core i7-12700K Procesoare Intel Core i7-12700K Intel 1099.99 RON1299.99 Stoc Cos" [ref=e654] [cursor=pointer]:
+                - /url: /product/6fee58d4-d25f-44b4-9ed3-57c3ad63c05a
+                - generic [ref=e655]:
+                  - generic [ref=e656]:
+                    - generic [ref=e657]: "-15%"
+                    - img "Intel Core i7-12700K" [ref=e658]
+                  - generic [ref=e659]:
+                    - generic [ref=e660]: Procesoare
+                    - heading "Intel Core i7-12700K" [level=3] [ref=e661]
+                    - paragraph [ref=e662]: Intel
+                    - generic [ref=e663]:
+                      - generic [ref=e664]:
+                        - generic [ref=e665]: 1099.99 RON
+                        - text: "1299.99"
+                      - generic [ref=e666]: Stoc
+                    - generic [ref=e667]:
+                      - button "Cos" [ref=e668]:
+                        - img [ref=e669]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e671]:
+                        - img [ref=e672]
+                      - button "Adauga la PC Build" [ref=e674]:
+                        - img [ref=e675]
+              - link "-13% Intel Core i7-13700K Procesoare Intel Core i7-13700K Intel 1399.99 RON1599.99 Stoc Cos" [ref=e677] [cursor=pointer]:
+                - /url: /product/3fbd7e4b-f444-4457-b9b3-ae580bd4b3f2
+                - generic [ref=e678]:
+                  - generic [ref=e679]:
+                    - generic [ref=e680]: "-13%"
+                    - img "Intel Core i7-13700K" [ref=e681]
+                  - generic [ref=e682]:
+                    - generic [ref=e683]: Procesoare
+                    - heading "Intel Core i7-13700K" [level=3] [ref=e684]
+                    - paragraph [ref=e685]: Intel
+                    - generic [ref=e686]:
+                      - generic [ref=e687]:
+                        - generic [ref=e688]: 1399.99 RON
+                        - text: "1599.99"
+                      - generic [ref=e689]: Stoc
+                    - generic [ref=e690]:
+                      - button "Cos" [ref=e691]:
+                        - img [ref=e692]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e694]:
+                        - img [ref=e695]
+                      - button "Adauga la PC Build" [ref=e697]:
+                        - img [ref=e698]
+              - link "-9% AMD Ryzen 7 7800X3D Procesoare AMD Ryzen 7 7800X3D AMD 1549.99 RON1699.99 Stoc Cos" [ref=e700] [cursor=pointer]:
+                - /url: /product/538a45ab-426f-422e-9103-e8bdf3d50a41
+                - generic [ref=e701]:
+                  - generic [ref=e702]:
+                    - generic [ref=e703]: "-9%"
+                    - img "AMD Ryzen 7 7800X3D" [ref=e704]
+                  - generic [ref=e705]:
+                    - generic [ref=e706]: Procesoare
+                    - heading "AMD Ryzen 7 7800X3D" [level=3] [ref=e707]
+                    - paragraph [ref=e708]: AMD
+                    - generic [ref=e709]:
+                      - generic [ref=e710]:
+                        - generic [ref=e711]: 1549.99 RON
+                        - text: "1699.99"
+                      - generic [ref=e712]: Stoc
+                    - generic [ref=e713]:
+                      - button "Cos" [ref=e714]:
+                        - img [ref=e715]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e717]:
+                        - img [ref=e718]
+                      - button "Adauga la PC Build" [ref=e720]:
+                        - img [ref=e721]
+              - link "-15% Intel Core i9-13900K Procesoare Intel Core i9-13900K Intel 1699.99 RON1999.99 Stoc Cos" [ref=e723] [cursor=pointer]:
+                - /url: /product/94a7fb0e-a34e-4a9a-af67-91fff1c3b051
+                - generic [ref=e724]:
+                  - generic [ref=e725]:
+                    - generic [ref=e726]: "-15%"
+                    - img "Intel Core i9-13900K" [ref=e727]
+                  - generic [ref=e728]:
+                    - generic [ref=e729]: Procesoare
+                    - heading "Intel Core i9-13900K" [level=3] [ref=e730]
+                    - paragraph [ref=e731]: Intel
+                    - generic [ref=e732]:
+                      - generic [ref=e733]:
+                        - generic [ref=e734]: 1699.99 RON
+                        - text: "1999.99"
+                      - generic [ref=e735]: Stoc
+                    - generic [ref=e736]:
+                      - button "Cos" [ref=e737]:
+                        - img [ref=e738]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e740]:
+                        - img [ref=e741]
+                      - button "Adauga la PC Build" [ref=e743]:
+                        - img [ref=e744]
+              - link "-13% AMD Ryzen 9 7950X Procesoare AMD Ryzen 9 7950X AMD 1999.99 RON2299.99 Stoc Cos" [ref=e746] [cursor=pointer]:
+                - /url: /product/c0a4c50d-4cee-4c94-8096-7a99634f40bf
+                - generic [ref=e747]:
+                  - generic [ref=e748]:
+                    - generic [ref=e749]: "-13%"
+                    - img "AMD Ryzen 9 7950X" [ref=e750]
+                  - generic [ref=e751]:
+                    - generic [ref=e752]: Procesoare
+                    - heading "AMD Ryzen 9 7950X" [level=3] [ref=e753]
+                    - paragraph [ref=e754]: AMD
+                    - generic [ref=e755]:
+                      - generic [ref=e756]:
+                        - generic [ref=e757]: 1999.99 RON
+                        - text: "2299.99"
+                      - generic [ref=e758]: Stoc
+                    - generic [ref=e759]:
+                      - button "Cos" [ref=e760]:
+                        - img [ref=e761]
+                        - text: Cos
+                      - button "Adauga la comparare" [ref=e763]:
+                        - img [ref=e764]
+                      - button "Adauga la PC Build" [ref=e766]:
+                        - img [ref=e767]
+            - generic [ref=e769]:
+              - button "Prev" [disabled] [ref=e770]
+              - button "1" [ref=e771] [cursor=pointer]
+              - button "2" [ref=e772] [cursor=pointer]
+              - button "Next" [ref=e773] [cursor=pointer]
+  - contentinfo [ref=e774]:
+    - generic [ref=e775]:
+      - generic [ref=e776]:
+        - link "ALEX COMPUTERS" [ref=e777] [cursor=pointer]:
+          - /url: /
+          - img [ref=e779]
+          - generic [ref=e781]: ALEX COMPUTERS
+        - paragraph [ref=e782]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e783]:
+          - link "aa387@student.ugal.ro" [ref=e784] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e785]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e788] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e789]
+            - text: 0770 648 476
+      - generic [ref=e792]:
+        - heading "Navigare" [level=4] [ref=e793]
+        - list [ref=e794]:
+          - listitem [ref=e795]:
+            - link "Catalog Produse" [ref=e796] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e797]
+              - text: Catalog Produse
+          - listitem [ref=e799]:
+            - link "PC Builder" [ref=e800] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e801]
+              - text: PC Builder
+          - listitem [ref=e803]:
+            - link "Prebuilt PC" [ref=e804] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e805]
+              - text: Prebuilt PC
+          - listitem [ref=e807]:
+            - link "FAQ" [ref=e808] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e809]
+              - text: FAQ
+      - generic [ref=e811]:
+        - heading "Informații" [level=4] [ref=e812]
+        - list [ref=e813]:
+          - listitem [ref=e814]:
+            - link "Despre Noi" [ref=e815] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e816]
+              - text: Despre Noi
+          - listitem [ref=e818]:
+            - link "Contact" [ref=e819] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e820]
+              - text: Contact
+          - listitem [ref=e822]:
+            - link "Politica Confidentialitate" [ref=e823] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e824]
+              - text: Politica Confidentialitate
+        - paragraph [ref=e826]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e828]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e830] [cursor=pointer]:
+    - img [ref=e831]
