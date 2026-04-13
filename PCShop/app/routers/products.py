@@ -58,6 +58,22 @@ FILTER_SEEDS = {
         {"key": "type",        "label": "Tip",           "values": ["air", "aio"],               "order": 0},
         {"key": "radiator_mm", "label": "Radiator (mm)", "values": ["120", "240", "280", "360", "420"], "order": 1},
     ],
+    "mouse": [
+        {"key": "wireless",  "label": "Conectivitate", "values": ["true", "false"],                                          "order": 0},
+        {"key": "dpi",       "label": "DPI Max",       "values": ["6400", "8000", "12000", "16000", "25600", "30000", "35000"], "order": 1},
+        {"key": "sensor",    "label": "Senzor",        "values": ["HERO 25K", "HERO 16K", "Focus Pro 35K", "Focus Pro", "Focus+", "TrueMove3+", "TrueMove Core", "PixArt 26K", "PMW3392", "Darkfield"], "order": 2},
+    ],
+    "keyboard": [
+        {"key": "size",     "label": "Marime",       "values": ["full", "TKL", "75%", "60%"],                                "order": 0},
+        {"key": "wireless", "label": "Conectivitate","values": ["true", "false"],                                             "order": 1},
+        {"key": "switches", "label": "Switch-uri",   "values": ["Razer Yellow", "Razer Optical Linear", "Razer Optical Clicky", "OmniPoint 2.0", "Cherry MX Red", "Cherry MX Speed", "GX Red", "GX Blue", "GL Linear", "GL Tactile", "HyperX Red", "Corsair OPX", "Brown", "Membrana", "Whisper Silent"], "order": 2},
+        {"key": "rgb",      "label": "RGB",          "values": ["true", "false"],                                             "order": 3},
+    ],
+    "headset": [
+        {"key": "wireless",  "label": "Conectivitate","values": ["true", "false"],                                             "order": 0},
+        {"key": "surround",  "label": "Sunet",        "values": ["stereo", "7.1 virtual", "DTS 7.1", "DTS Headphone:X", "DTS X 2.0", "Dolby 7.1", "Dolby Atmos", "THX Spatial"], "order": 1},
+        {"key": "drivers_mm","label": "Difuzoare",    "values": ["40", "50", "53", "90"],                                     "order": 2},
+    ],
     "monitor": [
         {"key": "panel",       "label": "Tip Panel",   "values": ["IPS", "VA", "OLED"],                                      "order": 0},
         {"key": "size_inch",   "label": "Diagonala",   "values": ["24", "27", "32", "34", "45", "49"],                        "order": 1},

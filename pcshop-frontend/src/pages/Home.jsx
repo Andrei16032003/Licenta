@@ -86,15 +86,18 @@ export default function Home() {
 
   useEffect(() => {
     const cat = searchParams.get('category')
+    const q = searchParams.get('search')
     loadCategories()
     setSelectedBrands([])
+    setSelectedSpecs({})
     setCurrentPage(1)
+    setSearch(q || '')
     if (cat) {
       setSelectedCategory(cat)
-      doLoad({ category: cat, sort_by: undefined, in_stock: undefined })
+      doLoad({ category: cat, search: q || undefined })
     } else {
       setSelectedCategory('')
-      doLoad({})
+      doLoad({ search: q || undefined })
     }
   }, [searchParams])
 
@@ -590,9 +593,9 @@ export default function Home() {
               const isAdded = cartAdded.has(p.id)
               const isCartLoading = cartLoading.has(p.id)
               return (
-                <Link key={p.id} to={`/product/${p.id}`} className="no-underline">
+                <Link key={p.id} to={`/product/${p.id}`} className="no-underline block h-full">
                   <div
-                    className="product-card p-[18px]"
+                    className="product-card p-[18px] h-full relative"
                     style={{
                       boxShadow: isComparing ? `0 0 0 2px ${catColor}, 0 8px 32px ${catColor}40` : undefined,
                       border: isComparing ? `1px solid ${catColor}` : undefined,
