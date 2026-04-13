@@ -46,7 +46,7 @@ ALL_IMAGES = {
     # ════════════════════════════════════════════════════════════════════════
     # PLACI VIDEO NVIDIA
     # ════════════════════════════════════════════════════════════════════════
-    "NVIDIA GeForce GTX 1660 Super": "https://c1.neweggimages.com/ProductImageCompressAll60/14-137-431-S01.jpg",
+    "NVIDIA GeForce GTX 1660 Super": "https://c1.neweggimages.com/productimage/nb640/14-137-476-V01.jpg",
     "NVIDIA GeForce RTX 3060":       "https://c1.neweggimages.com/productimage/nb640/14-137-735-01.jpg",
     "NVIDIA GeForce RTX 3060 Ti":    "https://c1.neweggimages.com/productimage/nb640/14-137-672-V02.jpg",
     "NVIDIA GeForce RTX 3070":       "https://c1.neweggimages.com/productimage/nb640/14-137-603-V10.jpg",
@@ -54,7 +54,7 @@ ALL_IMAGES = {
     "NVIDIA GeForce RTX 4060 Ti":    "https://c1.neweggimages.com/productimage/nb640/14-137-784-01.jpg",
     "NVIDIA GeForce RTX 4070":       "https://c1.neweggimages.com/productimage/nb640/14-137-780-02.png",
     "NVIDIA GeForce RTX 4070 Super": "https://c1.neweggimages.com/productimage/nb640/14-137-792-01.png",
-    "NVIDIA GeForce RTX 4070 Ti":    "https://c1.neweggimages.com/ProductImage/14-137-756-11.jpg",
+    "NVIDIA GeForce RTX 4070 Ti":    "https://c1.neweggimages.com/productimage/nb640/14-126-607-32.jpg",
     "NVIDIA GeForce RTX 4080":       "https://c1.neweggimages.com/productimage/nb640/14-137-762-38.jpg",
     "NVIDIA GeForce RTX 4080 Super": "https://c1.neweggimages.com/productimage/nb640/14-137-841-01.jpg",
     "NVIDIA GeForce RTX 4090":       "https://c1.neweggimages.com/ProductImage/14-137-754-S01.jpg",
