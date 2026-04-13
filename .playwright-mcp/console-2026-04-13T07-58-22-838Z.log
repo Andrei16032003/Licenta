@@ -1,0 +1,14 @@
+[  684356ms] [ERROR] Framing 'https://a.claude.ai/' violates the following Content Security Policy directive: "frame-ancestors https://claude.ai https://*.claude.ai https://anthropic.com https://*.anthropic.com https://*.ant.dev". The request has been blocked.
+ @ :0
+[  684384ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin @ https://claude.ai/login/popup-google-auth:0
+[  684516ms] [WARNING] [Intercom] The App ID in your code snippet has not been set. Set it to your App ID found in settings to complete installation: https://app.intercom.com/a/apps/_/settings/web @ https://js.intercomcdn.com/frame-modern.a927226e.js:0
+[  684780ms] [INFO] [O11Y] [DatadogRUM] Initialized {service: claude-ai, env: production, version: b848c39532} @ https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/index-D1uHunRD.js:1
+[  684855ms] [ERROR] Framing 'https://a.claude.ai/' violates the following Content Security Policy directive: "frame-ancestors https://claude.ai https://*.claude.ai https://anthropic.com https://*.anthropic.com https://*.ant.dev". The request has been blocked.
+ @ :0
+[  684994ms] [WARNING] It's possible that you are loading beacon script multiple times. Please, check your code. @ https://s-cdn.anthropic.com/s.js:55
+[  685220ms] [ERROR] Access to fetch at 'https://a-cdn.claude.ai/params/sri/EEA5F558-D6AC-4C03-B678-AABF639EE69A' from origin 'https://claude.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://claude.com/:0
+[  685220ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://a-cdn.claude.ai/params/sri/EEA5F558-D6AC-4C03-B678-AABF639EE69A:0
+[  685275ms] [ERROR] Not signed in with the identity provider. @ https://claude.com/:0
+[  688282ms] [ERROR] [GSI_LOGGER]: FedCM get() rejects with NetworkError: Error retrieving a token. @ https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/index-D1uHunRD.js:2
+[  689938ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.closed call. @ https://claude.com/login:481
+[  689938ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.closed call. @ https://claude.com/login:481

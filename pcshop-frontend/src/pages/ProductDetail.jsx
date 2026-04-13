@@ -219,7 +219,7 @@ export default function ProductDetail() {
                 <img
                   src={imgUrl(images[selectedImg]?.url || images[0].url)}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-4"
                 />
               ) : (
                 <div className="text-center">
@@ -245,7 +245,7 @@ export default function ProductDetail() {
                     <img
                       src={imgUrl(img.url)}
                       alt={`${product.name} ${i + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain p-1"
                     />
                   </div>
                 ))}

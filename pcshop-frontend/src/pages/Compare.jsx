@@ -61,7 +61,7 @@ export default function Compare() {
             </button>
             <div className="product-img-bg h-[140px] rounded-xl mb-3.5 overflow-hidden flex items-center justify-center">
               {p.image_url
-                ? <img src={imgUrl(p.image_url)} alt={p.name} className="w-full h-full object-cover" />
+                ? <img src={imgUrl(p.image_url)} alt={p.name} className="w-full h-full object-contain p-3" />
                 : <Desktop size={48} className="text-muted/30" />
               }
             </div>

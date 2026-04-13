@@ -1,0 +1,225 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - link "ALEX COMPUTERS" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img [ref=e7]
+      - generic [ref=e9]: ALEX COMPUTERS
+    - generic [ref=e10]:
+      - link "Acasă" [ref=e11] [cursor=pointer]:
+        - /url: /
+        - img [ref=e12]
+        - text: Acasă
+      - link "Catalog" [ref=e14] [cursor=pointer]:
+        - /url: /catalog
+        - img [ref=e15]
+        - text: Catalog
+      - link "PC Builder" [ref=e17] [cursor=pointer]:
+        - /url: /builder
+        - img [ref=e18]
+        - text: PC Builder
+      - link "Prebuilt PC" [ref=e20] [cursor=pointer]:
+        - /url: /chat
+        - img [ref=e21]
+        - text: Prebuilt PC
+      - link "FAQ" [ref=e23] [cursor=pointer]:
+        - /url: /faq
+        - img [ref=e24]
+        - text: FAQ
+      - link "Despre noi" [ref=e26] [cursor=pointer]:
+        - /url: /despre-noi
+        - img [ref=e27]
+        - text: Despre noi
+      - link "Contact" [ref=e29] [cursor=pointer]:
+        - /url: /contact
+        - img [ref=e30]
+        - text: Contact
+    - generic [ref=e32]:
+      - button [ref=e34] [cursor=pointer]:
+        - img [ref=e35]
+      - link "Coș" [ref=e37] [cursor=pointer]:
+        - /url: /cart
+        - img [ref=e38]
+        - generic [ref=e40]: Coș
+      - link "Autentificare" [ref=e42] [cursor=pointer]:
+        - /url: /login
+      - link "Cont nou" [ref=e43] [cursor=pointer]:
+        - /url: /register
+  - main [ref=e44]:
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - button "Inapoi" [ref=e47] [cursor=pointer]:
+          - img [ref=e48]
+          - generic [ref=e50]: Inapoi
+        - img [ref=e51]
+        - link "Acasa" [ref=e53] [cursor=pointer]:
+          - /url: /
+        - img [ref=e54]
+        - link "Surse de alimentare" [ref=e56] [cursor=pointer]:
+          - /url: /?category=psu
+        - img [ref=e57]
+        - generic [ref=e59]: Corsair RM1000x 1000W
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]:
+              - img "Corsair RM1000x 1000W" [ref=e64]
+              - generic [ref=e65]: "-15%"
+            - generic [ref=e66]:
+              - generic [ref=e67]:
+                - img [ref=e69]
+                - generic [ref=e71]: Plata securizata
+              - generic [ref=e72]:
+                - img [ref=e74]
+                - generic [ref=e76]: Livrare 1-3 zile
+              - generic [ref=e77]:
+                - img [ref=e79]
+                - generic [ref=e81]: Retur 30 zile
+              - generic [ref=e82]:
+                - img [ref=e84]
+                - generic [ref=e86]: Garantie 24 luni
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - generic [ref=e89]: Surse de alimentare
+              - generic [ref=e90]: Corsair
+            - heading "Corsair RM1000x 1000W" [level=1] [ref=e91]
+            - generic [ref=e92] [cursor=pointer]:
+              - generic [ref=e93]:
+                - img [ref=e94]
+                - img [ref=e96]
+                - img [ref=e98]
+                - img [ref=e100]
+                - img [ref=e102]
+              - generic [ref=e104]: —
+              - generic [ref=e105]: din 5
+              - generic [ref=e106]: ·
+              - generic [ref=e107]: Fii primul care recenzeaza
+            - generic [ref=e108]:
+              - generic [ref=e109]:
+                - generic [ref=e110]: 849,99 RON
+                - generic [ref=e111]: 999,99 RON
+              - paragraph [ref=e112]: Economisesti 150 RON (15% reducere)
+              - paragraph [ref=e113]: Pret cu TVA inclus
+            - generic [ref=e114]:
+              - generic [ref=e116]: In stoc
+              - paragraph [ref=e117]: Livrat in 1-3 zile lucratoare
+            - generic [ref=e118]:
+              - button "Adauga in cos" [ref=e119] [cursor=pointer]:
+                - img [ref=e120]
+                - text: Adauga in cos
+              - button "Adauga la favorite" [ref=e122] [cursor=pointer]:
+                - img [ref=e123]
+              - button "Compara produse" [ref=e125] [cursor=pointer]:
+                - img [ref=e126]
+            - generic [ref=e128]:
+              - generic [ref=e129]:
+                - img [ref=e131]
+                - generic [ref=e133]: "Garantie:"
+                - generic [ref=e134]: 36 luni producator
+              - generic [ref=e135]:
+                - img [ref=e137]
+                - generic [ref=e139]: "Retur:"
+                - generic [ref=e140]: 30 de zile, fara intrebari
+              - generic [ref=e141]:
+                - img [ref=e143]
+                - generic [ref=e145]: "Livrare:"
+                - generic [ref=e146]: Gratuita peste 500 RON
+              - generic [ref=e147]:
+                - img [ref=e149]
+                - generic [ref=e151]: "Plata:"
+                - generic [ref=e152]: Card, transfer, ramburs
+        - generic [ref=e153]:
+          - generic [ref=e154]:
+            - button "Specificatii" [ref=e155] [cursor=pointer]:
+              - img [ref=e156]
+              - text: Specificatii
+            - button "Descriere" [ref=e158] [cursor=pointer]:
+              - img [ref=e159]
+              - text: Descriere
+            - button "Recenzii (0)" [ref=e161] [cursor=pointer]:
+              - img [ref=e162]
+              - text: Recenzii (0)
+            - button "Garantie & Retur" [ref=e164] [cursor=pointer]:
+              - img [ref=e165]
+              - text: Garantie & Retur
+          - generic [ref=e169]:
+            - generic [ref=e170]: Specificatii tehnice
+            - generic [ref=e171]:
+              - generic [ref=e172]:
+                - generic [ref=e173]: fan mm
+                - generic [ref=e174]: "135"
+              - generic [ref=e175]:
+                - generic [ref=e176]: Modular
+                - generic [ref=e177]: Da
+              - generic [ref=e178]:
+                - generic [ref=e179]: Putere (W)
+                - generic [ref=e180]: "1000"
+              - generic [ref=e181]:
+                - generic [ref=e182]: Form factor
+                - generic [ref=e183]: ATX
+              - generic [ref=e184]:
+                - generic [ref=e185]: certification
+                - generic [ref=e186]: 80+ Gold
+  - contentinfo [ref=e187]:
+    - generic [ref=e188]:
+      - generic [ref=e189]:
+        - link "ALEX COMPUTERS" [ref=e190] [cursor=pointer]:
+          - /url: /
+          - img [ref=e192]
+          - generic [ref=e194]: ALEX COMPUTERS
+        - paragraph [ref=e195]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e196]:
+          - link "aa387@student.ugal.ro" [ref=e197] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e198]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e201] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e202]
+            - text: 0770 648 476
+      - generic [ref=e205]:
+        - heading "Navigare" [level=4] [ref=e206]
+        - list [ref=e207]:
+          - listitem [ref=e208]:
+            - link "Catalog Produse" [ref=e209] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e210]
+              - text: Catalog Produse
+          - listitem [ref=e212]:
+            - link "PC Builder" [ref=e213] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e214]
+              - text: PC Builder
+          - listitem [ref=e216]:
+            - link "Prebuilt PC" [ref=e217] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e218]
+              - text: Prebuilt PC
+          - listitem [ref=e220]:
+            - link "FAQ" [ref=e221] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e222]
+              - text: FAQ
+      - generic [ref=e224]:
+        - heading "Informații" [level=4] [ref=e225]
+        - list [ref=e226]:
+          - listitem [ref=e227]:
+            - link "Despre Noi" [ref=e228] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e229]
+              - text: Despre Noi
+          - listitem [ref=e231]:
+            - link "Contact" [ref=e232] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e233]
+              - text: Contact
+          - listitem [ref=e235]:
+            - link "Politica Confidentialitate" [ref=e236] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e237]
+              - text: Politica Confidentialitate
+        - paragraph [ref=e239]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e241]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e243] [cursor=pointer]:
+    - img [ref=e244]

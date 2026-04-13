@@ -1,0 +1,4 @@
+[     110ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=6bd07c44:14337
+[  562352ms] [ERROR] Each child in a list should have a unique "key" prop.%s%s See https://react.dev/link/warning-keys for more information. 
+
+Check the render method of `Fragment`.  It was passed a child from Compare. @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=6bd07c44:12936
