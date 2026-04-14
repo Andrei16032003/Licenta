@@ -74,6 +74,18 @@ export default function Home() {
         return specEntries.every(([key, vals]) => {
           const productVal = p.specs[key]
           if (productVal === null || productVal === undefined) return false
+          // Conectivitate: "Wireless" = true, "Fir" = false
+          if (key === 'wireless' && (vals.includes('Wireless') || vals.includes('Fir'))) {
+            if (vals.includes('Wireless') && vals.includes('Fir')) return true
+            if (vals.includes('Wireless')) return productVal === true
+            if (vals.includes('Fir')) return productVal === false
+          }
+          // Tip tastatura: "Mecanica" = tot ce nu e "Membrana"
+          if (key === 'switches' && (vals.includes('Mecanica') || vals.includes('Membrana'))) {
+            if (vals.includes('Mecanica') && vals.includes('Membrana')) return true
+            if (vals.includes('Membrana')) return productVal === 'Membrana'
+            if (vals.includes('Mecanica')) return productVal !== 'Membrana'
+          }
           return vals.includes(String(productVal))
         })
       })

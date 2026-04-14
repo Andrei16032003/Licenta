@@ -1,0 +1,6 @@
+[     304ms] [LOG] User region and page region match, or data is missing. Geo Locator will not be shown. @ https://www.nvidia.com/ro-ro/geforce/graphics-cards/40-series/rtx-4070-family/:1828
+[     568ms] [LOG] Account Wrapper Starfleet v1.9.6 @ https://www.nvidia.com/assets/account-wrapper/v1.9.6-605.de0a969f6c3500e34b78.js:0
+[     676ms] [LOG] getLocalSession: getting local session from the below item @ https://www.nvidia.com/assets/account-wrapper/v1.9.6-88.afcd2d3d811fdda49b48.js:0
+[     676ms] [LOG] acctFederationData @ https://www.nvidia.com/assets/account-wrapper/v1.9.6-88.afcd2d3d811fdda49b48.js:0
+[     676ms] [LOG] getLocalSession: getting local session from the below item @ https://www.nvidia.com/assets/account-wrapper/v1.9.6-88.afcd2d3d811fdda49b48.js:0
+[     676ms] [LOG] acctFederationData @ https://www.nvidia.com/assets/account-wrapper/v1.9.6-88.afcd2d3d811fdda49b48.js:0

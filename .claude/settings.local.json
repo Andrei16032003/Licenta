@@ -11,7 +11,14 @@
       "WebFetch(domain:pcpartpicker.com)",
       "WebFetch(domain:www.be-quiet.com)",
       "Bash(curl -s \"http://localhost:8000/products/?limit=50\")",
-      "Bash(curl -s \"http://localhost:8000/products/?limit=100&skip=0\")"
+      "Bash(curl -s \"http://localhost:8000/products/?limit=100&skip=0\")",
+      "Bash(python -c ':*)",
+      "Bash(python3 -c ':*)",
+      "Bash(venv/Scripts/python -c ':*)",
+      "WebFetch(domain:www.bequiet.com)",
+      "WebFetch(domain:www.amazon.com)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -n \"getFilters\\\\|filter_option\\\\|filter\" c:/Licenta/PCShop/app/routers/*.py)"
     ]
   }
 }
