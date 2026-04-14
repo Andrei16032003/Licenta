@@ -18,7 +18,16 @@
       "WebFetch(domain:www.bequiet.com)",
       "WebFetch(domain:www.amazon.com)",
       "Bash(xargs grep:*)",
-      "Bash(grep -n \"getFilters\\\\|filter_option\\\\|filter\" c:/Licenta/PCShop/app/routers/*.py)"
+      "Bash(grep -n \"getFilters\\\\|filter_option\\\\|filter\" c:/Licenta/PCShop/app/routers/*.py)",
+      "Bash(ls c:/Licenta/PCShop/*.txt)",
+      "Bash(venv/Scripts/pip list:*)",
+      "Bash(venv/Scripts/pip install:*)",
+      "Bash(venv/Scripts/pip.exe install:*)",
+      "Bash(c:/Licenta/PCShop/venv/Scripts/pip.exe install:*)",
+      "Bash(c:/Licenta/PCShop/venv/Scripts/python.exe -m pip install stripe)",
+      "Bash(npm install:*)",
+      "Bash(ls c:/Licenta/pcshop-frontend/.env*)",
+      "Bash(npm run:*)"
     ]
   }
 }

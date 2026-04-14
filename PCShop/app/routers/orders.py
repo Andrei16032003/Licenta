@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
+import stripe
 
 from app.database import get_db
 from app.models.order import Order, OrderItem, CartItem
@@ -14,6 +15,9 @@ from app.models.voucher import Voucher
 from app.dependencies import require_role
 _require_orders = require_role("admin", "suport", "manager")
 from app.models.user import User
+from app.config import STRIPE_SECRET_KEY
+
+stripe.api_key = STRIPE_SECRET_KEY
 
 router = APIRouter(prefix="/orders", tags=["Comenzi"])
 
@@ -30,6 +34,11 @@ SELLER = {
 VALID_CARDS = {"4242424242424242"}        # carduri care merg
 DECLINED_CARDS = {"4000000000000002"}     # carduri refuzate explicit
 
+def _stripe_ready() -> bool:
+    """Returneaza True doar daca STRIPE_SECRET_KEY e o cheie reala, nu placeholder."""
+    k = STRIPE_SECRET_KEY or ""
+    return k.startswith(("sk_test_", "sk_live_")) and "YOUR" not in k and "HERE" not in k
+
 class OrderCreate(BaseModel):
     user_id: UUID
     address_id: UUID
@@ -42,6 +51,9 @@ class CardPaymentRequest(BaseModel):
     expiry: str
     cvv: str
     cardholder: str
+
+class StripeConfirmRequest(BaseModel):
+    payment_intent_id: str
 
 # ── PLASEAZA COMANDA ─────────────────────────────────────────
 
@@ -208,6 +220,59 @@ def simulate_card_payment(order_id: UUID, req: CardPaymentRequest, db: Session =
         "message":      "Plata procesata cu succes!",
         "card_last4":   card[-4:],
         "order_id":     str(order.id),
+        "invoice_number": order.invoice_number,
+    }
+
+# ── STRIPE: CREARE PAYMENT INTENT ────────────────────────────
+
+# Creeaza un Stripe PaymentIntent si returneaza client_secret-ul catre frontend
+@router.post("/{order_id}/stripe-intent")
+def create_stripe_intent(order_id: UUID, db: Session = Depends(get_db)):
+    if not _stripe_ready():
+        raise HTTPException(503, "Stripe nu este configurat pe server")
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(404, "Comanda negasita")
+    if order.payment_status == "paid":
+        return {"already_paid": True}
+    try:
+        intent = stripe.PaymentIntent.create(
+            amount=int(float(order.total_price) * 100),  # in bani (1 RON = 100 bani)
+            currency="ron",
+            metadata={"order_id": str(order_id)},
+        )
+        return {"client_secret": intent.client_secret, "payment_intent_id": intent.id}
+    except stripe.StripeError as e:
+        raise HTTPException(400, str(e.user_message))
+
+# ── STRIPE: CONFIRMARE PLATA ──────────────────────────────────
+
+# Verifica cu Stripe daca PaymentIntent-ul a reusit si actualizeaza comanda
+@router.post("/{order_id}/stripe-confirm")
+def confirm_stripe_payment(order_id: UUID, req: StripeConfirmRequest, db: Session = Depends(get_db)):
+    if not _stripe_ready():
+        raise HTTPException(503, "Stripe nu este configurat pe server")
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(404, "Comanda negasita")
+    if order.payment_status == "paid":
+        return {"success": True, "message": "Comanda este deja platita"}
+    try:
+        intent = stripe.PaymentIntent.retrieve(req.payment_intent_id)
+    except stripe.StripeError as e:
+        raise HTTPException(400, str(e.user_message))
+    if intent.status != "succeeded":
+        raise HTTPException(402, f"Plata nu a fost finalizata: {intent.status}")
+    if str(intent.metadata.get("order_id")) != str(order_id):
+        raise HTTPException(400, "PaymentIntent nu corespunde comenzii")
+    order.payment_status = "paid"
+    order.status = "confirmed"
+    if order.invoice_number and order.invoice_number.startswith("FP"):
+        order.invoice_number = "FC" + order.invoice_number[2:]
+    db.commit()
+    return {
+        "success": True,
+        "order_id": str(order_id),
         "invoice_number": order.invoice_number,
     }
 

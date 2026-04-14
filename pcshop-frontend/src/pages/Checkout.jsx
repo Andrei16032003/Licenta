@@ -8,6 +8,13 @@ import {
 import { cartAPI, ordersAPI, profileAPI, vouchersAPI } from '../services/api'
 import { imgUrl } from '../utils/imgUrl'
 import useAuthStore from '../store/authStore'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+
+const _stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
+const stripePromise = _stripeKey.startsWith('pk_') && !_stripeKey.includes('YOUR') && !_stripeKey.includes('HERE')
+  ? loadStripe(_stripeKey)
+  : null
 
 const PAYMENT_OPTIONS = [
   {
@@ -164,6 +171,13 @@ export default function Checkout() {
 
   // ─── STEP 2: Card payment form ────────────────────────────
   if (step === 'pay-card') {
+    const handleStripeSuccess = () => {
+      setCardSuccess(true)
+      setTimeout(() => navigate('/orders', {
+        state: { success: true, orderId: placedOrder.order_id, total: placedOrder.total_price }
+      }), 2000)
+    }
+
     return (
       <div className="max-w-md mx-auto">
         <h1 className="font-display font-bold text-primary text-2xl mb-2 flex items-center gap-2">
@@ -175,34 +189,6 @@ export default function Checkout() {
           <strong className="text-price">{placedOrder?.total_price} RON</strong>
         </p>
 
-        {/* Hint carduri test */}
-        <div className="bg-accent-dim border border-accent-border rounded-xl px-4 py-3 mb-5 text-xs">
-          <p className="text-accent font-semibold mb-2">Carduri de test:</p>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-secondary">
-                <code className="text-success">4242 4242 4242 4242</code> — plata reusita
-              </span>
-              <button
-                onClick={() => setCard({ number: '4242 4242 4242 4242', expiry: '12/28', cvv: '123', name: 'TEST USER' })}
-                className="text-success border border-success/30 bg-success/10 px-2.5 py-0.5 rounded-md font-semibold text-xs cursor-pointer hover:bg-success/20 transition-colors whitespace-nowrap flex-shrink-0">
-                Foloseste
-              </button>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-secondary">
-                <code className="text-danger">4000 0000 0000 0002</code> — refuzat
-              </span>
-              <button
-                onClick={() => setCard({ number: '4000 0000 0000 0002', expiry: '12/28', cvv: '123', name: 'TEST USER' })}
-                className="text-danger border border-danger/30 bg-danger/10 px-2.5 py-0.5 rounded-md font-semibold text-xs cursor-pointer hover:bg-danger/20 transition-colors whitespace-nowrap flex-shrink-0">
-                Foloseste
-              </button>
-            </div>
-          </div>
-          <p className="text-muted mt-1.5">CVV: orice 3 cifre, Expiry: orice data viitoare</p>
-        </div>
-
         {cardSuccess ? (
           <div className="bg-surface border border-default rounded-2xl p-7 text-center">
             <div className="w-16 h-16 rounded-full bg-success/10 border border-success/30 flex items-center justify-center mx-auto mb-4">
@@ -211,91 +197,129 @@ export default function Checkout() {
             <p className="text-success font-bold text-lg">Plata procesata cu succes!</p>
             <p className="text-muted text-sm mt-2">Redirectionam la comenzile tale...</p>
           </div>
+        ) : stripePromise ? (
+          <Elements stripe={stripePromise} options={{ locale: 'ro' }}>
+            <StripeCardForm
+              orderId={placedOrder?.order_id}
+              total={placedOrder?.total_price}
+              onSuccess={handleStripeSuccess}
+            />
+          </Elements>
         ) : (
-          <div className="bg-surface border border-default rounded-2xl p-7">
-            {/* Card visual */}
-            <div className="rounded-2xl p-5 mb-6 bg-gradient-to-br from-blue-900 via-blue-950 to-indigo-950 shadow-elevated min-h-28 relative">
-              <p className="text-white/50 text-xs mb-4 tracking-widest">CARD DE CREDIT / DEBIT</p>
-              <p className="font-mono text-white text-lg tracking-widest mb-4">
-                {card.number || '•••• •••• •••• ••••'}
+          <>
+            {/* Hint carduri test — mod simulare (fara Stripe) */}
+            <div className="bg-accent-dim border border-accent-border rounded-xl px-4 py-3 mb-5 text-xs">
+              <p className="text-accent font-semibold mb-2">Carduri de test (simulare):</p>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-secondary">
+                    <code className="text-success">4242 4242 4242 4242</code> — plata reusita
+                  </span>
+                  <button
+                    onClick={() => setCard({ number: '4242 4242 4242 4242', expiry: '12/28', cvv: '123', name: 'TEST USER' })}
+                    className="text-success border border-success/30 bg-success/10 px-2.5 py-0.5 rounded-md font-semibold text-xs cursor-pointer hover:bg-success/20 transition-colors whitespace-nowrap flex-shrink-0">
+                    Foloseste
+                  </button>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-secondary">
+                    <code className="text-danger">4000 0000 0000 0002</code> — refuzat
+                  </span>
+                  <button
+                    onClick={() => setCard({ number: '4000 0000 0000 0002', expiry: '12/28', cvv: '123', name: 'TEST USER' })}
+                    className="text-danger border border-danger/30 bg-danger/10 px-2.5 py-0.5 rounded-md font-semibold text-xs cursor-pointer hover:bg-danger/20 transition-colors whitespace-nowrap flex-shrink-0">
+                    Foloseste
+                  </button>
+                </div>
+              </div>
+              <p className="text-muted mt-1.5">CVV: orice 3 cifre, Expiry: orice data viitoare</p>
+            </div>
+
+            <div className="bg-surface border border-default rounded-2xl p-7">
+              {/* Card visual */}
+              <div className="rounded-2xl p-5 mb-6 bg-gradient-to-br from-blue-900 via-blue-950 to-indigo-950 shadow-elevated min-h-28 relative">
+                <p className="text-white/50 text-xs mb-4 tracking-widest">CARD DE CREDIT / DEBIT</p>
+                <p className="font-mono text-white text-lg tracking-widest mb-4">
+                  {card.number || '•••• •••• •••• ••••'}
+                </p>
+                <div className="flex justify-between">
+                  <div>
+                    <p className="text-white/50 text-xs mb-0.5">TITULAR</p>
+                    <p className="text-white text-sm">{card.name || 'NUME PRENUME'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white/50 text-xs mb-0.5">EXPIRA</p>
+                    <p className="text-white text-sm">{card.expiry || 'MM/YY'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3.5">
+                <div>
+                  <label className="text-muted text-xs block mb-1.5">Numar card</label>
+                  <input
+                    value={card.number}
+                    onChange={e => setCard({ ...card, number: formatCardNumber(e.target.value) })}
+                    placeholder="1234 5678 9012 3456"
+                    maxLength={19}
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="text-muted text-xs block mb-1.5">Titular card</label>
+                  <input
+                    value={card.name}
+                    onChange={e => setCard({ ...card, name: e.target.value.toUpperCase() })}
+                    placeholder="NUME PRENUME"
+                    className="input-field"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-muted text-xs block mb-1.5">Data expirare</label>
+                    <input
+                      value={card.expiry}
+                      onChange={e => setCard({ ...card, expiry: formatExpiry(e.target.value) })}
+                      placeholder="MM/YY"
+                      maxLength={5}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-muted text-xs block mb-1.5">CVV</label>
+                    <input
+                      value={card.cvv}
+                      onChange={e => setCard({ ...card, cvv: e.target.value.replace(/\D/g, '').slice(0, 3) })}
+                      placeholder="•••"
+                      maxLength={3}
+                      type="password"
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {cardError && (
+                <div className="flex items-center gap-2 text-danger text-sm mt-3.5 bg-danger/5 px-3 py-2.5 rounded-lg border border-danger/20">
+                  <Warning size={15} />
+                  {cardError}
+                </div>
+              )}
+
+              <button
+                onClick={handleCardPay}
+                disabled={cardLoading || !card.number || !card.expiry || !card.cvv || !card.name}
+                className="btn-primary w-full flex items-center justify-center gap-2 mt-5 disabled:opacity-50 disabled:cursor-not-allowed">
+                {cardLoading
+                  ? <><CircleNotch size={16} className="animate-spin" /> Se proceseaza...</>
+                  : <><Lock size={15} /> Plateste {placedOrder?.total_price} RON</>}
+              </button>
+
+              <p className="text-muted text-xs text-center mt-2.5 flex items-center justify-center gap-1">
+                <Lock size={11} /> Conexiune securizata SSL — datele sunt criptate
               </p>
-              <div className="flex justify-between">
-                <div>
-                  <p className="text-white/50 text-xs mb-0.5">TITULAR</p>
-                  <p className="text-white text-sm">{card.name || 'NUME PRENUME'}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-white/50 text-xs mb-0.5">EXPIRA</p>
-                  <p className="text-white text-sm">{card.expiry || 'MM/YY'}</p>
-                </div>
-              </div>
             </div>
-
-            <div className="flex flex-col gap-3.5">
-              <div>
-                <label className="text-muted text-xs block mb-1.5">Numar card</label>
-                <input
-                  value={card.number}
-                  onChange={e => setCard({ ...card, number: formatCardNumber(e.target.value) })}
-                  placeholder="1234 5678 9012 3456"
-                  maxLength={19}
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <label className="text-muted text-xs block mb-1.5">Titular card</label>
-                <input
-                  value={card.name}
-                  onChange={e => setCard({ ...card, name: e.target.value.toUpperCase() })}
-                  placeholder="NUME PRENUME"
-                  className="input-field"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-muted text-xs block mb-1.5">Data expirare</label>
-                  <input
-                    value={card.expiry}
-                    onChange={e => setCard({ ...card, expiry: formatExpiry(e.target.value) })}
-                    placeholder="MM/YY"
-                    maxLength={5}
-                    className="input-field"
-                  />
-                </div>
-                <div>
-                  <label className="text-muted text-xs block mb-1.5">CVV</label>
-                  <input
-                    value={card.cvv}
-                    onChange={e => setCard({ ...card, cvv: e.target.value.replace(/\D/g, '').slice(0, 3) })}
-                    placeholder="•••"
-                    maxLength={3}
-                    type="password"
-                    className="input-field"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {cardError && (
-              <div className="flex items-center gap-2 text-danger text-sm mt-3.5 bg-danger/5 px-3 py-2.5 rounded-lg border border-danger/20">
-                <Warning size={15} />
-                {cardError}
-              </div>
-            )}
-
-            <button
-              onClick={handleCardPay}
-              disabled={cardLoading || !card.number || !card.expiry || !card.cvv || !card.name}
-              className="btn-primary w-full flex items-center justify-center gap-2 mt-5 disabled:opacity-50 disabled:cursor-not-allowed">
-              {cardLoading
-                ? <><CircleNotch size={16} className="animate-spin" /> Se proceseaza...</>
-                : <><Lock size={15} /> Plateste {placedOrder?.total_price} RON</>}
-            </button>
-
-            <p className="text-muted text-xs text-center mt-2.5 flex items-center justify-center gap-1">
-              <Lock size={11} /> Conexiune securizata SSL — datele sunt criptate
-            </p>
-          </div>
+          </>
         )}
       </div>
     )
@@ -611,6 +635,94 @@ export default function Checkout() {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ── Stripe Card Form ─────────────────────────────────────────
+
+// Componenta de plata Stripe; trebuie sa fie montata in interiorul <Elements>
+function StripeCardForm({ orderId, total, onSuccess }) {
+  const stripe   = useStripe()
+  const elements = useElements()
+  const [loading, setLoading] = useState(false)
+  const [error,   setError]   = useState('')
+
+  const handlePay = async () => {
+    if (!stripe || !elements) return
+    setLoading(true)
+    setError('')
+    try {
+      // 1. Creeaza PaymentIntent pe backend
+      const { data: intentData } = await ordersAPI.stripeIntent(orderId)
+
+      // 2. Confirma plata cu Stripe.js (proceseaza cardul securizat)
+      const { error: stripeErr, paymentIntent } = await stripe.confirmCardPayment(
+        intentData.client_secret,
+        { payment_method: { card: elements.getElement(CardElement) } }
+      )
+      if (stripeErr) { setError(stripeErr.message); return }
+
+      // 3. Confirma pe backend ca plata a reusit
+      if (paymentIntent.status === 'succeeded') {
+        await ordersAPI.stripeConfirm(orderId, { payment_intent_id: paymentIntent.id })
+        onSuccess()
+      }
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Eroare la procesarea platii.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="bg-surface border border-default rounded-2xl p-7">
+      {/* Carduri de test Stripe */}
+      <div className="bg-accent-dim border border-accent-border rounded-xl px-4 py-3 mb-5 text-xs">
+        <p className="text-accent font-semibold mb-1.5">Carduri de test Stripe:</p>
+        <p className="text-secondary"><code className="text-success">4242 4242 4242 4242</code> — plata reusita</p>
+        <p className="text-secondary mt-1"><code className="text-danger">4000 0000 0000 0002</code> — refuzat de banca</p>
+        <p className="text-muted mt-1.5">CVV: orice 3 cifre · Expiry: orice data viitoare</p>
+      </div>
+
+      {/* Stripe CardElement — iframe securizat */}
+      <div className="mb-5">
+        <label className="text-muted text-xs block mb-2">Date card</label>
+        <div className="rounded-xl border border-default px-4 py-3.5 bg-base-2">
+          <CardElement options={{
+            style: {
+              base: {
+                iconColor: '#818cf8',
+                color: '#e2e8f0',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontSize: '15px',
+                '::placeholder': { color: '#64748b' },
+              },
+              invalid: { iconColor: '#f87171', color: '#f87171' },
+            },
+          }} />
+        </div>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 text-danger text-sm mb-4 bg-danger/5 px-3 py-2.5 rounded-lg border border-danger/20">
+          <Warning size={15} />
+          {error}
+        </div>
+      )}
+
+      <button
+        onClick={handlePay}
+        disabled={loading || !stripe}
+        className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+        {loading
+          ? <><CircleNotch size={16} className="animate-spin" /> Se proceseaza...</>
+          : <><Lock size={15} /> Plateste {total} RON</>}
+      </button>
+
+      <p className="text-muted text-xs text-center mt-2.5 flex items-center justify-center gap-1">
+        <Lock size={11} /> Plata procesata securizat prin Stripe
+      </p>
     </div>
   )
 }
