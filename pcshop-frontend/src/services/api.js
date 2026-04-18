@@ -136,9 +136,16 @@ export const configuratorAPI = {
 
 
 export const chatAPI = {
+  // endpoint-uri vechi (folosite de Chat.jsx)
   suggest: (data) => API.post('/chat/suggest', data),
   message: (data) => API.post('/chat/message', data),
   minPrice: () => API.get('/chat/min-price'),
+  // endpoint-uri noi (folosite de ChatWidget.jsx)
+  categories: () => API.get('/chat/categories'),
+  filters: (slug) => API.get(`/chat/filters/${slug}`),
+  search: (data) => API.post('/chat/search', data),
+  describe: (productId) => API.post('/chat/describe', { product_id: productId }),
+  extractFilters: (message) => API.post('/chat/extract-filters', { message }),
 }
 export const teamAPI = {
   list:   ()          => API.get('/team/'),
