@@ -6,6 +6,7 @@ from uuid import UUID
 
 from app.database import get_db
 from app.models.product import Product, Category
+import app.services.ollama_service as ollama_service
 
 router = APIRouter(prefix="/chat", tags=["Chat buget"])
 
@@ -531,3 +532,119 @@ def chat_message(req: ChatRequest, db: Session = Depends(get_db)):
         )
 
     return {"response": response}
+
+
+# ── ENDPOINT-URI CHAT GHIDAT ─────────────────────────────────
+
+@router.get("/categories")
+def chat_get_categories(db: Session = Depends(get_db)):
+    rows = (
+        db.query(Category)
+        .join(Product, Product.category_id == Category.id)
+        .filter(Product.is_active == True, Product.stock > 0)
+        .distinct()
+        .order_by(Category.sort_order)
+        .all()
+    )
+    return [{"slug": c.slug, "name": c.name} for c in rows]
+
+
+SKIP_FILTER_KEYS = {
+    "power_w", "length_mm", "height_mm", "tdp", "tdp_w",
+    "slot", "radiator_mm", "max_gpu_length_mm",
+    "max_cooler_height_mm", "max_radiator_mm",
+    "socket_am4", "socket_am5", "socket_lga1700",
+}
+
+
+@router.get("/filters/{category_slug}")
+def chat_get_filters(category_slug: str, db: Session = Depends(get_db)):
+    products = get_products_by_slug(db, category_slug)
+    result: dict = {}
+
+    brands = sorted({p.brand for p in products if p.brand})
+    if brands:
+        result["brand"] = brands
+
+    spec_values: dict = {}
+    for p in products:
+        for k, v in (p.specs or {}).items():
+            if k in SKIP_FILTER_KEYS:
+                continue
+            if isinstance(v, (str, int, float)):
+                spec_values.setdefault(k, set()).add(v)
+
+    for k, vals in spec_values.items():
+        sorted_vals = sorted(str(v) for v in vals)
+        if len(sorted_vals) > 1:
+            result[k] = sorted_vals
+
+    return result
+
+
+class ChatSearchRequest(BaseModel):
+    category_slug: str
+    filters: dict = {}
+    sort: str = "price"
+
+
+@router.post("/search")
+def chat_search(req: ChatSearchRequest, db: Session = Depends(get_db)):
+    products = get_products_by_slug(db, req.category_slug)
+
+    for key, value in req.filters.items():
+        if not value:
+            continue
+        val_str = str(value).lower()
+        if key == "brand":
+            products = [p for p in products if (p.brand or "").lower() == val_str]
+        else:
+            products = [p for p in products
+                        if str((p.specs or {}).get(key, "")).lower() == val_str]
+
+    return [
+        {
+            "id": str(p.id),
+            "name": p.name,
+            "brand": p.brand,
+            "price": float(p.price),
+            "specs": p.specs,
+            "image": p.images[0].url if p.images else None,
+        }
+        for p in products[:8]
+    ]
+
+
+class ChatDescribeRequest(BaseModel):
+    product_id: str
+
+
+@router.post("/describe")
+async def chat_describe(req: ChatDescribeRequest, db: Session = Depends(get_db)):
+    from uuid import UUID
+    try:
+        pid = UUID(req.product_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="product_id invalid")
+
+    product = db.query(Product).filter(Product.id == pid).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Produs negasit")
+
+    description = await ollama_service.describe_product(
+        name=product.name,
+        specs=product.specs or {},
+        price=float(product.price),
+    )
+    return {"description": description}
+
+
+class ChatExtractRequest(BaseModel):
+    message: str
+
+
+@router.post("/extract-filters")
+async def chat_extract_filters(req: ChatExtractRequest, db: Session = Depends(get_db)):
+    slugs = [c.slug for c in db.query(Category).all()]
+    result = await ollama_service.extract_filters(req.message, slugs)
+    return result or {}
