@@ -595,12 +595,17 @@ def chat_search(req: ChatSearchRequest, db: Session = Depends(get_db)):
     for key, value in req.filters.items():
         if not value:
             continue
-        val_str = str(value).lower()
+        val_str = str(value).lower().strip()
         if key == "brand":
-            products = [p for p in products if (p.brand or "").lower() == val_str]
-        else:
             products = [p for p in products
-                        if str((p.specs or {}).get(key, "")).lower() == val_str]
+                        if val_str in (p.brand or "").lower()
+                        or (p.brand or "").lower() in val_str]
+        else:
+            products = [
+                p for p in products
+                if val_str in str((p.specs or {}).get(key, "")).lower()
+                or str((p.specs or {}).get(key, "")).lower() in val_str
+            ]
 
     return [
         {
@@ -645,6 +650,33 @@ class ChatExtractRequest(BaseModel):
 
 @router.post("/extract-filters")
 async def chat_extract_filters(req: ChatExtractRequest, db: Session = Depends(get_db)):
-    slugs = [c.slug for c in db.query(Category).all()]
-    result = await ollama_service.extract_filters(req.message, slugs)
+    categories = db.query(Category).all()
+    slugs = [c.slug for c in categories]
+
+    # Construieste {slug: {key: [values]}} pentru toate categoriile
+    # Limitat la categorii cu produse in stoc
+    category_filters: dict = {}
+    for cat in categories:
+        products = get_products_by_slug(db, cat.slug)
+        if not products:
+            continue
+        filters: dict = {}
+        brands = sorted({p.brand for p in products if p.brand})
+        if brands:
+            filters["brand"] = brands
+        spec_vals: dict = {}
+        for p in products:
+            for k, v in (p.specs or {}).items():
+                if k in SKIP_FILTER_KEYS:
+                    continue
+                if isinstance(v, (str, int, float)):
+                    spec_vals.setdefault(k, set()).add(v)
+        for k, vals in spec_vals.items():
+            sorted_vals = sorted(str(v) for v in vals)
+            if len(sorted_vals) > 1:
+                filters[k] = sorted_vals
+        if filters:
+            category_filters[cat.slug] = filters
+
+    result = await ollama_service.extract_filters(req.message, slugs, category_filters)
     return result or {}
