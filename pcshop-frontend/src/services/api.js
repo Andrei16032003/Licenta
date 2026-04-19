@@ -32,6 +32,10 @@ API.interceptors.response.use(
 export const authAPI = {
   register: (data) => API.post('/auth/register', data),
   login: (data) => API.post('/auth/login', data),
+  verifyEmail: (email, code) => API.post('/auth/verify-email', { email, code }),
+  resendVerification: (email) => API.post('/auth/resend-verification', { email }),
+  forgotPassword: (email) => API.post('/auth/forgot-password', { email }),
+  resetPassword: (email, code, new_password) => API.post('/auth/reset-password', { email, code, new_password }),
 }
 
 export const productsAPI = {
@@ -76,6 +80,7 @@ export const reviewsAPI = {
 }
 
 export const profileAPI = {
+  update: (userId, data) => API.put(`/profile/${userId}`, data),
   getAddresses: (userId) => API.get(`/profile/${userId}/addresses`),
   addAddress: (userId, data) => API.post(`/profile/${userId}/addresses`, data),
   deleteAddress: (userId, addressId) => API.delete(`/profile/${userId}/addresses/${addressId}`),
@@ -136,22 +141,22 @@ export const configuratorAPI = {
 
 
 export const chatAPI = {
-  // endpoint-uri vechi (folosite de Chat.jsx)
   suggest: (data) => API.post('/chat/suggest', data),
   message: (data) => API.post('/chat/message', data),
   minPrice: () => API.get('/chat/min-price'),
-  // endpoint-uri noi (folosite de ChatWidget.jsx)
   categories: () => API.get('/chat/categories'),
   filters: (slug) => API.get(`/chat/filters/${slug}`),
   search: (data) => API.post('/chat/search', data),
   describe: (productId) => API.post('/chat/describe', { product_id: productId }),
   extractFilters: (message) => API.post('/chat/extract-filters', { message }),
+  aiStatus: () => API.get('/chat/ai-status'),
 }
 export const teamAPI = {
-  list:   ()          => API.get('/team/'),
-  create: (data)      => API.post('/team/', data),
-  update: (id, data)  => API.put(`/team/${id}`, data),
-  remove: (id)        => API.delete(`/team/${id}`),
+  list:       ()          => API.get('/team/'),
+  create:     (data)      => API.post('/team/', data),
+  update:     (id, data)  => API.put(`/team/${id}`, data),
+  remove:     (id)        => API.delete(`/team/${id}`),
+  assignRole: (data)      => API.post('/team/assign-role', data),
 }
 
 export const supportAPI = {

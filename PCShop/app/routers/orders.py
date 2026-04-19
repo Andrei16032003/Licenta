@@ -16,6 +16,7 @@ from app.dependencies import require_role
 _require_orders = require_role("admin", "suport", "manager")
 from app.models.user import User
 from app.config import STRIPE_SECRET_KEY
+from app.notifications import notify_order_placed, notify_order_status
 
 stripe.api_key = STRIPE_SECRET_KEY
 
@@ -170,6 +171,18 @@ def create_order(req: OrderCreate, db: Session = Depends(get_db)):
 
     db.query(CartItem).filter(CartItem.user_id == req.user_id).delete()
     db.commit()
+
+    user = db.query(User).filter(User.id == req.user_id).first()
+    if user:
+        notify_order_placed(
+            to_email=user.email,
+            name=user.name,
+            order_id=str(order.id),
+            invoice=invoice_number,
+            total=total_price,
+            items=[{"name": i["product"].name, "quantity": i["quantity"], "unit_price": i["unit_price"]} for i in order_items_data],
+            payment_method=req.payment_method_type,
+        )
 
     return {
         "message":              "Comanda plasata cu succes",
@@ -552,6 +565,11 @@ def update_order_status(order_id: UUID, status: str, db: Session = Depends(get_d
 
     order.status = status
     db.commit()
+
+    user = db.query(User).filter(User.id == order.user_id).first()
+    if user and status in ("confirmed", "processing", "shipped", "delivered", "cancelled"):
+        notify_order_status(user.email, user.name, str(order.id), status)
+
     return {"message": f"Status actualizat la: {status}"}
 
 

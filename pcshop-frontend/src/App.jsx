@@ -14,11 +14,17 @@ import Wishlist from './pages/Wishlist'
 import Profile from './pages/Profile'
 import PCBuilder from './pages/PCBuilder'
 import Chat from './pages/Chat'
+import Search from './pages/Search'
 import Admin from './pages/Admin'
 import Compare from './pages/Compare'
 import FAQ from './pages/FAQ'
 import DespreNoi from './pages/DespreNoi'
 import Contact from './pages/Contact'
+import Termeni from './pages/Termeni'
+import Confidentialitate from './pages/Confidentialitate'
+import NotFound from './pages/NotFound'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import ChatWidget from './components/ChatWidget'
 import Footer from './components/Footer'
 import useCompareStore from './store/compareStore'
@@ -106,11 +112,17 @@ function App() {
             <Route path="/configurator" element={<PCBuilder />} />
             <Route path="/builder" element={<PCBuilder />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/search" element={<Search />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/compare" element={<Compare />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/despre-noi" element={<DespreNoi />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/termeni" element={<Termeni />} />
+            <Route path="/confidentialitate" element={<Confidentialitate />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         <Footer />

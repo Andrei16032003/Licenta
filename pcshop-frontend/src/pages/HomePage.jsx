@@ -11,6 +11,7 @@ import { productsAPI, cartAPI } from '../services/api'
 import { imgUrl } from '../utils/imgUrl'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
+import ProductImg from '../components/ProductImg'
 
 const categoryIconMap = {
   cpu:         Cpu,
@@ -299,8 +300,7 @@ export default function HomePage() {
                     <div className="product-img-bg rounded-xl h-[170px] flex items-center justify-center mb-4 overflow-hidden"
                          style={{ border: `1px solid ${catColor}22` }}>
                       {p.image_url
-                        ? <img src={imgUrl(p.image_url)} alt={p.name}
-                               className="w-full h-full" />
+                        ? <ProductImg src={p.image_url} alt={p.name} className="w-full h-full object-contain" iconSize={46} />
                         : <CatIcon size={46} weight="duotone" style={{ color: catColor }} />
                       }
                     </div>

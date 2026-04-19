@@ -93,6 +93,23 @@ def update_member(user_id: UUID, req: TeamMemberUpdate, db: Session = Depends(ge
     db.commit()
     return {"message": "Angajat actualizat"}
 
+class AssignRoleRequest(BaseModel):
+    email: str
+    role: str
+
+# Atribuie un rol de staff unui cont existent dupa email
+@router.post("/assign-role")
+def assign_role(req: AssignRoleRequest, db: Session = Depends(get_db), _: User = Depends(require_admin)):
+    if req.role not in STAFF_ROLES:
+        raise HTTPException(400, f"Rol invalid. Roluri permise: {', '.join(STAFF_ROLES)}")
+    user = db.query(User).filter(User.email == req.email.strip().lower()).first()
+    if not user:
+        raise HTTPException(404, "Nu există niciun cont cu acest email.")
+    user.role = req.role
+    user.is_verified = True
+    db.commit()
+    return {"message": f"Rolul '{req.role}' a fost atribuit contului {user.email}.", "name": user.name}
+
 # Sterge definitiv un cont de angajat din baza de date
 @router.delete("/{user_id}")
 def delete_member(user_id: UUID, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):

@@ -11,6 +11,7 @@ from app.models.product import Product, ProductImage
 from app.dependencies import require_role
 _require_service = require_role("admin", "suport", "manager")
 from app.models.user import User
+from app.notifications import notify_service_created, notify_service_status
 
 router = APIRouter(prefix="/service", tags=["Service"])
 
@@ -46,6 +47,11 @@ def create_service(data: ServiceCreate, db: Session = Depends(get_db)):
     db.add(req)
     db.commit()
     db.refresh(req)
+
+    user = db.query(User).filter(User.id == data.user_id).first()
+    if user:
+        notify_service_created(user.email, user.name, req.nr_ticket, data.product_name)
+
     return {"success": True, "id": str(req.id), "nr_ticket": req.nr_ticket}
 
 # Returneaza toate cererile de service ale unui user
@@ -119,6 +125,11 @@ def update_service_status(req_id: UUID, data: dict, db: Session = Depends(get_db
     if not r: raise HTTPException(404)
     r.status = data.get("status", r.status)
     db.commit()
+
+    user = db.query(User).filter(User.id == r.user_id).first()
+    if user:
+        notify_service_status(user.email, user.name, r.nr_ticket, r.product_name, r.status)
+
     return {"success": True}
 
 # Actualizeaza prioritatea unei cereri de service (admin/suport)

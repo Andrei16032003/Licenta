@@ -9,8 +9,9 @@ import {
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
 import useFavoriteStore from '../store/favoriteStore'
-import { cartAPI, wishlistAPI } from '../services/api'
+import { cartAPI, wishlistAPI, chatAPI, productsAPI } from '../services/api'
 import { imgUrl } from '../utils/imgUrl'
+import { detectSlug } from '../utils/categorySearch'
 
 // Navbar fix sticky cu cautare, cos si meniu utilizator cu dropdown
 export default function Navbar() {
@@ -23,12 +24,52 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchVal, setSearchVal] = useState('')
+  const [suggestions, setSuggestions] = useState({ cats: [], products: [] })
+  const [sugLoading, setSugLoading] = useState(false)
+  const [catalogCats, setCatalogCats] = useState([])
   const [favOpen, setFavOpen] = useState(false)
   const [favLoaded, setFavLoaded] = useState(false)
   const dropdownRef = useRef(null)
   const searchRef = useRef(null)
   const favRef = useRef(null)
+  const debounceRef = useRef(null)
   const isActive = (path) => location.pathname === path
+
+  // Încarcă categoriile din catalog o singură dată
+  useEffect(() => {
+    chatAPI.categories()
+      .then(r => setCatalogCats(Array.isArray(r.data) ? r.data : []))
+      .catch(() => {})
+  }, [])
+
+  // Caută sugestii când utilizatorul scrie
+  useEffect(() => {
+    const q = searchVal.trim()
+    if (!q) { setSuggestions({ cats: [], products: [] }); return }
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      setSugLoading(true)
+      const lower = q.toLowerCase()
+
+      // Potrivire categorii: numele categoriei + aliasuri
+      const matchedCats = catalogCats.filter(c => {
+        if (c.name.toLowerCase().includes(lower)) return true
+        if (c.slug.includes(lower)) return true
+        const aliases = SLUG_ALIASES[c.slug] || []
+        return aliases.some(a => a.includes(lower) || lower.includes(a))
+      })
+
+      // Produse din catalog
+      let products = []
+      try {
+        const r = await productsAPI.getAll({ search: q, limit: 5 })
+        products = r.data?.products || []
+      } catch { products = [] }
+
+      setSuggestions({ cats: matchedCats.slice(0, 4), products })
+      setSugLoading(false)
+    }, 250)
+  }, [searchVal, catalogCats])
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
@@ -60,14 +101,23 @@ export default function Navbar() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setDropdownOpen(false); setSearchOpen(false); setFavOpen(false) }, [location.pathname])
 
-  // Redirectioneaza la catalog cu termenul de cautare ca parametru URL
+  const closeSearch = () => {
+    setSearchOpen(false)
+    setSearchVal('')
+    setSuggestions({ cats: [], products: [] })
+  }
+
   const handleSearch = (e) => {
     e.preventDefault()
-    if (searchVal.trim()) {
-      navigate(`/catalog?search=${encodeURIComponent(searchVal.trim())}`)
-      setSearchVal('')
-      setSearchOpen(false)
-    }
+    const q = searchVal.trim()
+    if (!q) return
+    navigate(`/catalog?search=${encodeURIComponent(q)}`)
+    closeSearch()
+  }
+
+  const goToProduct = (id) => {
+    navigate(`/product/${id}`)
+    closeSearch()
   }
 
   const navLinks = [
@@ -137,20 +187,61 @@ export default function Navbar() {
         {/* Search */}
         <div ref={searchRef} className="relative flex items-center">
           {searchOpen ? (
-            <form onSubmit={handleSearch} className="flex items-center">
-              <input
-                autoFocus
-                value={searchVal}
-                onChange={e => setSearchVal(e.target.value)}
-                placeholder="Caută produse..."
-                className="search-expand w-48 bg-base-2 border border-accent/20 text-primary
-                           text-sm rounded-lg px-3 py-1.5 outline-none placeholder:text-muted
-                           focus:border-accent/40 focus:shadow-[0_0_0_3px_rgba(14,246,255,0.08)]"
-              />
-              <button type="submit" className="ml-1 p-1.5 text-secondary hover:text-accent transition-colors">
-                <MagnifyingGlass size={16} weight="regular" />
-              </button>
-            </form>
+            <div className="relative">
+              <form onSubmit={handleSearch} className="flex items-center">
+                <input
+                  autoFocus
+                  value={searchVal}
+                  onChange={e => setSearchVal(e.target.value)}
+                  placeholder="Caută produse, categorii..."
+                  className="w-64 bg-base-2 border border-accent/20 text-primary text-sm
+                             rounded-lg px-3 py-1.5 outline-none placeholder:text-muted
+                             focus:border-accent/40 focus:shadow-[0_0_0_3px_rgba(14,246,255,0.08)]"
+                />
+                <button type="submit" className="ml-1 p-1.5 text-secondary hover:text-accent transition-colors">
+                  <MagnifyingGlass size={16} weight="regular" />
+                </button>
+              </form>
+
+              {/* Dropdown sugestii produse */}
+              {searchVal.trim() && suggestions.products.length > 0 && (
+                <div className="absolute top-full left-0 mt-1.5 w-80 bg-[#0d1117] border border-white/[0.1]
+                                rounded-xl shadow-2xl overflow-hidden z-[9999]">
+                  <p className="text-muted text-[11px] font-semibold uppercase tracking-wider px-3 pt-3 pb-1">
+                    Produse
+                  </p>
+                  {suggestions.products.map(p => {
+                    const imgSrc = p.image_url || p.image
+                    const price = p.discount_percent > 0
+                      ? (p.price * (1 - p.discount_percent / 100)).toFixed(0)
+                      : p.price
+                    return (
+                      <button key={p.id} onClick={() => goToProduct(p.id)}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.05]
+                                         transition-colors cursor-pointer text-left">
+                        {imgSrc
+                          ? <img src={imgUrl(imgSrc)} alt={p.name}
+                                 className="w-8 h-8 object-contain rounded-lg bg-white/5 shrink-0" />
+                          : <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                              <Package size={14} className="text-muted/40" />
+                            </div>
+                        }
+                        <div className="flex-1 min-w-0">
+                          <p className="text-primary text-[12px] font-semibold truncate">{p.name}</p>
+                          <p className="text-accent text-[11px] font-mono">{price} RON</p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                  <div className="border-t border-white/[0.06] px-3 py-2">
+                    <button onClick={handleSearch}
+                            className="text-accent text-[12px] hover:underline cursor-pointer w-full text-left">
+                      Caută „{searchVal.trim()}" în tot catalogul →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <button
               onClick={() => setSearchOpen(true)}

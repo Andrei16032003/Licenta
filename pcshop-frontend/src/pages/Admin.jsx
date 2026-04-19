@@ -273,6 +273,10 @@ export default function Admin() {
   const [editMember, setEditMember]           = useState(null)
   const [editMemberForm, setEditMemberForm]   = useState({})
   const [deleteConfirmMember, setDeleteConfirmMember] = useState(null)
+  const [assignForm, setAssignForm]               = useState({ email: '', role: 'suport' })
+  const [assignLoading, setAssignLoading]         = useState(false)
+  const [assignResult, setAssignResult]           = useState(null)   // { ok, message }
+  const [showAssignForm, setShowAssignForm]       = useState(false)
 
   // Marketing
   const [mktStats, setMktStats]                 = useState([])
@@ -585,6 +589,20 @@ export default function Admin() {
   }, [globalSearch, products, orders, uniqueClients, retururi, serviceReqs])
 
   /* ── team handlers ── */
+  const handleAssignRole = async (e) => {
+    e.preventDefault()
+    setAssignLoading(true); setAssignResult(null)
+    try {
+      const res = await teamAPI.assignRole(assignForm)
+      setAssignResult({ ok: true, message: res.data.message })
+      setAssignForm({ email: '', role: 'suport' })
+      const teamRes = await teamAPI.list()
+      setTeamMembers(teamRes.data || [])
+    } catch (err) {
+      setAssignResult({ ok: false, message: err.response?.data?.detail || 'Eroare.' })
+    } finally { setAssignLoading(false) }
+  }
+
   const handleTeamCreate = async (e) => {
     e.preventDefault()
     setTeamSaving(true)
@@ -5652,9 +5670,16 @@ export default function Admin() {
                 </h2>
                 <p className="text-muted text-sm mt-1">{teamMembers.length} angajati inregistrati</p>
               </div>
-              <button onClick={() => setShowTeamForm(v => !v)} className={showTeamForm ? 'btn-outline' : 'btn-primary'}>
-                {showTeamForm ? 'Anuleaza' : '+ Angajat nou'}
-              </button>
+              <div className="flex gap-2">
+                <button onClick={() => { setShowAssignForm(v => !v); setShowTeamForm(false); setAssignResult(null) }}
+                  className={showAssignForm ? 'btn-outline' : 'btn-outline'}>
+                  {showAssignForm ? 'Anulează' : 'Atribuie rol cont existent'}
+                </button>
+                <button onClick={() => { setShowTeamForm(v => !v); setShowAssignForm(false) }}
+                  className={showTeamForm ? 'btn-outline' : 'btn-primary'}>
+                  {showTeamForm ? 'Anuleaza' : '+ Angajat nou'}
+                </button>
+              </div>
             </div>
 
             {showTeamForm && (
@@ -5690,6 +5715,47 @@ export default function Admin() {
                 <button type="submit" disabled={teamSaving} className="btn-primary flex items-center gap-2">
                   {teamSaving ? <CircleNotch size={14} className="animate-spin" /> : <Check size={14} />}
                   Creeaza cont
+                </button>
+              </form>
+            )}
+
+            {showAssignForm && (
+              <form onSubmit={handleAssignRole} className="bg-surface border border-accent/20 rounded-2xl p-6 mb-6">
+                <h3 className="text-accent font-bold text-sm mb-4 flex items-center gap-2">
+                  Atribuie rol unui cont existent
+                </h3>
+                {assignResult && (
+                  <div className={`flex items-center gap-2 px-4 py-3 rounded-xl mb-4 text-sm border ${assignResult.ok ? 'bg-success/10 border-success/30 text-success' : 'bg-danger/10 border-danger/30 text-danger'}`}>
+                    {assignResult.message}
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="col-span-2">
+                    <label style={{ color: '#6B7280', fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+                      Email cont existent <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={assignForm.email}
+                      onChange={e => { setAssignForm(p => ({ ...p, email: e.target.value })); setAssignResult(null) }}
+                      placeholder="email@exemplu.com"
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ color: '#6B7280', fontSize: '12px', display: 'block', marginBottom: '6px' }}>Rol *</label>
+                    <select value={assignForm.role} onChange={e => setAssignForm(p => ({ ...p, role: e.target.value }))}
+                      className="input-field cursor-pointer">
+                      {['admin','manager','achizitii','marketing','suport'].map(r => (
+                        <option key={r} value={r} style={{ background: '#0A0E1A' }}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" disabled={assignLoading} className="btn-primary flex items-center gap-2">
+                  {assignLoading ? <CircleNotch size={14} className="animate-spin" /> : <Check size={14} />}
+                  Atribuie rol
                 </button>
               </form>
             )}

@@ -22,8 +22,9 @@ export default function Login() {
       const payload = JSON.parse(atob(token.split('.')[1]))
       login({ id: payload.sub, name: res.data.name, role: res.data.role }, token)
       navigate('/')
-    } catch {
-      setError('Email sau parolă incorectă!')
+    } catch (err) {
+      const detail = err.response?.data?.detail || ''
+      setError(detail.includes('verificat') ? detail : 'Email sau parolă incorectă!')
     } finally { setLoading(false) }
   }
 
@@ -86,13 +87,16 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="border-t border-default mt-6 pt-5 text-center">
+        <div className="border-t border-default mt-6 pt-5 text-center flex flex-col gap-2">
           <p className="text-muted text-sm">
             Nu ai cont?{' '}
             <Link to="/register" className="text-accent no-underline font-semibold hover:underline">
               Crează cont gratuit →
             </Link>
           </p>
+          <Link to="/forgot-password" className="text-muted text-xs hover:text-accent transition-colors">
+            Ai uitat parola?
+          </Link>
         </div>
       </div>
     </div>

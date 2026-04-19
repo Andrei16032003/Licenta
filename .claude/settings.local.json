@@ -28,7 +28,8 @@
       "Bash(npm install:*)",
       "Bash(ls c:/Licenta/pcshop-frontend/.env*)",
       "Bash(npm run:*)",
-      "Bash(/c/Licenta/PCShop/venv/Scripts/python.exe -c \"from app.routers.chat import router; print\\('OK'\\)\")"
+      "Bash(/c/Licenta/PCShop/venv/Scripts/python.exe -c \"from app.routers.chat import router; print\\('OK'\\)\")",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/chat/extract-filters -H \"Content-Type: application/json\" -d '{\"message\":\"ram DDR5 32GB\"}')"
     ]
   }
 }

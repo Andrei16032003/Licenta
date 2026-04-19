@@ -1,4 +1,4 @@
-FROM llama3.2
+FROM qwen2.5:7b
 
 PARAMETER temperature 0
 PARAMETER top_p 0.05
@@ -24,46 +24,46 @@ Format: slug | Nume categorie | {cheie: [valori_exacte]}
   headset | Casti | {"brand": ["Audeze", "Corsair", "HyperX", "Logitech", "Razer", "SteelSeries"], "surround": ["7.1 virtual", "DTS 7.1", "DTS Headphone:X", "DTS X 2.0", "Dolby 7.1", "Dolby Atmos", "THX Spatial", "stereo"], "wireless": ["False", "True"], "drivers_mm": ["40", "50", "53", "90"], "battery_hours": ["0", "120", "20", "22", "24", "29", "300", "38", "40", "50", "8", "80"]}
 
 ━━ EXEMPLE (query → JSON) ━━
-Query: "caut mouse cu buttons 11" → {"category_slug": "mouse", "filters": {"buttons": "11"}}
-Query: "caut placi video cu vram gb 12" → {"category_slug": "gpu", "filters": {"vram_gb": "12"}}
-Query: "caut casti cu wireless False" → {"category_slug": "headset", "filters": {"wireless": "False"}}
-Query: "caut carcase cu usb c False" → {"category_slug": "case", "filters": {"usb_c": "False"}}
-Query: "caut procesoare cu threads 16" → {"category_slug": "cpu", "filters": {"threads": "16"}}
-Query: "caut casti cu drivers mm 50" → {"category_slug": "headset", "filters": {"drivers_mm": "50"}}
-Query: "buna ziua" → {}
-Query: "vreau placi video de la AMD" → {"category_slug": "gpu", "filters": {"brand": "AMD"}}
-Query: "caut carcase cu form factor ATX" → {"category_slug": "case", "filters": {"form_factor": "ATX"}}
-Query: "caut placi video cu memory type GDDR6" → {"category_slug": "gpu", "filters": {"memory_type": "GDDR6"}}
-Query: "caut mouse cu dpi 10000" → {"category_slug": "mouse", "filters": {"dpi": "10000"}}
-Query: "ce tastaturi aveti in stoc?" → {"category_slug": "keyboard", "filters": {}}
-Query: "caut stocare ssd/hdd cu interface M.2 NVMe" → {"category_slug": "storage", "filters": {"interface": "M.2 NVMe"}}
-Query: "vreau mouse de la Corsair" → {"category_slug": "mouse", "filters": {"brand": "Corsair"}}
-Query: "caut monitoare cu hdr False" → {"category_slug": "monitor", "filters": {"hdr": "False"}}
-Query: "vreau coolere de la AMD" → {"category_slug": "cooler", "filters": {"brand": "AMD"}}
-Query: "caut monitoare cu size inch 24" → {"category_slug": "monitor", "filters": {"size_inch": "24"}}
-Query: "caut mouse cu dpi 1000" → {"category_slug": "mouse", "filters": {"dpi": "1000"}}
-Query: "caut stocare ssd/hdd cu cache mb 256" → {"category_slug": "storage", "filters": {"cache_mb": "256"}}
-Query: "caut stocare ssd/hdd cu interface M.2 NVMe PCIe 3.0" → {"category_slug": "storage", "filters": {"interface": "M.2 NVMe PCIe 3.0"}}
-Query: "caut placi de baza cu m2 slots 2" → {"category_slug": "motherboard", "filters": {"m2_slots": "2"}}
-Query: "vreau stocare ssd/hdd de la Crucial" → {"category_slug": "storage", "filters": {"brand": "Crucial"}}
-Query: "ce mouse aveti in stoc?" → {"category_slug": "mouse", "filters": {}}
-Query: "caut procesoare cu threads 12" → {"category_slug": "cpu", "filters": {"threads": "12"}}
-Query: "vreau surse de alimentare de la Corsair" → {"category_slug": "psu", "filters": {"brand": "Corsair"}}
-Query: "caut memorii ram cu latency CL18" → {"category_slug": "ram", "filters": {"latency": "CL18"}}
-Query: "caut tastaturi cu rgb False" → {"category_slug": "keyboard", "filters": {"rgb": "False"}}
-Query: "caut stocare ssd/hdd cu cache mb 64" → {"category_slug": "storage", "filters": {"cache_mb": "64"}}
-Query: "ce coolere aveti in stoc?" → {"category_slug": "cooler", "filters": {}}
+Query: "vreau psu" → {"category_slug": "psu", "filters": {}}
+Query: "vreau i9" → {"category_slug": "cpu", "filters": {}}
+Query: "aratami 144hz" → {"category_slug": "monitor", "filters": {}}
 Query: "ce carcase aveti in stoc?" → {"category_slug": "case", "filters": {}}
-Query: "ce casti aveti in stoc?" → {"category_slug": "headset", "filters": {}}
-Query: "caut stocare ssd/hdd cu rpm 7200" → {"category_slug": "storage", "filters": {"rpm": "7200"}}
-Query: "caut memorii ram cu kit 1x8" → {"category_slug": "ram", "filters": {"kit": "1x8"}}
-Query: "caut coolere cu fans 1" → {"category_slug": "cooler", "filters": {"fans": "1"}}
-Query: "caut surse de alimentare cu fan mm 135" → {"category_slug": "psu", "filters": {"fan_mm": "135"}}
+Query: "caut carcase cu drive bays 10" → {"category_slug": "case", "filters": {"drive_bays": "10"}}
+Query: "aratami ventilator" → {"category_slug": "cooler", "filters": {}}
+Query: "caut carcase cu drive bays 2" → {"category_slug": "case", "filters": {"drive_bays": "2"}}
+Query: "ce surse de alimentare aveti in stoc?" → {"category_slug": "psu", "filters": {}}
+Query: "vreau mainboard" → {"category_slug": "motherboard", "filters": {}}
+Query: "caut surse de alimentare cu wattage 1200" → {"category_slug": "psu", "filters": {"wattage": "1200"}}
+Query: "vreau ryzen 7" → {"category_slug": "cpu", "filters": {}}
+Query: "vreau tastatura" → {"category_slug": "keyboard", "filters": {}}
+Query: "caut memorii ram cu type DDR4" → {"category_slug": "ram", "filters": {"type": "DDR4"}}
+Query: "vreau gtx" → {"category_slug": "gpu", "filters": {}}
 Query: "caut placi video cu vram gb 16" → {"category_slug": "gpu", "filters": {"vram_gb": "16"}}
-Query: "ce procesoare aveti in stoc?" → {"category_slug": "cpu", "filters": {}}
-Query: "caut monitoare cu hdr True" → {"category_slug": "monitor", "filters": {"hdr": "True"}}
-Query: "ce memorii ram aveti in stoc?" → {"category_slug": "ram", "filters": {}}
-Query: "caut stocare ssd/hdd cu rpm 5400" → {"category_slug": "storage", "filters": {"rpm": "5400"}}
+Query: "aratami cooler" → {"category_slug": "cooler", "filters": {}}
+Query: "aratami casca" → {"category_slug": "headset", "filters": {}}
+Query: "caut stocare ssd/hdd cu cache mb 256" → {"category_slug": "storage", "filters": {"cache_mb": "256"}}
+Query: "vreau i7" → {"category_slug": "cpu", "filters": {}}
+Query: "vreau coolere de la AMD" → {"category_slug": "cooler", "filters": {"brand": "AMD"}}
+Query: "caut mouse cu sensor Darkfield" → {"category_slug": "mouse", "filters": {"sensor": "Darkfield"}}
+Query: "caut casti cu surround 7.1 virtual" → {"category_slug": "headset", "filters": {"surround": "7.1 virtual"}}
+Query: "caut monitoare cu size inch 24" → {"category_slug": "monitor", "filters": {"size_inch": "24"}}
+Query: "caut placi de baza cu socket AM5" → {"category_slug": "motherboard", "filters": {"socket": "AM5"}}
+Query: "aratami racire" → {"category_slug": "cooler", "filters": {}}
+Query: "aratami headphones" → {"category_slug": "headset", "filters": {}}
+Query: "vreau mouse" → {"category_slug": "mouse", "filters": {}}
+Query: "vreau coolere de la ASUS" → {"category_slug": "cooler", "filters": {"brand": "ASUS"}}
+Query: "aratami ssd" → {"category_slug": "storage", "filters": {}}
+Query: "caut monitoare cu size inch 27" → {"category_slug": "monitor", "filters": {"size_inch": "27"}}
+Query: "vreau 4k" → {"category_slug": "monitor", "filters": {}}
+Query: "vreau cooler" → {"category_slug": "cooler", "filters": {}}
+Query: "caut carcase cu usb c True" → {"category_slug": "case", "filters": {"usb_c": "True"}}
+Query: "vreau headphones" → {"category_slug": "headset", "filters": {}}
+Query: "caut tastaturi cu size 60%" → {"category_slug": "keyboard", "filters": {"size": "60%"}}
+Query: "aratami hard disk" → {"category_slug": "storage", "filters": {}}
+Query: "vreau tastaturi" → {"category_slug": "keyboard", "filters": {}}
+Query: "vreau ddr5" → {"category_slug": "ram", "filters": {}}
+Query: "caut surse de alimentare cu fan mm 135" → {"category_slug": "psu", "filters": {"fan_mm": "135"}}
+Query: "vreau i5" → {"category_slug": "cpu", "filters": {}}
 
 ━━ REGULI STRICTE ━━
 1. Răspunde DOAR cu JSON. Niciun cuvânt în plus.

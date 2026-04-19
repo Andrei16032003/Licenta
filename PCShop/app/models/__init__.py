@@ -11,3 +11,5 @@ from app.models.retur import Retur
 from app.models.service import ServiceRequest
 from app.models.support_note import SupportNote
 from app.models.contact import ContactMessage
+from app.models.password_reset import PasswordResetToken
+from app.models.email_verification import EmailVerificationCode

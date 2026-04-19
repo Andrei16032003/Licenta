@@ -13,6 +13,13 @@ const useAuthStore = create((set) => ({
     set({ user: userData, token, isAuthenticated: true })
   },
 
+  // Actualizeaza datele userului in store si localStorage
+  updateUser: (patch) => set(state => {
+    const updated = { ...state.user, ...patch }
+    localStorage.setItem('user', JSON.stringify(updated))
+    return { user: updated }
+  }),
+
   // Sterge datele din localStorage si reseteaza starea
   logout: () => {
     localStorage.removeItem('token')

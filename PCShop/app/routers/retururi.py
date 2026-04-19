@@ -10,6 +10,7 @@ from app.models.product import Product, ProductImage
 from app.dependencies import require_role
 _require_retururi = require_role("admin", "suport", "manager")
 from app.models.user import User
+from app.notifications import notify_retur_created, notify_retur_status
 
 router = APIRouter(prefix="/retururi", tags=["Retururi"])
 
@@ -46,6 +47,11 @@ def create_retur(data: ReturCreate, db: Session = Depends(get_db)):
     db.add(retur)
     db.commit()
     db.refresh(retur)
+
+    user = db.query(User).filter(User.id == data.user_id).first()
+    if user:
+        notify_retur_created(user.email, user.name, str(retur.id), data.product_name)
+
     return {"success": True, "id": str(retur.id)}
 
 # Returneaza toate cererile de retur ale unui user
@@ -132,6 +138,11 @@ def update_retur_status(retur_id: UUID, data: dict, db: Session = Depends(get_db
     if not r: raise HTTPException(404)
     r.status = data.get("status", r.status)
     db.commit()
+
+    user = db.query(User).filter(User.id == r.user_id).first()
+    if user:
+        notify_retur_status(user.email, user.name, str(r.id), r.product_name, r.status)
+
     return {"success": True}
 
 # Actualizeaza prioritatea unui retur (admin/suport)

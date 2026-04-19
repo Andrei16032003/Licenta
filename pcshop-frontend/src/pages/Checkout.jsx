@@ -132,6 +132,17 @@ export default function Checkout() {
 
   // Trimite datele cardului si proceseaza plata; redirectioneaza dupa succes
   const handleCardPay = async () => {
+    const digits = card.number.replace(/\s/g, '')
+    if (digits.length !== 16) { setCardError('Numarul de card trebuie sa aiba 16 cifre.'); return }
+    if (!/^\d{2}\/\d{2}$/.test(card.expiry)) { setCardError('Data expirarii trebuie sa fie in formatul MM/YY.'); return }
+    const [mm, yy] = card.expiry.split('/').map(Number)
+    if (mm < 1 || mm > 12) { setCardError('Luna expirata invalida (01-12).'); return }
+    const now = new Date(); const expYear = 2000 + yy; const expMonth = mm
+    if (expYear < now.getFullYear() || (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)) {
+      setCardError('Cardul este expirat.'); return
+    }
+    if (card.cvv.length !== 3) { setCardError('CVV-ul trebuie sa aiba 3 cifre.'); return }
+    if (!card.name.trim()) { setCardError('Introdu numele titularului cardului.'); return }
     setCardError(''); setCardLoading(true)
     try {
       await ordersAPI.payCard(placedOrder.order_id, {

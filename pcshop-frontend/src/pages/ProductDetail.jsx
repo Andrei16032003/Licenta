@@ -6,6 +6,7 @@ import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
 import useCompareStore from '../store/compareStore'
 import useFavoriteStore from '../store/favoriteStore'
+import ProductImg from '../components/ProductImg'
 import {
   ArrowLeft, ShoppingCart, Heart, Scales, Star, Check, CircleNotch,
   Warning, Package, Cpu, Monitor, Memory, Circuitry, HardDrive,
@@ -771,10 +772,7 @@ export default function ProductDetail() {
               <Link key={p.id} to={`/product/${p.id}`} className="no-underline">
                 <div className="bg-base-2 rounded-2xl p-3.5 border border-default transition-all cursor-pointer h-full hover:bg-surface hover:border-accent hover:-translate-y-1">
                   <div className="product-img-bg rounded-xl h-[130px] mb-3 overflow-hidden flex items-center justify-center">
-                    {p.image_url
-                      ? <img src={imgUrl(p.image_url)} alt={p.name} className="w-full h-full" />
-                      : <Desktop size={36} className="text-muted opacity-20" />
-                    }
+                    <ProductImg src={p.image_url} alt={p.name} className="w-full h-full object-contain" iconSize={36} />
                   </div>
                   {p.brand && (
                     <p className="text-muted text-[11px] font-semibold mb-1 uppercase tracking-[0.5px]">{p.brand}</p>

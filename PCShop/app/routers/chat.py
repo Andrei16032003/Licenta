@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
+import re
 
 from app.database import get_db
 from app.models.product import Product, Category
@@ -536,6 +537,18 @@ def chat_message(req: ChatRequest, db: Session = Depends(get_db)):
 
 # ── ENDPOINT-URI CHAT GHIDAT ─────────────────────────────────
 
+@router.get("/ai-status")
+async def chat_ai_status():
+    """Verifică dacă Ollama este disponibil."""
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            r = await client.get("http://localhost:11434/api/tags")
+            return {"available": r.status_code == 200}
+    except Exception:
+        return {"available": False}
+
+
 @router.get("/categories")
 def chat_get_categories(db: Session = Depends(get_db)):
     rows = (
@@ -582,15 +595,49 @@ def chat_get_filters(category_slug: str, db: Session = Depends(get_db)):
     return result
 
 
+def _extract_price(text: str) -> dict:
+    """Extract max/min price from Romanian natural language."""
+    t = text.lower()
+    prices = {}
+    max_pats = [
+        r'(?:sub|p[âa]n[aă]\s+(?:la|[îi]n?)|max(?:im(?:um)?)?|cel\s+mult|mai\s+pu[țt]in\s+de)\s*(\d+(?:[.,]\d+)?)\s*(?:lei|ron)?',
+        r'(\d+(?:[.,]\d+)?)\s*(?:lei|ron)\s*(?:max(?:im)?)',
+        r'(?:buget|budget)[:\s]+(\d+)',
+        r'(\d+)\s*(?:lei|ron)\s*(?:sau\s+mai\s+pu[țt]in)',
+    ]
+    for pat in max_pats:
+        m = re.search(pat, t)
+        if m:
+            prices['max_price'] = float(m.group(1).replace(',', '.'))
+            break
+    min_pats = [
+        r'(?:de\s+la|minim(?:um)?|cel\s+pu[țt]in|peste|[îi]ncep[âa]nd\s+de\s+la)\s*(\d+(?:[.,]\d+)?)\s*(?:lei|ron)?',
+    ]
+    for pat in min_pats:
+        m = re.search(pat, t)
+        if m:
+            prices['min_price'] = float(m.group(1).replace(',', '.'))
+            break
+    return prices
+
+
 class ChatSearchRequest(BaseModel):
     category_slug: str
     filters: dict = {}
+    max_price: Optional[float] = None
+    min_price: Optional[float] = None
     sort: str = "price"
+    limit: int = 8
 
 
 @router.post("/search")
 def chat_search(req: ChatSearchRequest, db: Session = Depends(get_db)):
     products = get_products_by_slug(db, req.category_slug)
+
+    if req.max_price is not None:
+        products = [p for p in products if float(p.price) <= req.max_price]
+    if req.min_price is not None:
+        products = [p for p in products if float(p.price) >= req.min_price]
 
     for key, value in req.filters.items():
         if not value:
@@ -607,17 +654,23 @@ def chat_search(req: ChatSearchRequest, db: Session = Depends(get_db)):
                 or str((p.specs or {}).get(key, "")).lower() in val_str
             ]
 
-    return [
-        {
+    limit = max(1, min(req.limit, 100))
+    result = []
+    for p in products[:limit]:
+        old = float(p.old_price) if p.old_price else None
+        cur = float(p.price)
+        discount_pct = round((1 - cur / old) * 100) if old and old > cur else 0
+        result.append({
             "id": str(p.id),
             "name": p.name,
             "brand": p.brand,
-            "price": float(p.price),
+            "price": cur,
+            "old_price": old,
+            "discount_percent": discount_pct,
             "specs": p.specs,
             "image": p.images[0].url if p.images else None,
-        }
-        for p in products[:8]
-    ]
+        })
+    return result
 
 
 class ChatDescribeRequest(BaseModel):
@@ -678,5 +731,30 @@ async def chat_extract_filters(req: ChatExtractRequest, db: Session = Depends(ge
         if filters:
             category_filters[cat.slug] = filters
 
+    price_data = _extract_price(req.message)
+
     result = await ollama_service.extract_filters(req.message, slugs, category_filters)
-    return result or {}
+    if result and result.get("category_slug"):
+        return {**result, **price_data}
+
+    # Fallback: keyword matching dacă Ollama nu a recunoscut categoria
+    msg_lower = req.message.lower()
+    KEYWORD_MAP = {
+        "cpu":         ["procesor", "procesoare", "cpu", "ryzen", "intel core", "threadripper", "i5", "i7", "i9"],
+        "gpu":         ["placa video", "placi video", "plăci video", "placă video", "gpu", "geforce", "rtx", "gtx", "radeon", "rx 6", "rx 7", "nvidia", "grafica", "grafică"],
+        "ram":         ["ram", "memorie ram", "memorii", "ddr4", "ddr5", "memorie"],
+        "motherboard": ["placa de baza", "placi de baza", "placă de bază", "motherboard", "mainboard"],
+        "storage":     ["ssd", "hdd", "nvme", "stocare", "hard disk", "hard drive", "m.2"],
+        "psu":         ["sursa", "surse", "sursă", "psu", "alimentare", "watt"],
+        "case":        ["carcasa", "carcase", "carcasă", "tower", "cabinet", "pc case"],
+        "cooler":      ["cooler", "coolere", "racire", "răcire", "ventilator", "aio", "radiator"],
+        "monitor":     ["monitor", "monitoare", "ecran", "display", "144hz", "165hz", "4k", "ips"],
+        "keyboard":    ["tastatura", "tastaturi", "tastatură", "keyboard", "mecanica", "mecanică", "membrana"],
+        "mouse":       ["mouse", "gaming mouse", "soricel", "optical mouse"],
+        "headset":     ["casti", "căști", "headset", "headphones", "casca", "audio gaming"],
+    }
+    for slug, keywords in KEYWORD_MAP.items():
+        if slug in slugs and any(kw in msg_lower for kw in keywords):
+            return {"category_slug": slug, "filters": {}, **price_data}
+
+    return {**price_data} if price_data else {}

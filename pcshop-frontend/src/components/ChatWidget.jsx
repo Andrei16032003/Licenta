@@ -4,12 +4,15 @@ import {
   ChatCircleDots, X, Robot, ArrowLeft, User, Package,
   Tag, Heart, ShieldCheck, ArrowCounterClockwise, Wrench,
   Phone, CircleNotch, Warning, CaretRight, MagnifyingGlass,
+  Cpu, HardDrive, Monitor, Keyboard, Mouse, Headphones,
+  Lightning, Wind, Memory,
 } from '@phosphor-icons/react'
 import {
   ordersAPI, profileAPI, wishlistAPI,
   retururiAPI, serviceAPI, vouchersAPI, productsAPI, chatAPI,
 } from '../services/api'
 import useAuthStore from '../store/authStore'
+import { detectSlug } from '../utils/categorySearch'
 
 // ── Constants ────────────────────────────────────────────────
 const STATUS_MAP = {
@@ -52,13 +55,13 @@ const MENU = [
 // ── Shared UI (outside ChatWidget — stable references, no remount) ──
 function BotMsg({ children }) {
   return (
-    <div className="flex items-start gap-2">
-      <div className="w-6 h-6 rounded-full bg-accent-dim border border-accent-border
+    <div className="flex items-start gap-1.5">
+      <div className="w-5 h-5 rounded-full bg-accent-dim border border-accent-border
                       flex items-center justify-center shrink-0 mt-0.5">
-        <Robot size={13} weight="duotone" className="text-accent" />
+        <Robot size={11} weight="duotone" className="text-accent" />
       </div>
       <div className="bg-accent-dim border border-accent-border rounded-xl rounded-tl-sm
-                      px-3 py-2 text-[13px] text-primary leading-relaxed flex-1">
+                      px-2.5 py-1.5 text-[12px] text-primary leading-relaxed flex-1">
         {children}
       </div>
     </div>
@@ -68,18 +71,18 @@ function BotMsg({ children }) {
 function OptionBtn({ Icon, label, color, onClick, sub }) {
   return (
     <button onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl
                  bg-white/[0.04] border border-white/10 cursor-pointer text-left
                  hover:border-white/20 hover:bg-white/[0.07] transition-all duration-150 group">
-      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+      <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
            style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
-        <Icon size={14} style={{ color }} />
+        <Icon size={12} style={{ color }} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-primary text-[13px] font-semibold">{label}</div>
-        {sub && <div className="text-muted text-[11px]">{sub}</div>}
+        <div className="text-primary text-[12px] font-semibold">{label}</div>
+        {sub && <div className="text-muted text-[10px]">{sub}</div>}
       </div>
-      <CaretRight size={12} className="text-muted group-hover:text-primary transition-colors shrink-0" />
+      <CaretRight size={11} className="text-muted group-hover:text-primary transition-colors shrink-0" />
     </button>
   )
 }
@@ -118,7 +121,7 @@ function CheckList({ title, items }) {
 function BtnPrimary({ onClick, children }) {
   return (
     <button onClick={onClick}
-            className="w-full py-2.5 rounded-xl bg-accent text-base text-[13px] font-bold
+            className="w-full py-2 rounded-xl bg-accent text-base text-[12px] font-bold
                        cursor-pointer hover:shadow-glow-cyan transition-all">
       {children}
     </button>
@@ -128,8 +131,8 @@ function BtnPrimary({ onClick, children }) {
 function BtnSecondary({ onClick, children }) {
   return (
     <button onClick={onClick}
-            className="w-full py-2 rounded-xl bg-white/5 border border-white/10
-                       text-secondary text-[13px] cursor-pointer hover:text-primary transition-all">
+            className="w-full py-1.5 rounded-xl bg-white/5 border border-white/10
+                       text-secondary text-[12px] cursor-pointer hover:text-primary transition-all">
       {children}
     </button>
   )
@@ -148,47 +151,189 @@ export default function ChatWidget() {
   const [probStep, setProbStep]     = useState(null)
   const [svcInfo, setSvcInfo]       = useState(false)
   const [retInfo, setRetInfo]       = useState(false)
-  const [aiQuery, setAiQuery]   = useState('')
-  const [aiState, setAiState]   = useState({ status: 'idle' })
-  // status: idle | thinking | searching | ok | fallback | error
-  const bodyRef = useRef(null)
+  const [searchMode, setSearchMode]       = useState(null)   // null | 'ai' | 'manual'
+  const [aiInput, setAiInput]             = useState('')
+  const [aiQuick, setAiQuick]             = useState('')
+  const [aiMessages, setAiMessages]       = useState([])
+  const [aiBusy, setAiBusy]               = useState(false)
+  const [aiPhase, setAiPhase]             = useState('cat')   // 'cat' | 'followup'
+  const [aiDetected, setAiDetected]       = useState(null)   // {slug, catName, filters}
+  const [aiOffline, setAiOffline]         = useState(false)
+  const [manualCat, setManualCat]           = useState(null)
+  const [manualSearch, setManualSearch]     = useState('')
+  const [manualFilters, setManualFilters]   = useState({})
+  const [manualResults, setManualResults]   = useState(null)
+  const [expandedFilter, setExpandedFilter] = useState(null)
+  const bodyRef    = useRef(null)
+  const msgsRef    = useRef(null)
 
   useEffect(() => {
     if (bodyRef.current)
       setTimeout(() => bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 50)
-  }, [screen, selOrder, probStep, svcInfo, retInfo])
+  }, [screen, selOrder, probStep, svcInfo, retInfo, searchMode, manualCat])
 
-  const runAiSearch = async (q) => {
-    if (!q.trim()) return
-    setAiState({ status: 'thinking' })
+  useEffect(() => {
+    if (msgsRef.current)
+      msgsRef.current.scrollTop = msgsRef.current.scrollHeight
+  }, [aiMessages])
+
+  // builds hint text from available filter keys
+  const buildHints = (filters) => {
+    const parts = []
+    if (filters.brand?.length)
+      parts.push(`brand (${filters.brand.slice(0, 3).join(', ')})`)
+    Object.entries(filters)
+      .filter(([k]) => k !== 'brand')
+      .slice(0, 2)
+      .forEach(([k, vals]) =>
+        parts.push(`${k.replace(/_/g, ' ')} (${vals.slice(0, 3).join(', ')})`)
+      )
+    return parts
+  }
+
+  // Phase 1: user picks a category → load filters → ask follow-up
+  const pickAiCategory = async (slug, catName) => {
+    if (aiBusy) return
+    setAiBusy(true)
+    setAiMessages([])
     try {
-      // Step 1: Ollama extrage categoria + filtrele
-      const extRes = await chatAPI.extractFilters(q.trim())
-      const extracted = extRes.data || {}
+      const filRes = await chatAPI.filters(slug)
+      const avail  = filRes.data || {}
+      const hints  = buildHints(avail)
+      setAiDetected({ slug, catName, filters: avail })
+      setAiPhase('followup')
+      setAiMessages([{ id: Date.now(), role: 'bot', type: 'followup', catName, hints }])
+    } catch {
+      setAiMessages([{ id: Date.now(), role: 'bot', type: 'error' }])
+    } finally {
+      setAiBusy(false)
+    }
+  }
 
-      if (extracted.category_slug) {
-        setAiState({ status: 'searching', extracted })
-        // Step 2: cauta in DB cu filtrele extrase
-        const srchRes = await chatAPI.search({
-          category_slug: extracted.category_slug,
-          filters: extracted.filters || {},
-          limit: 6,
-        })
-        const results = srchRes.data?.products ?? srchRes.data ?? []
-        setAiState({ status: 'ok', extracted, results })
+  // Phase 2: receive preferences, extract filters, search
+  const runFollowup = async (q) => {
+    if (!aiDetected || aiBusy) return
+    const query = q.trim()
+    const { slug, catName } = aiDetected
+    setAiBusy(true)
+    setAiInput('')
+    const ts = Date.now()
+    setAiMessages(prev => [...prev,
+      { id: ts,     role: 'user', content: query || 'Orice' },
+      { id: ts + 1, role: 'bot',  type: 'searching' },
+    ])
+    try {
+      const SKIP = ['nu conteaza', 'nu contează', 'orice', 'toate', 'nu stiu', 'nu știu', 'oricare', 'fara', 'fără']
+      const skip = !query || SKIP.some(w => query.toLowerCase().includes(w))
+      let filters = {}, max_price, min_price
+      if (!skip) {
+        const ext = await chatAPI.extractFilters(`${catName} ${query}`)
+        filters   = ext.data?.filters   || {}
+        max_price = ext.data?.max_price  ?? undefined
+        min_price = ext.data?.min_price  ?? undefined
+      }
+      const res = await chatAPI.search({ category_slug: slug, filters, max_price, min_price, limit: 6 })
+      const results = Array.isArray(res.data) ? res.data : (res.data?.products ?? [])
+      if (!results.length && Object.keys(filters).length > 0) {
+        setAiMessages(prev => [...prev.slice(0, -1),
+          { id: ts + 2, role: 'bot', type: 'empty_retry', slug, catName },
+        ])
+      } else if (results.length) {
+        setAiMessages(prev => [...prev.slice(0, -1),
+          { id: ts + 2, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters } },
+        ])
       } else {
-        // Ollama nu a extras o categorie — fallback la search clasic
-        throw new Error('no_category')
+        setAiMessages(prev => [...prev.slice(0, -1),
+          { id: ts + 2, role: 'bot', type: 'empty', query: catName, slug, catName },
+        ])
       }
     } catch {
-      // Fallback: search clasic
-      try {
-        const res = await productsAPI.getAll({ search: q.trim(), limit: 6 })
-        const results = Array.isArray(res.data) ? res.data : (res.data?.items ?? [])
-        setAiState({ status: 'fallback', results })
-      } catch {
-        setAiState({ status: 'error' })
+      setAiMessages(prev => [...prev.slice(0, -1), { id: ts + 2, role: 'bot', type: 'error' }])
+    } finally {
+      setAiBusy(false)
+    }
+  }
+
+  // Search all products in a category (no filters) — used by empty_retry button
+  const searchAllInCategory = async (slug, catName) => {
+    if (aiBusy) return
+    setAiBusy(true)
+    const ts = Date.now()
+    setAiMessages(prev => [...prev, { id: ts, role: 'bot', type: 'searching' }])
+    try {
+      const res = await chatAPI.search({ category_slug: slug, filters: {}, limit: 6 })
+      const results = Array.isArray(res.data) ? res.data : []
+      if (results.length) {
+        setAiMessages(prev => [...prev.slice(0, -1),
+          { id: ts + 1, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters: {} } },
+        ])
+      } else {
+        setAiMessages(prev => [...prev.slice(0, -1),
+          { id: ts + 1, role: 'bot', type: 'empty', query: catName },
+        ])
       }
+    } catch {
+      setAiMessages(prev => [...prev.slice(0, -1), { id: ts + 1, role: 'bot', type: 'error' }])
+    } finally {
+      setAiBusy(false)
+    }
+  }
+
+  // Quick search: user types full query → auto-detect category + price → show results
+  const runQuickSearch = async (q) => {
+    const query = q.trim()
+    if (!query || aiBusy) return
+    setAiBusy(true)
+    setAiQuick('')
+    setAiPhase('followup')
+    const ts = Date.now()
+    setAiMessages([
+      { id: ts,     role: 'user',    content: query },
+      { id: ts + 1, role: 'bot',     type: 'searching' },
+    ])
+    try {
+      const ext       = await chatAPI.extractFilters(query)
+      const slug      = ext.data?.category_slug
+      const filters   = ext.data?.filters   || {}
+      const max_price = ext.data?.max_price  ?? undefined
+      const min_price = ext.data?.min_price  ?? undefined
+
+      if (!slug) {
+        setAiMessages(prev => [...prev.slice(0, -1),
+          { id: ts + 2, role: 'bot', type: 'no_cat' },
+        ])
+        setAiPhase('cat')
+        return
+      }
+
+      const cats    = cache['cats']
+      const catName = Array.isArray(cats) ? (cats.find(c => c.slug === slug)?.name || slug) : slug
+      setAiDetected({ slug, catName, filters: {} })
+      load(`filters_${slug}`, () => chatAPI.filters(slug))
+
+      const res     = await chatAPI.search({ category_slug: slug, filters, max_price, min_price, limit: 6 })
+      const results = Array.isArray(res.data) ? res.data : []
+
+      if (results.length) {
+        setAiMessages(prev => [...prev.slice(0, -1),
+          { id: ts + 2, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters } },
+        ])
+      } else if (Object.keys(filters).length > 0 || max_price || min_price) {
+        setAiMessages(prev => [...prev.slice(0, -1),
+          { id: ts + 2, role: 'bot', type: 'empty_retry', slug, catName },
+        ])
+      } else {
+        setAiMessages(prev => [...prev.slice(0, -1),
+          { id: ts + 2, role: 'bot', type: 'empty', query: catName, slug, catName },
+        ])
+      }
+    } catch {
+      setAiMessages(prev => [...prev.slice(0, -1),
+        { id: ts + 2, role: 'bot', type: 'error' },
+      ])
+      setAiPhase('cat')
+    } finally {
+      setAiBusy(false)
     }
   }
 
@@ -210,7 +355,10 @@ export default function ChatWidget() {
 
   const goTo = (s) => {
     setScreen(s); setSelOrder(null); setProbStep(null); setSvcInfo(false); setRetInfo(false)
-    if (s !== 'cautare') { setAiQuery(''); setAiState({ status: 'idle' }) }
+    if (s !== 'cautare') {
+      setAiInput(''); setAiMessages([]); setAiBusy(false); setAiPhase('cat'); setAiDetected(null)
+      setSearchMode(null); setManualCat(null); setManualSearch(''); setManualFilters({}); setManualResults(null); setExpandedFilter(null)
+    }
     if (!isAuthenticated) return
     const uid = user.id
     if (s === 'comenzi' || s === 'garantii') load('orders',    () => ordersAPI.getUserOrders(uid))
@@ -223,6 +371,8 @@ export default function ChatWidget() {
 
   const goHome = () => {
     setScreen('home'); setSelOrder(null); setProbStep(null); setSvcInfo(false); setRetInfo(false)
+    setAiInput(''); setAiMessages([]); setAiBusy(false); setAiPhase('cat'); setAiDetected(null)
+    setSearchMode(null); setManualCat(null); setManualSearch(''); setManualFilters({}); setManualResults(null); setExpandedFilter(null)
   }
 
   // ── Inline helpers ───────────────────────────────────────
@@ -286,143 +436,517 @@ export default function ChatWidget() {
   // ── SCREENS (render functions, not components — avoids React remount bug) ──
 
   const renderCautare = () => {
-    const { status, results, extracted } = aiState
-    const busy = status === 'thinking' || status === 'searching'
-
-    const ProductCard = ({ p }) => {
+    // shared product card renderer (render fn, not component)
+    const renderProductCard = (p) => {
       const hasDiscount = p.discount_percent > 0
-      const finalPrice  = hasDiscount
+      const img = p.image_url || p.image || p.images?.[0]?.url
+      const finalPrice = hasDiscount
         ? (p.price * (1 - p.discount_percent / 100)).toFixed(0)
         : p.price
-      const img = p.image_url || p.images?.[0]?.url
       return (
-        <button onClick={() => navigate(`/product/${p.id}`)}
-                className="w-full flex items-center gap-3 bg-white/[0.04] border border-white/10
-                           rounded-xl p-2.5 cursor-pointer text-left
+        <button key={p.id} onClick={() => navigate(`/product/${p.id}`)}
+                className="w-full flex items-center gap-2 bg-white/[0.04] border border-white/10
+                           rounded-xl p-2 cursor-pointer text-left
                            hover:border-accent/30 hover:bg-white/[0.07] transition-all group">
           {img
-            ? <img src={img} alt={p.name} className="w-10 h-10 object-contain rounded-lg bg-white/5 shrink-0" />
-            : <div className="w-10 h-10 rounded-lg bg-white/5 shrink-0 flex items-center justify-center">
-                <Package size={16} className="text-muted/40" />
+            ? <img src={img} alt={p.name} className="w-8 h-8 object-contain rounded-lg bg-white/5 shrink-0" />
+            : <div className="w-8 h-8 rounded-lg bg-white/5 shrink-0 flex items-center justify-center">
+                <Package size={13} className="text-muted/40" />
               </div>
           }
           <div className="flex-1 min-w-0">
-            <div className="text-primary text-[12px] font-semibold truncate leading-snug">{p.name}</div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-accent font-mono font-bold text-[12px]">{finalPrice} RON</span>
-              {hasDiscount && <span className="text-muted text-[11px] line-through">{p.price} RON</span>}
+            <div className="text-primary text-[11px] font-semibold truncate leading-snug">{p.name}</div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-accent font-mono font-bold text-[11px]">{finalPrice} RON</span>
+              {hasDiscount && <span className="text-muted text-[10px] line-through">{p.price} RON</span>}
               {hasDiscount && <span className="text-[10px] font-bold text-success">-{p.discount_percent}%</span>}
             </div>
           </div>
-          <CaretRight size={12} className="text-muted group-hover:text-primary transition-colors shrink-0" />
+          <CaretRight size={11} className="text-muted group-hover:text-primary transition-colors shrink-0" />
         </button>
       )
     }
 
-    return (
+    // ── Mode selection ──────────────────────────────────────────
+    if (!searchMode) return (
       <>
-        <BotMsg>
-          Descrie ce cauți cu cuvintele tale — asistentul AI înțelege limbaj natural.
-        </BotMsg>
-
-        {/* Input */}
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <MagnifyingGlass size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-            <input
-              value={aiQuery}
-              onChange={e => setAiQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !busy && runAiSearch(aiQuery)}
-              placeholder="Ex: placă video bună pentru gaming sub 2000 lei..."
-              disabled={busy}
-              autoFocus
-              className="w-full bg-white/[0.06] border border-white/15 rounded-xl pl-9 pr-3 py-2.5
-                         text-primary text-[13px] outline-none placeholder:text-muted/40
-                         focus:border-accent/50 transition-colors disabled:opacity-50"
-            />
-          </div>
-          <button
-            onClick={() => runAiSearch(aiQuery)}
-            disabled={busy || !aiQuery.trim()}
-            className="px-3.5 py-2.5 rounded-xl bg-accent text-base text-[13px] font-bold
-                       cursor-pointer hover:shadow-glow-cyan transition-all
-                       disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 shrink-0"
-          >
-            {busy
-              ? <CircleNotch size={14} className="animate-spin" />
-              : <MagnifyingGlass size={14} weight="bold" />
-            }
-          </button>
-        </div>
-
-        {/* Status AI */}
-        {status === 'thinking' && (
-          <div className="flex items-center gap-2 text-muted text-[12px] px-1">
-            <CircleNotch size={13} className="animate-spin text-accent shrink-0" />
-            Asistentul analizează cererea...
-          </div>
-        )}
-        {status === 'searching' && (
-          <div className="flex items-center gap-2 text-muted text-[12px] px-1">
-            <CircleNotch size={13} className="animate-spin text-accent shrink-0" />
-            Caut produse potrivite...
-          </div>
-        )}
-
-        {/* Filtrele înțelese de AI */}
-        {status === 'ok' && extracted && (
-          <div className="flex flex-wrap gap-1.5">
-            {extracted.category_slug && (
-              <span className="px-2 py-0.5 rounded-full bg-accent/15 border border-accent/30
-                               text-accent text-[11px] font-semibold">
-                {extracted.category_slug.replace(/-/g, ' ')}
-              </span>
-            )}
-            {Object.entries(extracted.filters || {}).map(([k, v]) => (
-              <span key={k} className="px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/15
-                                       text-primary text-[11px]">
-                {k.replace(/_/g, ' ')}: <strong>{String(v)}</strong>
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Fallback notice */}
-        {status === 'fallback' && (
-          <BotMsg>
-            Nu am identificat o categorie exactă. Iată cele mai relevante rezultate:
-          </BotMsg>
-        )}
-
-        {/* Error */}
-        {status === 'error' && (
-          <ErrorBlock onRetry={() => runAiSearch(aiQuery)} />
-        )}
-
-        {/* Niciun rezultat */}
-        {(status === 'ok' || status === 'fallback') && results?.length === 0 && (
-          <BotMsg>
-            Niciun produs găsit pentru „<strong>{aiQuery}</strong>".
-            Încearcă să reformulezi sau caută cu alți termeni.
-          </BotMsg>
-        )}
-
-        {/* Rezultate */}
-        {(status === 'ok' || status === 'fallback') && results?.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            {results.map(p => <ProductCard key={p.id} p={p} />)}
-          </div>
-        )}
-
-        {/* Nou search */}
-        {(status === 'ok' || status === 'fallback' || status === 'error') && (
-          <button onClick={() => { setAiQuery(''); setAiState({ status: 'idle' }) }}
-                  className="text-accent text-[12px] cursor-pointer hover:underline text-center w-full pt-1">
-            ← Caută din nou
-          </button>
-        )}
+        <BotMsg>Cum preferi să cauți produsul?</BotMsg>
+        <OptionBtn Icon={Robot} label="Căutare AI" color="#38bdf8"
+          sub="Descrie ce vrei în cuvinte proprii"
+          onClick={() => {
+            setSearchMode('ai')
+            load('cats', () => chatAPI.categories())
+            chatAPI.aiStatus().then(r => setAiOffline(!r.data?.available)).catch(() => setAiOffline(true))
+          }} />
+        <OptionBtn Icon={MagnifyingGlass} label="Căutare manuală cu filtre" color="#a78bfa"
+          sub="Alege categoria și filtrele dorite"
+          onClick={() => { setSearchMode('manual'); load('cats', () => chatAPI.categories()) }} />
       </>
     )
+
+    // ── AI search (category pick → natural language → Ollama) ──
+    if (searchMode === 'ai') {
+      const CAT_META = {
+        cpu:         { Icon: Cpu,           color: '#38bdf8' },
+        gpu:         { Icon: Monitor,       color: '#a78bfa' },
+        ram:         { Icon: Memory,  color: '#00e5a0' },
+        motherboard: { Icon: Memory,  color: '#fb923c' },
+        storage:     { Icon: HardDrive,     color: '#f59e0b' },
+        psu:         { Icon: Lightning,     color: '#f87171' },
+        case:        { Icon: Package,       color: '#94a3b8' },
+        cooler:      { Icon: Wind,          color: '#38bdf8' },
+        monitor:     { Icon: Monitor,       color: '#00e5a0' },
+        mouse:       { Icon: Mouse,         color: '#a78bfa' },
+        keyboard:    { Icon: Keyboard,      color: '#fb923c' },
+        headset:     { Icon: Headphones,    color: '#f59e0b' },
+      }
+
+      const renderMsg = (msg) => {
+        if (msg.role === 'user') return (
+          <div key={msg.id} className="flex justify-end">
+            <div className="max-w-[78%] px-3 py-2 rounded-2xl rounded-tr-sm
+                            bg-accent/20 border border-accent/30 text-primary text-[13px] leading-relaxed">
+              {msg.content}
+            </div>
+          </div>
+        )
+        if (msg.type === 'searching') return (
+          <div key={msg.id} className="flex items-start gap-2">
+            <div className="w-6 h-6 rounded-full bg-accent-dim border border-accent-border
+                            flex items-center justify-center shrink-0 mt-0.5">
+              <Robot size={13} weight="duotone" className="text-accent" />
+            </div>
+            <div className="bg-accent-dim border border-accent-border rounded-xl rounded-tl-sm
+                            px-3 py-2 flex items-center gap-2">
+              <CircleNotch size={13} className="animate-spin text-accent shrink-0" />
+              <span className="text-muted text-[13px]">Caut produse...</span>
+            </div>
+          </div>
+        )
+        if (msg.type === 'followup') return (
+          <div key={msg.id} className="flex flex-col gap-2">
+            <BotMsg>
+              Ai ales <strong>{msg.catName}</strong>. Ce preferințe ai?
+            </BotMsg>
+            {msg.hints.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pl-8">
+                {msg.hints.map((h, i) => (
+                  <span key={i} className="px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/15
+                                           text-secondary text-[11px]">{h}</span>
+                ))}
+                <span className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/10
+                                 text-muted text-[11px] italic">sau „orice"</span>
+              </div>
+            )}
+          </div>
+        )
+        if (msg.type === 'results') return (
+          <div key={msg.id} className="flex flex-col gap-1.5">
+            <BotMsg>
+              {msg.results.length} produs{msg.results.length !== 1 ? 'e' : ''} găsite
+              {Object.keys(msg.extracted?.filters || {}).length > 0 && (
+                <span className="text-muted text-[12px]"> · {
+                  Object.entries(msg.extracted.filters)
+                    .map(([k, v]) => `${k.replace(/_/g, ' ')} ${v}`)
+                    .join(', ')
+                }</span>
+              )}:
+            </BotMsg>
+            <div className="flex flex-col gap-1.5">{msg.results.map(p => renderProductCard(p))}</div>
+          </div>
+        )
+        if (msg.type === 'new_search') return null
+        if (msg.type === 'empty') return (
+          <div key={msg.id} className="flex flex-col gap-2">
+            <BotMsg>
+              Nu am găsit niciun produs conform cerințelor tale pentru <strong>{msg.catName || msg.query}</strong>.
+              Încearcă să modifici preferințele sau descrie altfel ce cauți.
+            </BotMsg>
+            <BtnSecondary onClick={() => {
+              if (aiDetected) {
+                const hints = buildHints(aiDetected.filters)
+                setAiMessages(prev => [...prev,
+                  { id: Date.now(), role: 'bot', type: 'followup', catName: aiDetected.catName, hints }
+                ])
+              }
+            }}>← Modifică preferințele</BtnSecondary>
+          </div>
+        )
+        if (msg.type === 'empty_retry') return (
+          <div key={msg.id} className="flex flex-col gap-2">
+            <BotMsg>
+              Nu am identificat produse cu specificațiile exacte solicitate în categoria{' '}
+              <strong>{msg.catName}</strong>. Dorești să vizualizezi toate produsele disponibile din această categorie?
+            </BotMsg>
+            <BtnSecondary onClick={() => searchAllInCategory(msg.slug, msg.catName)}>
+              Arată toate produsele din {msg.catName} →
+            </BtnSecondary>
+          </div>
+        )
+        if (msg.type === 'no_cat') return (
+          <BotMsg key={msg.id}>
+            Nu am înțeles categoria produsului. Încearcă să fii mai specific, de ex:{' '}
+            <em>"procesor Intel sub 500 lei"</em> sau <em>"placa video RTX 4060"</em>.
+          </BotMsg>
+        )
+        if (msg.type === 'error') return (
+          <BotMsg key={msg.id}>A apărut o eroare. Încearcă din nou.</BotMsg>
+        )
+        return null
+      }
+
+      // ── Phase: category picker ──────────────────────────────
+      if (aiPhase === 'cat') {
+        const cats = cache['cats']
+        const loading = cats === 'loading' || cats === undefined
+        const catsList = Array.isArray(cats) ? cats : []
+        return (
+          <div className="flex flex-col gap-3">
+            {aiOffline && (
+              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25
+                              rounded-xl px-3 py-2.5">
+                <Warning size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                <span className="text-amber-300 text-[11px] leading-relaxed">
+                  Asistentul AI nu este disponibil momentan. Căutarea manuală cu filtre funcționează normal.
+                </span>
+              </div>
+            )}
+            <BotMsg>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-[13px]">Bună! Sunt asistentul virtual.</span>
+                  <span className="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40
+                                   text-amber-400 text-[10px] font-bold shrink-0">BETA</span>
+                </div>
+                <span className="text-[13px]">Descrie ce cauți sau alege o categorie:</span>
+              </div>
+            </BotMsg>
+
+            {/* Quick search input */}
+            <form onSubmit={e => { e.preventDefault(); runQuickSearch(aiQuick) }}
+                  className="flex gap-2">
+              <input
+                value={aiQuick}
+                onChange={e => setAiQuick(e.target.value)}
+                placeholder='ex: "procesor Intel sub 500 lei"'
+                disabled={aiBusy}
+                className="flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
+                           text-primary text-[12px] outline-none placeholder:text-muted/40
+                           focus:border-accent/50 transition-colors disabled:opacity-50"
+              />
+              <button type="submit" disabled={aiBusy || !aiQuick.trim()}
+                      className="px-3 py-2 rounded-xl bg-accent text-base font-bold cursor-pointer
+                                 hover:shadow-glow-cyan transition-all shrink-0
+                                 disabled:opacity-40 disabled:cursor-not-allowed flex items-center">
+                {aiBusy
+                  ? <CircleNotch size={13} className="animate-spin" />
+                  : <MagnifyingGlass size={13} weight="bold" />}
+              </button>
+            </form>
+
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-px bg-white/[0.07]" />
+              <span className="text-muted text-[10px] uppercase tracking-wide">sau alege categoria</span>
+              <div className="flex-1 h-px bg-white/[0.07]" />
+            </div>
+
+            {loading ? <Spinner /> : (
+              <div className="grid grid-cols-2 gap-1.5">
+                {catsList.map(c => {
+                  const meta = CAT_META[c.slug] || { Icon: Package, color: '#94a3b8' }
+                  const { Icon, color } = meta
+                  return (
+                    <button key={c.slug}
+                            onClick={() => pickAiCategory(c.slug, c.name)}
+                            disabled={aiBusy}
+                            className="flex items-center gap-2 px-2 py-2 rounded-xl
+                                       bg-white/[0.04] border border-white/10 cursor-pointer text-left
+                                       hover:border-white/25 hover:bg-white/[0.08] transition-all
+                                       disabled:opacity-50">
+                      <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                           style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
+                        <Icon size={12} style={{ color }} />
+                      </div>
+                      <span className="text-primary text-[11px] font-semibold leading-tight">{c.name}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )
+      }
+
+      // ── Phase: conversation (followup + results) ────────────
+      const hasResults = aiMessages.some(m => m.type === 'results')
+      const catLabel   = aiDetected?.catName || ''
+      return (
+        <div className="flex flex-col h-full -m-3">
+          {/* Category bar */}
+          <div className="shrink-0 px-3 py-2 border-b border-white/[0.06] flex items-center justify-between bg-white/[0.02]">
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted text-[11px]">Categorie:</span>
+              <span className="text-primary text-[11px] font-semibold">{catLabel}</span>
+            </div>
+            <button
+              onClick={() => { setAiPhase('cat'); setAiMessages([]); setAiDetected(null); setAiInput('') }}
+              className="text-accent text-[11px] cursor-pointer hover:underline flex items-center gap-1">
+              <ArrowLeft size={10} weight="bold" /> Schimbă
+            </button>
+          </div>
+
+          <div ref={msgsRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-3 min-h-0">
+            {aiMessages.map(msg => renderMsg(msg))}
+          </div>
+
+          {aiPhase === 'followup' && (
+            <div className="shrink-0 px-3 py-2.5 border-t border-white/[0.08] bg-base/60">
+              <div className="flex gap-2">
+                <input
+                  value={aiInput}
+                  onChange={e => setAiInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && runFollowup(aiInput)}
+                  placeholder={hasResults
+                    ? 'Rafinează: ex. max 500 RON, AMD, 32GB...'
+                    : 'Brand, specs, buget... sau „orice"'}
+                  disabled={aiBusy}
+                  autoFocus
+                  className="flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
+                             text-primary text-[13px] outline-none placeholder:text-muted/40
+                             focus:border-accent/50 transition-colors disabled:opacity-50"
+                />
+                <button onClick={() => runFollowup(aiInput)}
+                        disabled={aiBusy || !aiInput.trim()}
+                        className="px-3 py-2 rounded-xl bg-accent text-base font-bold cursor-pointer
+                                   hover:shadow-glow-cyan transition-all
+                                   disabled:opacity-40 disabled:cursor-not-allowed flex items-center shrink-0">
+                  {aiBusy
+                    ? <CircleNotch size={14} className="animate-spin" />
+                    : <MagnifyingGlass size={14} weight="bold" />}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    // ── Manual search ───────────────────────────────────────────
+    if (searchMode === 'manual') {
+      const cats          = cache['cats']
+      const isCatsLoading = cats === 'loading' || cats === undefined
+      const isCatsError   = cats === 'error'
+      const catsList      = Array.isArray(cats) ? cats : []
+
+      const CAT_META = {
+        cpu:         { Icon: Cpu,        color: '#38bdf8' },
+        gpu:         { Icon: Monitor,    color: '#a78bfa' },
+        ram:         { Icon: Memory,     color: '#00e5a0' },
+        motherboard: { Icon: Memory,     color: '#fb923c' },
+        storage:     { Icon: HardDrive,  color: '#f59e0b' },
+        psu:         { Icon: Lightning,  color: '#f87171' },
+        case:        { Icon: Package,    color: '#94a3b8' },
+        cooler:      { Icon: Wind,       color: '#38bdf8' },
+        monitor:     { Icon: Monitor,    color: '#00e5a0' },
+        mouse:       { Icon: Mouse,      color: '#a78bfa' },
+        keyboard:    { Icon: Keyboard,   color: '#fb923c' },
+        headset:     { Icon: Headphones, color: '#f59e0b' },
+      }
+
+      // Step 1 — alege categoria
+      if (!manualCat) {
+        const pickCat = (slug) => {
+          setManualCat(slug)
+          setManualSearch('')
+          setManualFilters({})
+          setManualResults(null)
+          setExpandedFilter(null)
+          load(`filters_${slug}`, () => chatAPI.filters(slug))
+        }
+
+        const handleManualSearchSubmit = (e) => {
+          e.preventDefault()
+          const slug = detectSlug(manualSearch)
+          if (slug) { pickCat(slug); return }
+          const match = catsList.find(c =>
+            c.name.toLowerCase().includes(manualSearch.toLowerCase())
+          )
+          if (match) pickCat(match.slug)
+        }
+
+        const filtered = manualSearch.trim()
+          ? catsList.filter(c => {
+              const q = manualSearch.toLowerCase()
+              if (c.name.toLowerCase().includes(q)) return true
+              if (c.slug.includes(q)) return true
+              return detectSlug(q) === c.slug
+            })
+          : catsList
+
+        return (
+        <>
+          <BotMsg>Alege categoria sau scrie ce cauți:</BotMsg>
+          <form onSubmit={handleManualSearchSubmit} className="flex gap-2">
+            <input
+              value={manualSearch}
+              onChange={e => setManualSearch(e.target.value)}
+              placeholder="ex: ram, placa video, mouse..."
+              className="flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
+                         text-primary text-[13px] outline-none placeholder:text-muted/40
+                         focus:border-accent/50 transition-colors"
+            />
+            <button type="submit"
+                    className="px-3 py-2 rounded-xl bg-accent text-base font-bold cursor-pointer
+                               hover:shadow-glow-cyan transition-all shrink-0">
+              <MagnifyingGlass size={14} weight="bold" />
+            </button>
+          </form>
+          {isCatsLoading ? <Spinner /> : isCatsError ? (
+            <ErrorBlock onRetry={() => retry('cats', () => chatAPI.categories())} />
+          ) : (
+            <div className="grid grid-cols-2 gap-1.5">
+              {filtered.map(c => {
+                const { Icon, color } = CAT_META[c.slug] || { Icon: Package, color: '#94a3b8' }
+                return (
+                  <button key={c.slug}
+                          onClick={() => pickCat(c.slug)}
+                          className="flex items-center gap-2 px-2 py-2 rounded-xl
+                                     bg-white/[0.04] border border-white/10 cursor-pointer text-left
+                                     hover:border-white/25 hover:bg-white/[0.08] transition-all">
+                    <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                         style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
+                      <Icon size={12} style={{ color }} />
+                    </div>
+                    <span className="text-primary text-[11px] font-semibold leading-tight">{c.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </>
+        )
+      }
+
+      // Step 2 — filtre + căutare
+      const filterData       = cache[`filters_${manualCat}`]
+      const isFiltersLoading = filterData === 'loading' || filterData === undefined
+      const isFiltersError   = filterData === 'error'
+      const filters          = filterData && typeof filterData === 'object' && !Array.isArray(filterData) ? filterData : null
+      const catName          = catsList.find(c => c.slug === manualCat)?.name || manualCat
+      const activeCount      = Object.keys(manualFilters).length
+
+      const runManualSearch = async () => {
+        setManualResults('loading')
+        try {
+          const res = await chatAPI.search({ category_slug: manualCat, filters: manualFilters, limit: 40 })
+          const products = Array.isArray(res.data) ? res.data : []
+          setManualResults(products.length === 0 ? 'empty' : products)
+        } catch {
+          setManualResults('error')
+        }
+      }
+
+      return (
+        <>
+          <BotMsg>
+            <strong>{catName}</strong>
+            {activeCount > 0 && <span className="text-muted text-[12px]"> · {activeCount} filtru activ</span>}
+            {' '}— alege filtrele sau caută direct:
+          </BotMsg>
+
+          {isFiltersLoading ? <Spinner /> : isFiltersError ? (
+            <ErrorBlock onRetry={() => retry(`filters_${manualCat}`, () => chatAPI.filters(manualCat))} />
+          ) : filters && Object.keys(filters).length > 0 ? (
+            <div className="bg-white/[0.03] border border-white/10 rounded-xl overflow-hidden">
+              {Object.entries(filters).map(([key, vals], idx, arr) => {
+                const selected = manualFilters[key]
+                const isOpen   = expandedFilter === key
+                const isLast   = idx === arr.length - 1
+                return (
+                  <div key={key} className={!isLast ? 'border-b border-white/[0.06]' : ''}>
+                    <button onClick={() => setExpandedFilter(isOpen ? null : key)}
+                            className="w-full flex items-center justify-between px-3 py-2 cursor-pointer
+                                       hover:bg-white/[0.04] transition-colors">
+                      <span className="text-secondary text-[12px]">{key.replace(/_/g, ' ')}</span>
+                      <div className="flex items-center gap-2">
+                        {selected && (
+                          <span className="px-2 py-0.5 rounded-full bg-accent/20 border border-accent/40
+                                           text-accent text-[10px] font-semibold max-w-[80px] truncate">
+                            {selected}
+                          </span>
+                        )}
+                        <CaretRight size={11} className={`text-muted transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="px-3 pb-2.5 flex flex-wrap gap-1.5">
+                        {vals.map(val => {
+                          const isSel = manualFilters[key] === String(val)
+                          return (
+                            <button key={val}
+                                    onClick={() => {
+                                      setManualFilters(prev => {
+                                        const next = { ...prev }
+                                        if (isSel) delete next[key]
+                                        else next[key] = String(val)
+                                        return next
+                                      })
+                                      setExpandedFilter(null)
+                                      setManualResults(null)
+                                    }}
+                                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border
+                                               transition-all cursor-pointer
+                                               ${isSel
+                                                 ? 'bg-accent/20 border-accent/50 text-accent'
+                                                 : 'bg-white/[0.06] border-white/15 text-secondary hover:border-white/30 hover:text-primary'
+                                               }`}>
+                              {String(val)}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          ) : null}
+
+          {manualResults !== 'loading' && (
+            <BtnPrimary onClick={runManualSearch}>
+              {activeCount > 0 ? `Caută cu ${activeCount} filtru` : `Caută toate în ${catName}`}
+            </BtnPrimary>
+          )}
+
+          {manualResults === 'loading' && <Spinner />}
+
+          {manualResults === 'empty' && (
+            <>
+              <BotMsg>
+                Niciun produs conform selecției. Modifică sau elimină filtrele.
+              </BotMsg>
+              <BtnSecondary onClick={() => setManualResults(null)}>← Modifică filtrele</BtnSecondary>
+            </>
+          )}
+
+          {manualResults === 'error' && <ErrorBlock onRetry={runManualSearch} />}
+
+          {Array.isArray(manualResults) && manualResults.length > 0 && (
+            <>
+              <div className="text-muted text-[10px] uppercase tracking-wide font-bold">
+                {manualResults.length} produs{manualResults.length !== 1 ? 'e' : ''} găsite
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {manualResults.map(p => renderProductCard(p))}
+              </div>
+              <BtnSecondary onClick={() => { setManualResults(null); setManualFilters({}) }}>
+                ← Caută din nou
+              </BtnSecondary>
+            </>
+          )}
+        </>
+      )
+    }
   }
 
   const renderHome = () => (
@@ -630,28 +1154,6 @@ export default function ChatWidget() {
     const isError   = raw === 'error'
     const retururi  = Array.isArray(raw) ? raw : null
 
-    if (retInfo) return (
-      <>
-        <BotMsg>Iată ce trebuie să știi înainte de a iniția un retur:</BotMsg>
-        <InfoSteps steps={[
-          { n: '1', text: 'Completezi formularul cu comanda și motivul returului' },
-          { n: '2', text: 'Cererea este analizată în 1–2 zile lucrătoare' },
-          { n: '3', text: 'Ești contactat pentru ridicarea coletului' },
-          { n: '4', text: 'Rambursarea se procesează în 5–7 zile după primire' },
-        ]} />
-        <CheckList title="Condiții retur" items={[
-          'Produs în termen de 30 de zile de la livrare',
-          'Ambalaj original intact (dacă este posibil)',
-          'Toate accesoriile și documentele incluse',
-          'Produsul să nu prezinte deteriorări fizice',
-        ]} />
-        <BtnPrimary onClick={() => navigate('/profile?tab=returns')}>
-          Inițiază retur →
-        </BtnPrimary>
-        <BtnSecondary onClick={() => setRetInfo(false)}>← Înapoi</BtnSecondary>
-      </>
-    )
-
     return (
       <>
         <BotMsg>
@@ -682,11 +1184,21 @@ export default function ChatWidget() {
             ) : (
               <BotMsg>Nu ai niciun retur în curs momentan.</BotMsg>
             )}
-            <BtnPrimary onClick={() => setRetInfo(true)}>Inițiază retur nou →</BtnPrimary>
-            <NavLinks links={[
-              { label: 'Comenzile mele →', onClick: () => goTo('comenzi') },
-              { label: 'Service →',        onClick: () => goTo('service') },
+            <InfoSteps steps={[
+              { n: '1', text: 'Completezi formularul cu comanda și motivul returului' },
+              { n: '2', text: 'Cererea este analizată în 1–2 zile lucrătoare' },
+              { n: '3', text: 'Ești contactat pentru ridicarea coletului' },
+              { n: '4', text: 'Rambursarea se procesează în 5–7 zile după primire' },
             ]} />
+            <CheckList title="Condiții retur" items={[
+              'Produs în termen de 30 de zile de la livrare',
+              'Ambalaj original intact (dacă este posibil)',
+              'Toate accesoriile și documentele incluse',
+              'Produsul să nu prezinte deteriorări fizice',
+            ]} />
+            <BtnPrimary onClick={() => navigate('/profile?tab=returns')}>
+              Inițiază retur →
+            </BtnPrimary>
           </>
         )}
       </>
@@ -700,31 +1212,6 @@ export default function ChatWidget() {
     const isLoading = raw === 'loading' || raw === undefined
     const isError   = raw === 'error'
     const tickets   = Array.isArray(raw) ? raw : null
-
-    if (svcInfo) return (
-      <>
-        <BotMsg>Iată ce trebuie să știi înainte de a deschide o cerere de service:</BotMsg>
-        <InfoSteps steps={[
-          { n: '1', text: 'Completezi formularul cu datele produsului și descrierea problemei' },
-          { n: '2', text: 'Cererea este analizată în 1–2 zile lucrătoare' },
-          { n: '3', text: 'Ești contactat pentru programarea ridicării produsului' },
-          { n: '4', text: 'Primești număr de ticket pentru urmărirea statusului' },
-        ]} />
-        <CheckList title="Ce să pregătești" items={[
-          'Numărul comenzii din care face parte produsul',
-          'Descrierea clară a defecțiunii sau problemei',
-          'Număr de telefon la care poți fi contactat',
-          'Produsul în ambalaj original (dacă este posibil)',
-        ]} />
-        <BotMsg>
-          Durata: <strong>7–14 zile lucrătoare</strong>. Produsele în garanție — reparație <strong>gratuită</strong>.
-        </BotMsg>
-        <BtnPrimary onClick={() => navigate('/profile?tab=service')}>
-          Deschide cerere service →
-        </BtnPrimary>
-        <BtnSecondary onClick={() => setSvcInfo(false)}>← Înapoi</BtnSecondary>
-      </>
-    )
 
     return (
       <>
@@ -757,14 +1244,26 @@ export default function ChatWidget() {
             ) : (
               <BotMsg>Nu ai niciun tichet de service activ.</BotMsg>
             )}
-            <BtnPrimary onClick={() => setSvcInfo(true)}>Deschide cerere service nouă →</BtnPrimary>
+            <InfoSteps steps={[
+              { n: '1', text: 'Completezi formularul cu datele produsului și descrierea problemei' },
+              { n: '2', text: 'Cererea este analizată în 1–2 zile lucrătoare' },
+              { n: '3', text: 'Ești contactat pentru programarea ridicării produsului' },
+              { n: '4', text: 'Primești număr de ticket pentru urmărirea statusului' },
+            ]} />
+            <CheckList title="Ce să pregătești" items={[
+              'Numărul comenzii din care face parte produsul',
+              'Descrierea clară a defecțiunii sau problemei',
+              'Număr de telefon la care poți fi contactat',
+              'Produsul în ambalaj original (dacă este posibil)',
+            ]} />
+            <BotMsg>
+              Durata: <strong>7–14 zile lucrătoare</strong>. Produsele în garanție — reparație <strong>gratuită</strong>.
+            </BotMsg>
+            <BtnPrimary onClick={() => navigate('/profile?tab=service')}>
+              Deschide cerere service →
+            </BtnPrimary>
             <BotMsg>Ai o problemă urgentă? Contactează-ne direct:</BotMsg>
             <ContactCard />
-            <NavLinks links={[
-              { label: 'Retururi →',       onClick: () => goTo('retururi') },
-              { label: 'Garanții →',       onClick: () => goTo('garantii') },
-              { label: 'Comenzile mele →', onClick: () => goTo('comenzi')  },
-            ]} />
           </>
         )}
       </>
@@ -990,10 +1489,19 @@ export default function ChatWidget() {
   const showBack    = screen !== 'home' || !!selOrder || svcInfo || retInfo
 
   const handleBack = () => {
-    if (svcInfo)         { setSvcInfo(false); return }
-    if (retInfo)         { setRetInfo(false); return }
-    if (probStep)        { setProbStep(null); return }
-    if (selOrder)        { setSelOrder(null); return }
+    if (svcInfo)  { setSvcInfo(false); return }
+    if (retInfo)  { setRetInfo(false); return }
+    if (probStep) { setProbStep(null); return }
+    if (selOrder) { setSelOrder(null); return }
+    if (screen === 'cautare' && manualCat) {
+      setManualCat(null); setManualSearch(''); setManualFilters({}); setManualResults(null); setExpandedFilter(null); return
+    }
+    if (screen === 'cautare' && searchMode === 'ai' && aiPhase === 'followup') {
+      setAiPhase('cat'); setAiMessages([]); setAiDetected(null); setAiInput(''); return
+    }
+    if (screen === 'cautare' && searchMode) {
+      setSearchMode(null); setAiPhase('cat'); setAiDetected(null); setAiInput(''); return
+    }
     goHome()
   }
 
@@ -1002,7 +1510,7 @@ export default function ChatWidget() {
   return (
     <div className="fixed bottom-6 right-6 z-[9999]">
       {open && (
-        <div className="absolute bottom-[76px] right-0 w-[360px] max-h-[600px]
+        <div className="absolute bottom-[72px] right-0 w-[320px] h-[520px]
                         bg-base/98 rounded-2xl border border-accent/15 flex flex-col overflow-hidden
                         backdrop-blur-xl shadow-elevated animate-fade-in">
 
@@ -1042,9 +1550,10 @@ export default function ChatWidget() {
           </div>
 
           {/* Body */}
-          <div ref={bodyRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-            {renderScreen()}
-          </div>
+          {screen === 'cautare' && searchMode === 'ai'
+            ? <div className="flex-1 min-h-0 flex flex-col overflow-hidden">{renderScreen()}</div>
+            : <div ref={bodyRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">{renderScreen()}</div>
+          }
         </div>
       )}
 

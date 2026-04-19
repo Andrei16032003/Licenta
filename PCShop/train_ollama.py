@@ -23,7 +23,7 @@ from app.routers.chat import get_products_by_slug, SKIP_FILTER_KEYS
 
 MODELFILE_PATH = "pcshop_modelfile.txt"
 MODEL_NAME     = "pcshop-assistant"
-BASE_MODEL     = "llama3.2"
+BASE_MODEL     = "qwen2.5:7b"
 
 
 # ── 1. Citire catalog din DB ─────────────────────────────────
@@ -66,39 +66,121 @@ def build_catalog(db) -> dict:
 
 # ── 2. Generare exemple few-shot din date reale ──────────────
 
+# Alias-uri fără diacritice și forme singulare comune
+SLUG_ALIASES = {
+    "cpu":         ["procesor", "procesoare", "cpu", "i5", "i7", "i9", "ryzen 5", "ryzen 7", "ryzen 9"],
+    "gpu":         ["placa video", "placi video", "gpu", "rtx", "gtx", "radeon", "geforce", "grafica"],
+    "ram":         ["ram", "memorie ram", "memorii ram", "ddr4", "ddr5", "memorie"],
+    "motherboard": ["placa de baza", "placi de baza", "motherboard", "mainboard"],
+    "storage":     ["ssd", "hdd", "stocare", "nvme", "hard disk", "m.2"],
+    "psu":         ["sursa", "surse", "psu", "alimentare"],
+    "case":        ["carcasa", "carcase", "tower", "cabinet pc"],
+    "cooler":      ["cooler", "coolere", "racire", "ventilator", "aio"],
+    "monitor":     ["monitor", "monitoare", "ecran", "display", "144hz", "4k"],
+    "keyboard":    ["tastatura", "tastaturi", "keyboard", "mecanica", "membrana"],
+    "mouse":       ["mouse", "gaming mouse"],
+    "headset":     ["casti", "headset", "headphones", "casca"],
+}
+
+
+QUERY_TEMPLATES_BRAND = [
+    "vreau {cat} de la {brand}",
+    "caut {cat} {brand}",
+    "{brand} {cat}",
+    "recomanda-mi {cat} {brand}",
+    "cel mai bun {cat} {brand}",
+    "{cat} {brand} bun",
+    "vreau sa cumpar {cat} {brand}",
+    "arata-mi {cat} {brand}",
+]
+
+QUERY_TEMPLATES_SPEC = [
+    "caut {cat} cu {key} {val}",
+    "vreau {cat} {key} {val}",
+    "{cat} {val}",
+    "recomanda {cat} cu {key} {val}",
+    "cel mai bun {cat} cu {key} {val}",
+    "{cat} de {key} {val}",
+]
+
+QUERY_TEMPLATES_MULTI = [
+    "vreau {cat} {brand} cu {key} {val}",
+    "caut {cat} {brand} {key} {val}",
+    "recomanda {cat} {brand} {val}",
+    "{brand} {cat} {val}",
+]
+
+QUERY_TEMPLATES_EMPTY = [
+    "ce {cat} aveti in stoc?",
+    "arata-mi {cat}",
+    "vreau {cat}",
+    "caut {cat}",
+    "recomanda-mi un {cat}",
+    "cele mai bune {cat}",
+    "ce {cat} recomandati?",
+]
+
+
 def build_few_shots(catalog: dict) -> list[dict]:
     examples = []
+
     for slug, data in catalog.items():
         name    = data["name"].lower()
         filters = data["filters"]
+        brands  = filters.get("brand", [])
+        specs   = [(k, v) for k, v in filters.items() if k != "brand"]
 
-        # Exemplu: căutare după brand
-        if "brand" in filters:
-            for brand in filters["brand"][:2]:
+        # Exemple cu brand
+        for brand in brands[:3]:
+            for tpl in QUERY_TEMPLATES_BRAND:
                 examples.append({
-                    "q": f"vreau {name} de la {brand}",
+                    "q": tpl.format(cat=name, brand=brand),
                     "a": {"category_slug": slug, "filters": {"brand": brand}},
                 })
 
-        # Exemple: câte un filtru de spec per categorie (max 3)
-        spec_filters = [(k, v) for k, v in filters.items() if k != "brand"]
-        for key, vals in spec_filters[:3]:
-            key_readable = key.replace("_", " ")
+        # Exemple cu spec
+        for key, vals in specs[:4]:
+            key_r = key.replace("_", " ")
+            for val in vals[:3]:
+                for tpl in QUERY_TEMPLATES_SPEC:
+                    examples.append({
+                        "q": tpl.format(cat=name, key=key_r, val=val),
+                        "a": {"category_slug": slug, "filters": {key: val}},
+                    })
+
+        # Exemple cu brand + spec combinate
+        if brands and specs:
+            brand = brands[0]
+            key, vals = specs[0]
+            key_r = key.replace("_", " ")
             for val in vals[:2]:
-                examples.append({
-                    "q": f"caut {name} cu {key_readable} {val}",
-                    "a": {"category_slug": slug, "filters": {key: val}},
-                })
+                for tpl in QUERY_TEMPLATES_MULTI:
+                    examples.append({
+                        "q": tpl.format(cat=name, brand=brand, key=key_r, val=val),
+                        "a": {"category_slug": slug, "filters": {"brand": brand, key: val}},
+                    })
 
-        # Exemplu: fără filtru specific
-        examples.append({
-            "q": f"ce {name} aveti in stoc?",
-            "a": {"category_slug": slug, "filters": {}},
-        })
+        # Exemple fără filtru
+        for tpl in QUERY_TEMPLATES_EMPTY:
+            examples.append({
+                "q": tpl.format(cat=name),
+                "a": {"category_slug": slug, "filters": {}},
+            })
 
-    # Exemple negative (nu știe categoria)
-    examples.append({"q": "buna ziua", "a": {}})
-    examples.append({"q": "care e cel mai bun produs?", "a": {}})
+        # Alias-uri
+        for alias in SLUG_ALIASES.get(slug, []):
+            examples.append({"q": f"vreau {alias}", "a": {"category_slug": slug, "filters": {}}})
+            examples.append({"q": f"arata-mi {alias}", "a": {"category_slug": slug, "filters": {}}})
+            examples.append({"q": f"recomanda {alias}", "a": {"category_slug": slug, "filters": {}}})
+            examples.append({"q": alias, "a": {"category_slug": slug, "filters": {}}})
+            # Alias cu brand dacă există
+            for brand in brands[:2]:
+                examples.append({"q": f"{alias} {brand}", "a": {"category_slug": slug, "filters": {"brand": brand}}})
+
+    # Exemple negative
+    for q in ["buna ziua", "cat costa livrarea?", "multumesc", "ajutor",
+              "care e cel mai bun produs?", "vreau sa comand", "alo"]:
+        examples.append({"q": q, "a": {}})
 
     return examples
 

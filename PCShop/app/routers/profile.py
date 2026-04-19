@@ -6,8 +6,29 @@ from uuid import UUID
 
 from app.database import get_db
 from app.models.user_profile import UserAddress, UserPaymentMethod
+from app.models.user import User
 
 router = APIRouter(prefix="/profile", tags=["Profil utilizator"])
+
+# ── DATE PERSONALE ──────────────────────────────────────────
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+
+@router.put("/{user_id}")
+def update_profile(user_id: UUID, req: ProfileUpdate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilizatorul nu a fost gasit")
+    if req.name is not None:
+        name = req.name.strip()
+        if len(name) < 2:
+            raise HTTPException(status_code=400, detail="Numele trebuie să aibă minim 2 caractere")
+        user.name = name
+    if req.phone is not None:
+        user.phone = req.phone.strip() or None
+    db.commit()
+    return {"message": "Profil actualizat", "name": user.name, "phone": user.phone}
 
 # ── ADRESE ───────────────────────────────────────────────────
 class AddressCreate(BaseModel):

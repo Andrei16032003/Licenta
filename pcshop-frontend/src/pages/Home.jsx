@@ -7,6 +7,7 @@ import useCartStore from '../store/cartStore'
 import useCompareStore from '../store/compareStore'
 import useBuildStore from '../store/buildStore'
 import PCBuilderSidebar from '../components/PCBuilderSidebar'
+import ProductImg from '../components/ProductImg'
 import {
   Cpu, Monitor, Memory, Circuitry, HardDrive, Lightning,
   Package, Thermometer, Mouse, Desktop,
@@ -647,7 +648,7 @@ export default function Home() {
                         </div>
                       )}
                       {p.image_url ? (
-                        <img src={imgUrl(p.image_url)} alt={p.name} />
+                        <ProductImg src={p.image_url} alt={p.name} className="w-full h-full object-contain" iconSize={44} />
                       ) : (
                         <>
                           <CatIcon size={44} style={{ color: catColor }} />

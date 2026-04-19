@@ -14,7 +14,7 @@ import {
 } from '@phosphor-icons/react'
 
 export default function Profile() {
-  const { user, isAuthenticated, logout } = useAuthStore()
+  const { user, isAuthenticated, logout, updateUser } = useAuthStore()
   const { setCart } = useCartStore()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -25,6 +25,9 @@ export default function Profile() {
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('ok')
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'personal')
+  const [profileForm, setProfileForm]     = useState({ name: '', phone: '' })
+  const [profileEditing, setProfileEditing] = useState(false)
+  const [profileSaving, setProfileSaving]   = useState(false)
 
   useEffect(() => {
     const tab = searchParams.get('tab')
@@ -181,6 +184,24 @@ export default function Profile() {
       setMessageType('err'); setMessage(err.response?.data?.detail || 'Eroare la trimitere!')
       setTimeout(() => setMessage(''), 3000)
     } finally { setServiceSubmitting(false) }
+  }
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault()
+    setProfileSaving(true)
+    try {
+      const res = await profileAPI.update(user.id, {
+        name: profileForm.name.trim(),
+        phone: profileForm.phone.trim(),
+      })
+      updateUser({ name: res.data.name, phone: res.data.phone })
+      setProfileEditing(false)
+      setMessage('Profil actualizat cu succes!')
+      setMessageType('ok')
+    } catch (err) {
+      setMessage(err.response?.data?.detail || 'Eroare la salvare.')
+      setMessageType('err')
+    } finally { setProfileSaving(false) }
   }
 
   const handleAddAddress = async (e) => {
@@ -358,27 +379,72 @@ export default function Profile() {
       {/* DATE PERSONALE */}
       {activeTab === 'personal' && (
         <div className="bg-surface border border-default rounded-2xl p-6">
-          <h2 className="text-primary font-display font-bold text-lg mb-5 flex items-center gap-2">
-            <User size={18} className="text-accent" />
-            Date personale
-          </h2>
-          <div className="flex flex-col gap-2.5 mb-6">
-            {[
-              { label: 'Nume complet', value: user?.name, Icon: User },
-              { label: 'Rol', value: user?.role === 'admin' ? 'Administrator' : 'Client', Icon: ShieldCheck },
-              { label: 'ID Cont', value: user?.id?.slice(0, 8) + '...', Icon: Tag },
-              { label: 'Adrese salvate', value: `${addresses.length} adrese`, Icon: MapPin },
-              { label: 'Wishlist', value: `${wishlist.length} produse`, Icon: Heart },
-            ].map(item => (
-              <div key={item.label} className="flex justify-between items-center bg-base-2/50 rounded-lg px-4 py-3 border border-default">
-                <div className="flex items-center gap-2.5">
-                  <item.Icon size={15} className="text-accent" />
-                  <span className="text-muted text-sm">{item.label}</span>
-                </div>
-                <span className="text-primary font-semibold text-sm">{item.value}</span>
-              </div>
-            ))}
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-primary font-display font-bold text-lg flex items-center gap-2">
+              <User size={18} className="text-accent" />
+              Date personale
+            </h2>
+            {!profileEditing && (
+              <button
+                onClick={() => { setProfileForm({ name: user?.name || '', phone: user?.phone || '' }); setProfileEditing(true) }}
+                className="btn-outline text-sm px-3 py-1.5">
+                Editează
+              </button>
+            )}
           </div>
+
+          {profileEditing ? (
+            <form onSubmit={handleSaveProfile} className="flex flex-col gap-3 mb-6">
+              <div>
+                <label className="text-muted text-xs block mb-1.5">Nume complet</label>
+                <input
+                  value={profileForm.name}
+                  onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))}
+                  className="input-field"
+                  required
+                  minLength={2}
+                />
+              </div>
+              <div>
+                <label className="text-muted text-xs block mb-1.5">Telefon</label>
+                <input
+                  value={profileForm.phone}
+                  onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))}
+                  placeholder="07xx xxx xxx"
+                  className="input-field"
+                />
+              </div>
+              <div className="flex gap-2 mt-1">
+                <button type="submit" disabled={profileSaving} className="btn-primary flex items-center gap-2">
+                  {profileSaving ? <CircleNotch size={14} className="animate-spin" /> : <Check size={14} />}
+                  Salvează
+                </button>
+                <button type="button" onClick={() => setProfileEditing(false)} className="btn-outline">
+                  Anulează
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="flex flex-col gap-2.5 mb-6">
+              {[
+                { label: 'Nume complet', value: user?.name, Icon: User },
+                { label: 'Telefon', value: user?.phone || '—', Icon: Phone },
+                { label: 'Rol', value: user?.role === 'admin' ? 'Administrator' : 'Client', Icon: ShieldCheck },
+                { label: 'ID Cont', value: user?.id?.slice(0, 8) + '...', Icon: Tag },
+                { label: 'Adrese salvate', value: `${addresses.length} adrese`, Icon: MapPin },
+                { label: 'Wishlist', value: `${wishlist.length} produse`, Icon: Heart },
+              ].map(item => (
+                <div key={item.label} className="flex justify-between items-center bg-base-2/50 rounded-lg px-4 py-3 border border-default">
+                  <div className="flex items-center gap-2.5">
+                    <item.Icon size={15} className="text-accent" />
+                    <span className="text-muted text-sm">{item.label}</span>
+                  </div>
+                  <span className="text-primary font-semibold text-sm">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="border-t border-subtle pt-5">
             <h3 className="text-secondary text-sm font-semibold mb-3">Actiuni rapide</h3>
             <div className="flex gap-2.5 flex-wrap">

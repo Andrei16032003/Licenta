@@ -2,7 +2,7 @@ import httpx
 import json
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_DESCRIBE = "llama3.2"
+MODEL_DESCRIBE = "qwen2.5:7b"
 MODEL_SEARCH   = "pcshop-assistant"
 TIMEOUT = 8.0
 
