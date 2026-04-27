@@ -29,7 +29,19 @@
       "Bash(ls c:/Licenta/pcshop-frontend/.env*)",
       "Bash(npm run:*)",
       "Bash(/c/Licenta/PCShop/venv/Scripts/python.exe -c \"from app.routers.chat import router; print\\('OK'\\)\")",
-      "Bash(curl -s -X POST http://127.0.0.1:8000/chat/extract-filters -H \"Content-Type: application/json\" -d '{\"message\":\"ram DDR5 32GB\"}')"
+      "Bash(curl -s -X POST http://127.0.0.1:8000/chat/extract-filters -H \"Content-Type: application/json\" -d '{\"message\":\"ram DDR5 32GB\"}')",
+      "Bash(python -m pytest tests/test_chat_helpers.py -v)",
+      "Bash(python3 -m pytest tests/test_chat_helpers.py -v)",
+      "Bash(py -m pytest tests/test_chat_helpers.py -v)",
+      "Bash(C:/Users/ULTRAPCBUILDS.RO/AppData/Local/Programs/Python/Python314/python.exe -m pip install pytest)",
+      "Bash(C:/Users/ULTRAPCBUILDS.RO/AppData/Local/Programs/Python/Python314/python.exe -m pytest tests/test_chat_helpers.py -v)",
+      "Bash(where py *)",
+      "Bash(py --version)",
+      "Bash(/c/Licenta/PCShop/venv/Scripts/python.exe -m pytest /c/Licenta/PCShop/tests/test_chat_helpers.py -v)",
+      "Bash(/c/Licenta/PCShop/venv/Scripts/python.exe -m pip install pytest)",
+      "PowerShell(Get-Command py -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Command python3.11 -ErrorAction SilentlyContinue)",
+      "Bash(python add_stock_notifications.py)"
     ]
   }
 }

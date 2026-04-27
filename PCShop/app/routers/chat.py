@@ -621,6 +621,96 @@ def _extract_price(text: str) -> dict:
     return prices
 
 
+# ── KEYWORD MAP pentru detectare categorie ───────────────────
+_CATEGORY_KEYWORDS: dict[str, list[str]] = {
+    "cpu":         ["procesor", "procesoare", "cpu", "ryzen", "intel core", "threadripper", "i5", "i7", "i9"],
+    "gpu":         ["placa video", "placi video", "plăci video", "placă video", "gpu", "geforce",
+                    "rtx", "gtx", "radeon", "rx 6", "rx 7", "nvidia", "grafica", "grafică"],
+    "ram":         ["ram", "memorie ram", "memorii", "ddr4", "ddr5", "memorie"],
+    "motherboard": ["placa de baza", "placi de baza", "placă de bază", "motherboard", "mainboard"],
+    "storage":     ["ssd", "hdd", "nvme", "stocare", "hard disk", "hard drive", "m.2"],
+    "psu":         ["sursa", "surse", "sursă", "psu", "alimentare", "watt"],
+    "case":        ["carcasa", "carcase", "carcasă", "tower", "cabinet", "pc case"],
+    "cooler":      ["cooler", "coolere", "racire", "răcire", "ventilator", "aio", "radiator"],
+    "monitor":     ["monitor", "monitoare", "ecran", "display", "144hz", "165hz", "4k", "ips"],
+    "keyboard":    ["tastatura", "tastaturi", "tastatură", "keyboard", "mecanica", "mecanică", "membrana"],
+    "mouse":       ["mouse", "gaming mouse", "soricel", "optical mouse"],
+    "headset":     ["casti", "căști", "headset", "headphones", "casca", "audio gaming"],
+}
+
+# Regex specs per categorie slug
+_SPEC_PATTERNS: dict[str, list[tuple]] = {
+    "cpu":     [("socket",      r'\b(am4|am5|lga1700|lga1200)\b', str.upper)],
+    "ram":     [("type",        r'\b(ddr4|ddr5)\b',               str.upper),
+                ("capacity_gb", r'\b(8|16|32|64)\s*gb\b',         str.strip)],
+    "gpu":     [("memory_gb",   r'\b(\d+)\s*gb\b',                str.strip)],
+    "storage": [("interface",   r'\b(nvme|m\.2|sata)\b',          str.upper)],
+    "monitor": [("refresh_hz",  r'\b(144|165|240|360)\s*hz\b',    str.strip),
+                ("resolution",  r'\b(1080p|1440p|4k|2k)\b',       str.upper)],
+}
+
+
+def _detect_category_slug(message: str, available_slugs: list) -> str | None:
+    msg_lower = message.lower()
+    scores = {
+        slug: sum(1 for kw in kws if kw in msg_lower)
+        for slug, kws in _CATEGORY_KEYWORDS.items()
+        if slug in available_slugs
+    }
+    best = max(scores, key=scores.get) if scores else None
+    return best if scores.get(best, 0) > 0 else None
+
+
+def _extract_brand(message: str, products: list) -> str | None:
+    if not products:
+        return None
+    msg_lower = message.lower()
+    brands = sorted({p.brand for p in products if p.brand}, key=len, reverse=True)
+    for brand in brands:
+        if brand.lower() in msg_lower:
+            return brand
+    return None
+
+
+def _extract_spec_keywords(message: str, slug: str) -> dict:
+    patterns = _SPEC_PATTERNS.get(slug, [])
+    result = {}
+    msg_lower = message.lower()
+    for key, pattern, transform in patterns:
+        m = re.search(pattern, msg_lower)
+        if m:
+            result[key] = transform(m.group(1))
+    return result
+
+
+def _build_category_filters(db, slugs: list) -> dict:
+    if db is None or not slugs:
+        return {}
+    result = {}
+    for slug in slugs:
+        products = get_products_by_slug(db, slug)
+        if not products:
+            continue
+        filters: dict = {}
+        brands = sorted({p.brand for p in products if p.brand})
+        if brands:
+            filters["brand"] = brands
+        spec_vals: dict = {}
+        for p in products:
+            for k, v in (p.specs or {}).items():
+                if k in SKIP_FILTER_KEYS:
+                    continue
+                if isinstance(v, (str, int, float)):
+                    spec_vals.setdefault(k, set()).add(v)
+        for k, vals in spec_vals.items():
+            sorted_vals = sorted(str(v) for v in vals)
+            if len(sorted_vals) > 1:
+                filters[k] = sorted_vals
+        if filters:
+            result[slug] = filters
+    return result
+
+
 class ChatSearchRequest(BaseModel):
     category_slug: str
     filters: dict = {}
@@ -706,55 +796,32 @@ async def chat_extract_filters(req: ChatExtractRequest, db: Session = Depends(ge
     categories = db.query(Category).all()
     slugs = [c.slug for c in categories]
 
-    # Construieste {slug: {key: [values]}} pentru toate categoriile
-    # Limitat la categorii cu produse in stoc
-    category_filters: dict = {}
-    for cat in categories:
-        products = get_products_by_slug(db, cat.slug)
-        if not products:
-            continue
-        filters: dict = {}
-        brands = sorted({p.brand for p in products if p.brand})
-        if brands:
-            filters["brand"] = brands
-        spec_vals: dict = {}
-        for p in products:
-            for k, v in (p.specs or {}).items():
-                if k in SKIP_FILTER_KEYS:
-                    continue
-                if isinstance(v, (str, int, float)):
-                    spec_vals.setdefault(k, set()).add(v)
-        for k, vals in spec_vals.items():
-            sorted_vals = sorted(str(v) for v in vals)
-            if len(sorted_vals) > 1:
-                filters[k] = sorted_vals
-        if filters:
-            category_filters[cat.slug] = filters
-
+    # ── Strat 1: Python (întotdeauna) ────────────────────────────
     price_data = _extract_price(req.message)
+    slug = _detect_category_slug(req.message, slugs)
 
-    result = await ollama_service.extract_filters(req.message, slugs, category_filters)
-    if result and result.get("category_slug"):
-        return {**result, **price_data}
+    python_filters: dict = {}
+    if slug:
+        products = get_products_by_slug(db, slug)
+        brand = _extract_brand(req.message, products)
+        if brand:
+            python_filters["brand"] = brand
+        python_filters.update(_extract_spec_keywords(req.message, slug))
 
-    # Fallback: keyword matching dacă Ollama nu a recunoscut categoria
-    msg_lower = req.message.lower()
-    KEYWORD_MAP = {
-        "cpu":         ["procesor", "procesoare", "cpu", "ryzen", "intel core", "threadripper", "i5", "i7", "i9"],
-        "gpu":         ["placa video", "placi video", "plăci video", "placă video", "gpu", "geforce", "rtx", "gtx", "radeon", "rx 6", "rx 7", "nvidia", "grafica", "grafică"],
-        "ram":         ["ram", "memorie ram", "memorii", "ddr4", "ddr5", "memorie"],
-        "motherboard": ["placa de baza", "placi de baza", "placă de bază", "motherboard", "mainboard"],
-        "storage":     ["ssd", "hdd", "nvme", "stocare", "hard disk", "hard drive", "m.2"],
-        "psu":         ["sursa", "surse", "sursă", "psu", "alimentare", "watt"],
-        "case":        ["carcasa", "carcase", "carcasă", "tower", "cabinet", "pc case"],
-        "cooler":      ["cooler", "coolere", "racire", "răcire", "ventilator", "aio", "radiator"],
-        "monitor":     ["monitor", "monitoare", "ecran", "display", "144hz", "165hz", "4k", "ips"],
-        "keyboard":    ["tastatura", "tastaturi", "tastatură", "keyboard", "mecanica", "mecanică", "membrana"],
-        "mouse":       ["mouse", "gaming mouse", "soricel", "optical mouse"],
-        "headset":     ["casti", "căști", "headset", "headphones", "casca", "audio gaming"],
-    }
-    for slug, keywords in KEYWORD_MAP.items():
-        if slug in slugs and any(kw in msg_lower for kw in keywords):
-            return {"category_slug": slug, "filters": {}, **price_data}
+    # ── Strat 2: Ollama (opțional) ───────────────────────────────
+    if slug:
+        cat_filters = _build_category_filters(db, [slug])
+        ollama_result = await ollama_service.extract_filters(req.message, [slug], cat_filters) or {}
+    else:
+        cat_filters = _build_category_filters(db, slugs)
+        ollama_result = await ollama_service.extract_filters(req.message, slugs, cat_filters) or {}
+        slug = slug or ollama_result.get("category_slug")
 
-    return {**price_data} if price_data else {}
+    # ── Strat 3: Merge (Python câștigă pe brand/preț/specs) ──────
+    merged: dict = dict(ollama_result.get("filters", {}))
+    merged.update(python_filters)  # Python suprascriem Ollama
+
+    if not slug:
+        return {**price_data} if price_data else {}
+
+    return {"category_slug": slug, "filters": merged, **price_data}

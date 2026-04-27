@@ -15,6 +15,7 @@ export default function ProductImg({ src, alt, className = '', iconSize = 28 }) 
       src={imgUrl(src)}
       alt={alt}
       className={className}
+      loading="lazy"
       onError={() => setBroken(true)}
     />
   )

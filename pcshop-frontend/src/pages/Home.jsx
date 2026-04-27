@@ -55,6 +55,7 @@ export default function Home() {
   const [wishlistLoading, setWishlistLoading] = useState(new Set())
   const [cartLoading, setCartLoading] = useState(new Set())
   const [cartAdded, setCartAdded] = useState(new Set())
+  const [cartErrors, setCartErrors] = useState({})
 
   // Derived
   const brands = useMemo(() =>
@@ -91,8 +92,25 @@ export default function Home() {
         })
       })
     }
+    // Client-side sorts for options that need post-filter ordering
+    if (sortBy === 'rating_desc') {
+      products = [...products].sort((a, b) => {
+        const ratingDiff = (b.average_rating || 0) - (a.average_rating || 0)
+        if (ratingDiff !== 0) return ratingDiff
+        return (b.review_count || 0) - (a.review_count || 0)
+      })
+    } else if (sortBy === 'discount_desc') {
+      products = [...products]
+        .filter(p => p.old_price && p.old_price > p.price)
+        .concat(products.filter(p => !p.old_price || p.old_price <= p.price))
+      products = [...products].sort((a, b) => {
+        const discA = a.old_price ? (a.old_price - a.price) / a.old_price : 0
+        const discB = b.old_price ? (b.old_price - b.price) / b.old_price : 0
+        return discB - discA
+      })
+    }
     return products
-  }, [allProducts, selectedBrands, selectedSpecs])
+  }, [allProducts, selectedBrands, selectedSpecs, sortBy])
 
   const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE)
   const pagedProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
@@ -223,6 +241,7 @@ export default function Home() {
   const handleAddToCart = async (e, product) => {
     e.preventDefault(); e.stopPropagation()
     if (!isAuthenticated) { navigate('/login'); return }
+    setCartErrors(prev => ({ ...prev, [product.id]: null }))
     setCartLoading(s => new Set([...s, product.id]))
     try {
       await cartAPI.add({ user_id: user.id, product_id: product.id, quantity: 1 })
@@ -230,7 +249,11 @@ export default function Home() {
       setCart(cartRes.data)
       setCartAdded(s => new Set([...s, product.id]))
       setTimeout(() => setCartAdded(s => { const n = new Set(s); n.delete(product.id); return n }), 2000)
-    } catch (err) { console.error(err) }
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Eroare la adaugare'
+      setCartErrors(prev => ({ ...prev, [product.id]: msg }))
+      setTimeout(() => setCartErrors(prev => ({ ...prev, [product.id]: null })), 3000)
+    }
     finally { setCartLoading(s => { const n = new Set(s); n.delete(product.id); return n }) }
   }
 
@@ -428,8 +451,10 @@ export default function Home() {
             value={sortBy}
             onChange={e => handleSortChange(e.target.value)}>
             <option value="" style={{ background: '#0A0E1A' }}>Cele mai noi</option>
+            <option value="rating_desc" style={{ background: '#0A0E1A' }}>⭐ Cele mai bune (rating)</option>
             <option value="price_asc" style={{ background: '#0A0E1A' }}>Pret crescator</option>
             <option value="price_desc" style={{ background: '#0A0E1A' }}>Pret descrescator</option>
+            <option value="discount_desc" style={{ background: '#0A0E1A' }}>Reducere maxima</option>
             <option value="name_asc" style={{ background: '#0A0E1A' }}>Nume A-Z</option>
           </select>
         </div>
@@ -605,6 +630,7 @@ export default function Home() {
               const wrongCategory = !isComparing && compareCategory && (p.category_slug || p.category) !== compareCategory
               const isAdded = cartAdded.has(p.id)
               const isCartLoading = cartLoading.has(p.id)
+              const cartError = cartErrors[p.id]
               return (
                 <Link key={p.id} to={`/product/${p.id}`} className="no-underline block h-full">
                   <div
@@ -744,6 +770,12 @@ export default function Home() {
                           </button>
                         )}
                       </div>
+                      {cartError && (
+                        <div className="flex items-center gap-1 text-danger text-[11px] mt-1.5">
+                          <Warning size={12} />
+                          {cartError}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Link>

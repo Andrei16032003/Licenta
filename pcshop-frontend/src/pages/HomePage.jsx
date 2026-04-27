@@ -5,13 +5,14 @@ import {
   CircleNotch, Star, Truck, ShieldCheck, Lock, Cpu,
   Monitor, Memory, Circuitry, HardDrive, Package,
   Thermometer, Mouse, Desktop, Question, CaretDown,
-  ArrowRight,
+  ArrowRight, Clock,
 } from '@phosphor-icons/react'
 import { productsAPI, cartAPI } from '../services/api'
 import { imgUrl } from '../utils/imgUrl'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
 import ProductImg from '../components/ProductImg'
+import { getRecentlyViewed } from '../utils/recentlyViewed'
 
 const categoryIconMap = {
   cpu:         Cpu,
@@ -65,6 +66,63 @@ const HOME_FAQS = [
     color: '#CE93D8',
   },
 ]
+
+function RecentlyViewedStrip() {
+  const [items, setItems] = useState([])
+
+  useEffect(() => {
+    setItems(getRecentlyViewed())
+  }, [])
+
+  if (items.length === 0) return null
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+               style={{ background: 'rgba(255,140,0,0.15)', border: '1px solid rgba(255,140,0,0.35)' }}>
+            <Clock size={20} weight="duotone" style={{ color: '#FF8C00' }} />
+          </div>
+          <div>
+            <h2 className="text-primary text-xl font-extrabold m-0 font-display">Văzute recent</h2>
+            <p className="text-muted text-sm m-0">Produse pe care le-ai vizualizat</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4 overflow-x-auto pb-2"
+           style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(14,246,255,0.2) transparent' }}>
+        {items.map(p => (
+          <Link key={p.id} to={`/product/${p.id}`} className="no-underline shrink-0" style={{ width: '180px' }}>
+            <div className="rounded-xl p-4 flex flex-col gap-2 h-full transition-all duration-200 hover:-translate-y-1"
+                 style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(14,246,255,0.3)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(14,246,255,0.1)' }}
+                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.boxShadow = '' }}>
+              <div className="h-[110px] rounded-lg flex items-center justify-center overflow-hidden"
+                   style={{ background: 'rgba(255,255,255,0.04)' }}>
+                {p.image_url
+                  ? <ProductImg src={p.image_url} alt={p.name} className="w-full h-full object-contain" iconSize={36} />
+                  : <Package size={36} weight="duotone" className="text-muted" />
+                }
+              </div>
+              <div className="text-primary text-[13px] font-semibold leading-snug line-clamp-2">{p.name}</div>
+              <div className="flex items-center gap-2 mt-auto">
+                <span className="font-mono font-extrabold text-price text-[14px]">{p.price} RON</span>
+                {p.old_price && (
+                  <span className="font-mono text-muted line-through text-[11px]">{p.old_price}</span>
+                )}
+              </div>
+              {p.stock === 0 && (
+                <span className="text-[11px] text-danger font-semibold">Stoc epuizat</span>
+              )}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 /* Sectiunea mini-FAQ de pe homepage cu accordion si link catre pagina completa */
 function HomeFAQ() {
@@ -371,6 +429,9 @@ export default function HomePage() {
           </div>
         ))}
       </div>
+
+      {/* PRODUSE VAZUTE RECENT */}
+      <RecentlyViewedStrip />
 
       {/* MINI FAQ */}
       <HomeFAQ />

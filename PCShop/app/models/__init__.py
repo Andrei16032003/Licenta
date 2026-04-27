@@ -1,7 +1,7 @@
 from app.database import Base
 
 from app.models.user import User
-from app.models.product import Category, Product, ProductImage
+from app.models.product import Category, Product, ProductImage, StockNotification
 from app.models.order import Order, OrderItem, CartItem
 from app.models.user_profile import UserAddress, UserPaymentMethod, Wishlist, Review, Notification
 from app.models.configurations import Configuration

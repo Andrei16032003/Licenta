@@ -147,3 +147,23 @@ def notify_service_status(to_email: str, name: str, ticket: str, product_name: s
       </div>
     """)
     _send(to_email, f"Service {ticket} — {label} — PCShop", html)
+
+
+def notify_back_in_stock(to_email: str, product_name: str, product_url: str, price: float):
+    html = _base(f"""
+      <h2 style="color:#00e5a0;margin-bottom:4px">Produsul este din nou disponibil!</h2>
+      <p style="color:#94a3b8;font-size:14px">Produsul pe care l-ai urmărit a revenit în stoc.</p>
+      <div style="background:#1e293b;border-radius:12px;padding:20px;margin:20px 0">
+        <p style="margin:0;font-size:12px;color:#64748b">PRODUS</p>
+        <p style="margin:4px 0 8px;font-size:15px;font-weight:bold;color:#e2e8f0">{product_name}</p>
+        <p style="margin:0;font-size:12px;color:#64748b">PREȚ</p>
+        <p style="margin:4px 0 0;font-size:20px;font-weight:bold;font-family:monospace;color:#ff8c00">{price:.2f} RON</p>
+      </div>
+      <a href="{product_url}" style="display:inline-block;background:#0ef6ff;color:#050910;font-weight:bold;padding:12px 28px;border-radius:10px;text-decoration:none;font-size:14px">
+        Cumpără acum →
+      </a>
+      <p style="color:#475569;font-size:12px;margin-top:20px">
+        Ai primit acest email pentru că te-ai abonat la notificări de stoc pentru acest produs.
+      </p>
+    """)
+    _send(to_email, f"⚡ {product_name} este din nou disponibil — PCShop", html)

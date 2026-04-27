@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { productsAPI, cartAPI, reviewsAPI, wishlistAPI } from '../services/api'
+import { Bell, BellRinging } from '@phosphor-icons/react'
 import { imgUrl } from '../utils/imgUrl'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
 import useCompareStore from '../store/compareStore'
 import useFavoriteStore from '../store/favoriteStore'
 import ProductImg from '../components/ProductImg'
+import { addRecentlyViewed } from '../utils/recentlyViewed'
 import {
   ArrowLeft, ShoppingCart, Heart, Scales, Star, Check, CircleNotch,
   Warning, Package, Cpu, Monitor, Memory, Circuitry, HardDrive,
@@ -55,10 +57,12 @@ export default function ProductDetail() {
   const [inWishlist, setInWishlist] = useState(false)
   const [wishlistLoading, setWishlistLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('specs')
+  const [notifyEmail, setNotifyEmail] = useState('')
+  const [notifyState, setNotifyState] = useState('idle') // idle | loading | done | error
   const [selectedImg, setSelectedImg] = useState(0)
 
   useEffect(() => { loadProduct(); loadReviews() }, [id])
-  useEffect(() => { setSelectedImg(0) }, [id])
+  useEffect(() => { setSelectedImg(0); setNotifyState('idle') }, [id])
 
   useEffect(() => {
     if (isAuthenticated && user?.id && id) {
@@ -72,6 +76,7 @@ export default function ProductDetail() {
     try {
       const res = await productsAPI.getById(id)
       setProduct(res.data)
+      addRecentlyViewed(res.data)
       if (res.data.category_slug) {
         productsAPI.getAll({ category: res.data.category_slug, limit: 6 }).then(r => {
           setSimilar(r.data.products.filter(p => p.id !== id).slice(0, 4))
@@ -119,6 +124,20 @@ export default function ProductDetail() {
       }).catch(() => {})
     } catch { /* silent */ }
     finally { setWishlistLoading(false) }
+  }
+
+  const handleNotifyStock = async (e) => {
+    e.preventDefault()
+    const email = notifyEmail.trim() || user?.email || ''
+    if (!email) return
+    setNotifyState('loading')
+    try {
+      await productsAPI.notifyStock(id, email, user?.id || null)
+      setNotifyState('done')
+    } catch (err) {
+      const detail = err.response?.data?.detail || ''
+      if (detail.includes('deja')) { setNotifyState('done') } else { setNotifyState('error') }
+    }
   }
 
   const handleAddReview = async (e) => {
@@ -351,6 +370,43 @@ export default function ProductDetail() {
                 <p className="text-muted text-[12px]">
                   Livrat in 1-3 zile lucratoare
                 </p>
+              )}
+              {/* Notify when in stock */}
+              {product.stock === 0 && (
+                notifyState === 'done' ? (
+                  <div className="flex items-center gap-2 mt-2 px-3.5 py-2.5 bg-success/[0.07] border border-success/25 rounded-xl text-success text-[13px] font-semibold">
+                    <BellRinging size={16} weight="fill" />
+                    Vei fi notificat când produsul revine în stoc!
+                  </div>
+                ) : (
+                  <form onSubmit={handleNotifyStock} className="mt-2">
+                    <p className="text-muted text-[12px] mb-2 flex items-center gap-1.5">
+                      <Bell size={13} /> Primește email când revine în stoc:
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        required
+                        value={notifyEmail || (isAuthenticated ? user?.email || '' : '')}
+                        onChange={e => setNotifyEmail(e.target.value)}
+                        placeholder={isAuthenticated ? (user?.email || 'email@exemplu.com') : 'email@exemplu.com'}
+                        className="input-field text-[13px] py-2 flex-1"
+                        style={{ padding: '8px 12px' }}
+                      />
+                      <button
+                        type="submit"
+                        disabled={notifyState === 'loading'}
+                        className="btn-primary text-[13px] flex-shrink-0"
+                        style={{ padding: '8px 16px' }}
+                      >
+                        {notifyState === 'loading' ? <CircleNotch size={15} className="animate-spin" /> : 'Anunță-mă'}
+                      </button>
+                    </div>
+                    {notifyState === 'error' && (
+                      <p className="text-danger text-[12px] mt-1">A apărut o eroare. Încearcă din nou.</p>
+                    )}
+                  </form>
+                )
               )}
             </div>
 

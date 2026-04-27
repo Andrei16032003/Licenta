@@ -16,6 +16,8 @@ export default function Cart() {
   const [cart, setCart] = useState({ items: [], total_items: 0, total_price: 0 })
   const [loading, setLoading] = useState(true)
   const [stockErrors, setStockErrors] = useState({})
+  const [removeErrors, setRemoveErrors] = useState({})
+  const [actionError, setActionError] = useState(null)
 
   useEffect(() => {
     if (!isAuthenticated) { navigate('/login'); return }
@@ -41,13 +43,20 @@ export default function Cart() {
   }
 
   const handleRemove = async (itemId) => {
+    setRemoveErrors(prev => ({ ...prev, [itemId]: '' }))
     try { await cartAPI.remove(itemId); loadCart() }
-    catch (err) { console.error(err) }
+    catch (err) {
+      const msg = err.response?.data?.detail || 'Eroare la stergere'
+      setRemoveErrors(prev => ({ ...prev, [itemId]: msg }))
+    }
   }
 
   const handleClear = async () => {
+    setActionError(null)
     try { await cartAPI.clear(user.id); clearCart(); setCart({ items: [], total_items: 0, total_price: 0 }) }
-    catch (err) { console.error(err) }
+    catch (err) {
+      setActionError(err.response?.data?.detail || 'Eroare la golirea cosului')
+    }
   }
 
   if (loading) return (
@@ -185,6 +194,12 @@ export default function Cart() {
                     {stockErrors[item.cart_item_id]}
                   </div>
                 )}
+                {removeErrors[item.cart_item_id] && (
+                  <div className="flex items-center gap-1.5 text-danger text-xs mt-1 pl-1">
+                    <Warning size={14} />
+                    {removeErrors[item.cart_item_id]}
+                  </div>
+                )}
                 {item.quantity >= item.stock && item.stock > 0 && !stockErrors[item.cart_item_id] && (
                   <div className="flex items-center gap-1.5 text-xs mt-1 pl-1" style={{ color: '#FF9800' }}>
                     <Warning size={14} />
@@ -195,7 +210,13 @@ export default function Cart() {
             ))}
 
             {/* Goleste cosul */}
-            <div className="flex justify-end pt-1">
+            <div className="flex flex-col items-end gap-1.5 pt-1">
+              {actionError && (
+                <div className="flex items-center gap-1.5 text-danger text-xs">
+                  <Warning size={14} />
+                  {actionError}
+                </div>
+              )}
               <button
                 onClick={handleClear}
                 className="btn-outline flex items-center gap-2 text-danger border-danger/30 hover:bg-danger/10">
@@ -206,7 +227,7 @@ export default function Cart() {
           </div>
 
           {/* SUMAR */}
-          <div className="bg-surface border border-default rounded-2xl p-6 h-fit sticky top-22">
+          <div className="bg-surface border border-default rounded-2xl p-6 h-fit sticky top-24">
             {/* Header sumar */}
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-default">
               <div className="w-10 h-10 rounded-xl bg-accent-dim border border-accent-border flex items-center justify-center shadow-glow-cyan flex-shrink-0">

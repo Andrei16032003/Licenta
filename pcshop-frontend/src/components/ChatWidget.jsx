@@ -55,13 +55,13 @@ const MENU = [
 // ── Shared UI (outside ChatWidget — stable references, no remount) ──
 function BotMsg({ children }) {
   return (
-    <div className="flex items-start gap-1.5">
-      <div className="w-5 h-5 rounded-full bg-accent-dim border border-accent-border
-                      flex items-center justify-center shrink-0 mt-0.5">
+    <div className="flex items-start gap-2.5">
+      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-accent/25 to-accent/5
+                      border border-accent/30 flex items-center justify-center shrink-0 mt-0.5">
         <Robot size={11} weight="duotone" className="text-accent" />
       </div>
-      <div className="bg-accent-dim border border-accent-border rounded-xl rounded-tl-sm
-                      px-2.5 py-1.5 text-[12px] text-primary leading-relaxed flex-1">
+      <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-tl-sm
+                      px-3 py-2 text-[12px] text-primary leading-relaxed flex-1">
         {children}
       </div>
     </div>
@@ -71,18 +71,19 @@ function BotMsg({ children }) {
 function OptionBtn({ Icon, label, color, onClick, sub }) {
   return (
     <button onClick={onClick}
-      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl
-                 bg-white/[0.04] border border-white/10 cursor-pointer text-left
-                 hover:border-white/20 hover:bg-white/[0.07] transition-all duration-150 group">
-      <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                 bg-white/[0.04] border border-white/[0.08] cursor-pointer text-left
+                 hover:border-white/[0.18] hover:bg-white/[0.07]
+                 active:scale-[0.99] transition-all duration-150 group">
+      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
            style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
-        <Icon size={12} style={{ color }} />
+        <Icon size={15} style={{ color }} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-primary text-[12px] font-semibold">{label}</div>
-        {sub && <div className="text-muted text-[10px]">{sub}</div>}
+        <div className="text-primary text-[12.5px] font-semibold leading-tight">{label}</div>
+        {sub && <div className="text-muted text-[11px] mt-0.5 leading-tight">{sub}</div>}
       </div>
-      <CaretRight size={11} className="text-muted group-hover:text-primary transition-colors shrink-0" />
+      <CaretRight size={11} className="text-white/20 group-hover:text-white/40 transition-colors shrink-0" />
     </button>
   )
 }
@@ -121,8 +122,9 @@ function CheckList({ title, items }) {
 function BtnPrimary({ onClick, children }) {
   return (
     <button onClick={onClick}
-            className="w-full py-2 rounded-xl bg-accent text-base text-[12px] font-bold
-                       cursor-pointer hover:shadow-glow-cyan transition-all">
+            className="w-full py-2.5 rounded-xl bg-accent text-base text-[12.5px] font-bold
+                       cursor-pointer hover:brightness-110 hover:shadow-glow-cyan
+                       active:scale-[0.98] transition-all tracking-wide">
       {children}
     </button>
   )
@@ -131,8 +133,10 @@ function BtnPrimary({ onClick, children }) {
 function BtnSecondary({ onClick, children }) {
   return (
     <button onClick={onClick}
-            className="w-full py-1.5 rounded-xl bg-white/5 border border-white/10
-                       text-secondary text-[12px] cursor-pointer hover:text-primary transition-all">
+            className="w-full py-2 rounded-xl bg-transparent border border-white/[0.1]
+                       text-secondary text-[12px] font-medium cursor-pointer
+                       hover:border-white/25 hover:text-primary hover:bg-white/[0.04]
+                       active:scale-[0.98] transition-all">
       {children}
     </button>
   )
@@ -162,20 +166,61 @@ export default function ChatWidget() {
   const [manualCat, setManualCat]           = useState(null)
   const [manualSearch, setManualSearch]     = useState('')
   const [manualFilters, setManualFilters]   = useState({})
+  const [manualMaxPrice, setManualMaxPrice] = useState('')
   const [manualResults, setManualResults]   = useState(null)
   const [expandedFilter, setExpandedFilter] = useState(null)
-  const bodyRef    = useRef(null)
-  const msgsRef    = useRef(null)
+  const [chatSelProduct, setChatSelProduct] = useState(null)
+  const [copiedCode, setCopiedCode]         = useState(null)
+  const [allCatProducts, setAllCatProducts] = useState([])   // all prods in category (for faceting)
+  const bodyRef          = useRef(null)
+  const msgsRef          = useRef(null)
+  const liveTimerRef     = useRef(null)
+  const prevManualCatRef = useRef(null)
 
   useEffect(() => {
     if (bodyRef.current)
       setTimeout(() => bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 50)
-  }, [screen, selOrder, probStep, svcInfo, retInfo, searchMode, manualCat])
+  }, [screen, selOrder, probStep, svcInfo, retInfo, searchMode, manualCat, chatSelProduct])
 
   useEffect(() => {
     if (msgsRef.current)
       msgsRef.current.scrollTop = msgsRef.current.scrollHeight
   }, [aiMessages])
+
+  // Manual search effect: only loads allCatProducts for faceting when category changes
+  useEffect(() => {
+    if (!manualCat) {
+      prevManualCatRef.current = null
+      setAllCatProducts([])
+      return
+    }
+    if (manualCat === prevManualCatRef.current) return
+    prevManualCatRef.current = manualCat
+    clearTimeout(liveTimerRef.current)
+    setManualResults(null)
+    setChatSelProduct(null)
+    chatAPI.search({ category_slug: manualCat, filters: {}, limit: 200 })
+      .then(res => setAllCatProducts(Array.isArray(res.data) ? res.data : []))
+      .catch(() => setAllCatProducts([]))
+  }, [manualCat])
+
+  // Returns set of available values for a filter key given current other filters
+  const getAvailableValues = (filterKey, currentFilters, allProds) => {
+    if (!allProds.length) return null   // not loaded yet → don't restrict
+    const otherFilters = Object.fromEntries(Object.entries(currentFilters).filter(([k]) => k !== filterKey))
+    const matching = allProds.filter(p =>
+      Object.entries(otherFilters).every(([k, v]) => {
+        const val = p[k] ?? p.specs?.[k] ?? p.attributes?.[k] ?? p.specifications?.[k]
+        return val !== undefined && String(val) === v
+      })
+    )
+    const available = new Set()
+    matching.forEach(p => {
+      const val = p[filterKey] ?? p.specs?.[filterKey] ?? p.attributes?.[filterKey] ?? p.specifications?.[filterKey]
+      if (val != null) available.add(String(val))
+    })
+    return available
+  }
 
   // builds hint text from available filter keys
   const buildHints = (filters) => {
@@ -240,7 +285,7 @@ export default function ChatWidget() {
         ])
       } else if (results.length) {
         setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters } },
+          { id: ts + 2, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters, max_price, min_price } },
         ])
       } else {
         setAiMessages(prev => [...prev.slice(0, -1),
@@ -300,7 +345,10 @@ export default function ChatWidget() {
 
       if (!slug) {
         setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'no_cat' },
+          { id: ts + 2, role: 'bot', type: 'no_cat',
+            price_hint: (max_price || min_price)
+              ? { max_price: max_price ?? null, min_price: min_price ?? null }
+              : null },
         ])
         setAiPhase('cat')
         return
@@ -316,7 +364,7 @@ export default function ChatWidget() {
 
       if (results.length) {
         setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters } },
+          { id: ts + 2, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters, max_price, min_price } },
         ])
       } else if (Object.keys(filters).length > 0 || max_price || min_price) {
         setAiMessages(prev => [...prev.slice(0, -1),
@@ -353,26 +401,30 @@ export default function ChatWidget() {
     setTimeout(() => load(key, fetcher), 0)
   }
 
+  const resetManual = () => {
+    clearTimeout(liveTimerRef.current)
+    prevManualCatRef.current = null
+    setManualCat(null); setManualSearch(''); setManualFilters({}); setManualMaxPrice('')
+    setManualResults(null); setExpandedFilter(null); setChatSelProduct(null); setAllCatProducts([])
+  }
+
   const goTo = (s) => {
     setScreen(s); setSelOrder(null); setProbStep(null); setSvcInfo(false); setRetInfo(false)
     if (s !== 'cautare') {
       setAiInput(''); setAiMessages([]); setAiBusy(false); setAiPhase('cat'); setAiDetected(null)
-      setSearchMode(null); setManualCat(null); setManualSearch(''); setManualFilters({}); setManualResults(null); setExpandedFilter(null)
+      setSearchMode(null); resetManual()
     }
     if (!isAuthenticated) return
     const uid = user.id
-    if (s === 'comenzi' || s === 'garantii') load('orders',    () => ordersAPI.getUserOrders(uid))
-    if (s === 'profil')                       load('addresses', () => profileAPI.getAddresses(uid))
-    if (s === 'favorite')                     load('wishlist',  () => wishlistAPI.get(uid))
-    if (s === 'retururi')                     load('retururi',  () => retururiAPI.get(uid))
-    if (s === 'service')                      load('service',   () => serviceAPI.get(uid))
-    if (s === 'vouchere')                     load('vouchere',  () => vouchersAPI.getMy(uid))
+    if (s === 'comenzi' || s === 'garantii') load('orders',   () => ordersAPI.getUserOrders(uid))
+    if (s === 'favorite')                    load('wishlist', () => wishlistAPI.get(uid))
+    if (s === 'vouchere')                    load('vouchere', () => vouchersAPI.getMy(uid))
   }
 
   const goHome = () => {
     setScreen('home'); setSelOrder(null); setProbStep(null); setSvcInfo(false); setRetInfo(false)
     setAiInput(''); setAiMessages([]); setAiBusy(false); setAiPhase('cat'); setAiDetected(null)
-    setSearchMode(null); setManualCat(null); setManualSearch(''); setManualFilters({}); setManualResults(null); setExpandedFilter(null)
+    setSearchMode(null); resetManual()
   }
 
   // ── Inline helpers ───────────────────────────────────────
@@ -445,24 +497,28 @@ export default function ChatWidget() {
         : p.price
       return (
         <button key={p.id} onClick={() => navigate(`/product/${p.id}`)}
-                className="w-full flex items-center gap-2 bg-white/[0.04] border border-white/10
-                           rounded-xl p-2 cursor-pointer text-left
+                className="w-full flex items-center gap-2.5 bg-white/[0.04] border border-white/[0.08]
+                           rounded-xl p-2.5 cursor-pointer text-left
                            hover:border-accent/30 hover:bg-white/[0.07] transition-all group">
           {img
-            ? <img src={img} alt={p.name} className="w-8 h-8 object-contain rounded-lg bg-white/5 shrink-0" />
-            : <div className="w-8 h-8 rounded-lg bg-white/5 shrink-0 flex items-center justify-center">
-                <Package size={13} className="text-muted/40" />
+            ? <img src={img} alt={p.name} className="w-9 h-9 object-contain rounded-lg bg-white/5 shrink-0" />
+            : <div className="w-9 h-9 rounded-lg bg-white/5 shrink-0 flex items-center justify-center">
+                <Package size={14} className="text-muted/30" />
               </div>
           }
           <div className="flex-1 min-w-0">
-            <div className="text-primary text-[11px] font-semibold truncate leading-snug">{p.name}</div>
+            <div className="text-primary text-[11.5px] font-semibold truncate leading-snug">{p.name}</div>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-accent font-mono font-bold text-[11px]">{finalPrice} RON</span>
+              <span className="text-accent font-mono font-bold text-[12px]">{finalPrice} RON</span>
               {hasDiscount && <span className="text-muted text-[10px] line-through">{p.price} RON</span>}
-              {hasDiscount && <span className="text-[10px] font-bold text-success">-{p.discount_percent}%</span>}
+              {hasDiscount && (
+                <span className="px-1 py-0.5 rounded bg-success/15 border border-success/25 text-success text-[9px] font-bold">
+                  -{p.discount_percent}%
+                </span>
+              )}
             </div>
           </div>
-          <CaretRight size={11} className="text-muted group-hover:text-primary transition-colors shrink-0" />
+          <CaretRight size={11} className="text-white/15 group-hover:text-white/50 transition-colors shrink-0" />
         </button>
       )
     }
@@ -481,6 +537,7 @@ export default function ChatWidget() {
         <OptionBtn Icon={MagnifyingGlass} label="Căutare manuală cu filtre" color="#a78bfa"
           sub="Alege categoria și filtrele dorite"
           onClick={() => { setSearchMode('manual'); load('cats', () => chatAPI.categories()) }} />
+        <BtnSecondary onClick={goHome}>← Înapoi la meniu</BtnSecondary>
       </>
     )
 
@@ -544,13 +601,17 @@ export default function ChatWidget() {
           <div key={msg.id} className="flex flex-col gap-1.5">
             <BotMsg>
               {msg.results.length} produs{msg.results.length !== 1 ? 'e' : ''} găsite
-              {Object.keys(msg.extracted?.filters || {}).length > 0 && (
-                <span className="text-muted text-[12px]"> · {
-                  Object.entries(msg.extracted.filters)
-                    .map(([k, v]) => `${k.replace(/_/g, ' ')} ${v}`)
-                    .join(', ')
-                }</span>
-              )}:
+              {(() => {
+                const chips = [
+                  ...Object.entries(msg.extracted?.filters || {})
+                    .map(([k, v]) => `${k.replace(/_/g, ' ')} ${v}`),
+                  msg.extracted?.max_price && `max ${msg.extracted.max_price} RON`,
+                  msg.extracted?.min_price && `min ${msg.extracted.min_price} RON`,
+                ].filter(Boolean)
+                return chips.length > 0
+                  ? <span className="text-muted text-[12px]"> · {chips.join(' · ')}</span>
+                  : null
+              })()}:
             </BotMsg>
             <div className="flex flex-col gap-1.5">{msg.results.map(p => renderProductCard(p))}</div>
           </div>
@@ -585,8 +646,12 @@ export default function ChatWidget() {
         )
         if (msg.type === 'no_cat') return (
           <BotMsg key={msg.id}>
-            Nu am înțeles categoria produsului. Încearcă să fii mai specific, de ex:{' '}
-            <em>"procesor Intel sub 500 lei"</em> sau <em>"placa video RTX 4060"</em>.
+            Nu am înțeles tipul produsului
+            {msg.price_hint ? <span className="text-accent"> (preț detectat: {[
+              msg.price_hint.min_price && `min ${msg.price_hint.min_price}`,
+              msg.price_hint.max_price && `max ${msg.price_hint.max_price}`,
+            ].filter(Boolean).join(' – ')} RON)</span> : ''}.
+            {' '}Încearcă: <em>"procesor Intel sub 500 lei"</em>, <em>"placa video nvidia"</em>, <em>"RAM DDR5 32GB"</em>.
           </BotMsg>
         )
         if (msg.type === 'error') return (
@@ -673,6 +738,7 @@ export default function ChatWidget() {
                 })}
               </div>
             )}
+            <BtnSecondary onClick={() => setSearchMode(null)}>← Înapoi la tipul de căutare</BtnSecondary>
           </div>
         )
       }
@@ -823,127 +889,304 @@ export default function ChatWidget() {
               })}
             </div>
           )}
+          <BtnSecondary onClick={() => setSearchMode(null)}>← Înapoi la tipul de căutare</BtnSecondary>
         </>
         )
       }
 
-      // Step 2 — filtre + căutare
+      // Step 2 — filtre cu faceting + buget + căutare manuală
       const filterData       = cache[`filters_${manualCat}`]
       const isFiltersLoading = filterData === 'loading' || filterData === undefined
       const isFiltersError   = filterData === 'error'
       const filters          = filterData && typeof filterData === 'object' && !Array.isArray(filterData) ? filterData : null
       const catName          = catsList.find(c => c.slug === manualCat)?.name || manualCat
-      const activeCount      = Object.keys(manualFilters).length
+      const activeFilterKeys = Object.keys(manualFilters)
+      const activeCount      = activeFilterKeys.length + (manualMaxPrice ? 1 : 0)
 
-      const runManualSearch = async () => {
+      // Client-side count from cached products (for button label)
+      const approxCount = allCatProducts.length > 0
+        ? allCatProducts.filter(p => {
+            const mf = Object.entries(manualFilters).every(([k, v]) => {
+              const val = p[k] ?? p.specs?.[k] ?? p.attributes?.[k] ?? p.specifications?.[k]
+              return val != null && String(val) === v
+            })
+            const mp = !manualMaxPrice || (p.price != null && p.price <= parseFloat(manualMaxPrice))
+            return mf && mp
+          }).length
+        : null
+
+      const runSearch = async () => {
         setManualResults('loading')
+        setChatSelProduct(null)
         try {
-          const res = await chatAPI.search({ category_slug: manualCat, filters: manualFilters, limit: 40 })
-          const products = Array.isArray(res.data) ? res.data : []
-          setManualResults(products.length === 0 ? 'empty' : products)
+          const maxP = manualMaxPrice ? parseFloat(manualMaxPrice) : undefined
+          const res  = await chatAPI.search({ category_slug: manualCat, filters: manualFilters, max_price: maxP, limit: 40 })
+          const prods = Array.isArray(res.data) ? res.data : []
+          setManualResults(prods.length === 0 ? 'empty' : prods)
         } catch {
           setManualResults('error')
         }
       }
 
+      // product detail view
+      if (chatSelProduct) {
+        const p = chatSelProduct
+        const hasDiscount = p.discount_percent > 0
+        const finalPrice  = hasDiscount
+          ? (p.price * (1 - p.discount_percent / 100)).toFixed(0)
+          : p.price
+        const img = p.image_url || p.image || p.images?.[0]?.url
+        const specs = p.specs || p.specifications || {}
+        return (
+          <>
+            <div className="bg-white/[0.04] border border-white/10 rounded-xl overflow-hidden">
+              {img && (
+                <div className="w-full bg-white/5 flex items-center justify-center h-32 border-b border-white/[0.06]">
+                  <img src={img} alt={p.name} className="h-28 object-contain" />
+                </div>
+              )}
+              <div className="p-3 flex flex-col gap-2">
+                <div className="text-primary font-semibold text-[13px] leading-snug">{p.name}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-accent font-mono font-bold text-[16px]">{finalPrice} RON</span>
+                  {hasDiscount && (
+                    <>
+                      <span className="text-muted text-[12px] line-through">{p.price} RON</span>
+                      <span className="px-1.5 py-0.5 rounded bg-success/15 border border-success/25
+                                       text-success text-[10px] font-bold">-{p.discount_percent}%</span>
+                    </>
+                  )}
+                </div>
+                {Object.keys(specs).length > 0 && (
+                  <div className="border-t border-white/[0.06] pt-2 flex flex-col gap-1">
+                    {Object.entries(specs).slice(0, 5).map(([k, v]) => (
+                      <div key={k} className="flex justify-between text-[11px]">
+                        <span className="text-muted capitalize">{k.replace(/_/g, ' ')}</span>
+                        <span className="text-primary font-medium">{String(v)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <BtnPrimary onClick={() => navigate(`/product/${p.id}`)}>
+              Vezi pagina produsului →
+            </BtnPrimary>
+            <BtnSecondary onClick={() => setChatSelProduct(null)}>← Înapoi la rezultate</BtnSecondary>
+          </>
+        )
+      }
+
+      // Renderer for a single product row (used in results list)
+      const renderProdRow = (p) => {
+        const hasDiscount = p.discount_percent > 0
+        const img         = p.image_url || p.image || p.images?.[0]?.url
+        const finalPrice  = hasDiscount
+          ? (p.price * (1 - p.discount_percent / 100)).toFixed(0)
+          : p.price
+        return (
+          <button key={p.id} onClick={() => setChatSelProduct(p)}
+                  className="w-full flex items-center gap-2.5 bg-white/[0.04] border border-white/[0.07]
+                             rounded-xl p-2.5 cursor-pointer text-left
+                             hover:border-accent/35 hover:bg-white/[0.07] transition-all group">
+            {img
+              ? <img src={img} alt={p.name} className="w-9 h-9 object-contain rounded-lg bg-white/5 shrink-0" />
+              : <div className="w-9 h-9 rounded-lg bg-white/5 shrink-0 flex items-center justify-center">
+                  <Package size={14} className="text-muted/30" />
+                </div>
+            }
+            <div className="flex-1 min-w-0">
+              <div className="text-primary text-[11.5px] font-semibold truncate leading-snug">{p.name}</div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-accent font-mono font-bold text-[12px]">{finalPrice} RON</span>
+                {hasDiscount && <span className="text-muted text-[10px] line-through">{p.price} RON</span>}
+                {hasDiscount && (
+                  <span className="px-1 py-0.5 rounded bg-success/15 border border-success/25 text-success text-[9px] font-bold">
+                    -{p.discount_percent}%
+                  </span>
+                )}
+              </div>
+            </div>
+            <CaretRight size={11} className="text-white/15 group-hover:text-accent/50 transition-colors shrink-0" />
+          </button>
+        )
+      }
+
+      const searchBtnLabel = approxCount === 0
+        ? 'Niciun produs disponibil'
+        : approxCount != null && activeCount > 0
+          ? `Caută — aprox. ${approxCount} produs${approxCount !== 1 ? 'e' : ''}`
+          : activeCount > 0 ? 'Caută cu filtrele selectate' : `Caută toate în ${catName}`
+
       return (
         <>
-          <BotMsg>
-            <strong>{catName}</strong>
-            {activeCount > 0 && <span className="text-muted text-[12px]"> · {activeCount} filtru activ</span>}
-            {' '}— alege filtrele sau caută direct:
-          </BotMsg>
 
-          {isFiltersLoading ? <Spinner /> : isFiltersError ? (
-            <ErrorBlock onRetry={() => retry(`filters_${manualCat}`, () => chatAPI.filters(manualCat))} />
-          ) : filters && Object.keys(filters).length > 0 ? (
-            <div className="bg-white/[0.03] border border-white/10 rounded-xl overflow-hidden">
-              {Object.entries(filters).map(([key, vals], idx, arr) => {
-                const selected = manualFilters[key]
-                const isOpen   = expandedFilter === key
-                const isLast   = idx === arr.length - 1
-                return (
-                  <div key={key} className={!isLast ? 'border-b border-white/[0.06]' : ''}>
-                    <button onClick={() => setExpandedFilter(isOpen ? null : key)}
-                            className="w-full flex items-center justify-between px-3 py-2 cursor-pointer
-                                       hover:bg-white/[0.04] transition-colors">
-                      <span className="text-secondary text-[12px]">{key.replace(/_/g, ' ')}</span>
-                      <div className="flex items-center gap-2">
-                        {selected && (
-                          <span className="px-2 py-0.5 rounded-full bg-accent/20 border border-accent/40
-                                           text-accent text-[10px] font-semibold max-w-[80px] truncate">
-                            {selected}
-                          </span>
-                        )}
-                        <CaretRight size={11} className={`text-muted transition-transform ${isOpen ? 'rotate-90' : ''}`} />
-                      </div>
-                    </button>
-                    {isOpen && (
-                      <div className="px-3 pb-2.5 flex flex-wrap gap-1.5">
-                        {vals.map(val => {
-                          const isSel = manualFilters[key] === String(val)
-                          return (
-                            <button key={val}
-                                    onClick={() => {
-                                      setManualFilters(prev => {
-                                        const next = { ...prev }
-                                        if (isSel) delete next[key]
-                                        else next[key] = String(val)
-                                        return next
-                                      })
-                                      setExpandedFilter(null)
-                                      setManualResults(null)
-                                    }}
-                                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border
-                                               transition-all cursor-pointer
-                                               ${isSel
-                                                 ? 'bg-accent/20 border-accent/50 text-accent'
-                                                 : 'bg-white/[0.06] border-white/15 text-secondary hover:border-white/30 hover:text-primary'
-                                               }`}>
-                              {String(val)}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+            {/* Header + chips */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-primary text-[12.5px] font-semibold">{catName}</span>
+                {activeCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-accent/20 border border-accent/30
+                                   text-accent text-[10px] font-bold">{activeCount}</span>
+                )}
+              </div>
+              {activeCount > 0 && (
+                <button onClick={() => { setManualFilters({}); setManualMaxPrice('') }}
+                        className="text-muted/50 text-[11px] cursor-pointer hover:text-danger/70 transition-colors">
+                  Șterge filtre
+                </button>
+              )}
             </div>
-          ) : null}
 
-          {manualResults !== 'loading' && (
-            <BtnPrimary onClick={runManualSearch}>
-              {activeCount > 0 ? `Caută cu ${activeCount} filtru` : `Caută toate în ${catName}`}
-            </BtnPrimary>
-          )}
-
-          {manualResults === 'loading' && <Spinner />}
-
-          {manualResults === 'empty' && (
-            <>
-              <BotMsg>
-                Niciun produs conform selecției. Modifică sau elimină filtrele.
-              </BotMsg>
-              <BtnSecondary onClick={() => setManualResults(null)}>← Modifică filtrele</BtnSecondary>
-            </>
-          )}
-
-          {manualResults === 'error' && <ErrorBlock onRetry={runManualSearch} />}
-
-          {Array.isArray(manualResults) && manualResults.length > 0 && (
-            <>
-              <div className="text-muted text-[10px] uppercase tracking-wide font-bold">
-                {manualResults.length} produs{manualResults.length !== 1 ? 'e' : ''} găsite
+            {activeCount > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(manualFilters).map(([k, v]) => (
+                  <button key={k}
+                          onClick={() => setManualFilters(prev => { const n = {...prev}; delete n[k]; return n })}
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/15 border border-accent/30
+                                     text-accent text-[11px] cursor-pointer hover:bg-accent/25 transition-all">
+                    <span className="capitalize">{k.replace(/_/g,' ')}: {v}</span>
+                    <X size={9} weight="bold" />
+                  </button>
+                ))}
+                {manualMaxPrice && (
+                  <button onClick={() => setManualMaxPrice('')}
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/15 border border-success/30
+                                     text-success text-[11px] cursor-pointer hover:bg-success/25 transition-all">
+                    <span>max {manualMaxPrice} RON</span>
+                    <X size={9} weight="bold" />
+                  </button>
+                )}
               </div>
-              <div className="flex flex-col gap-1.5">
-                {manualResults.map(p => renderProductCard(p))}
+            )}
+
+            {/* Buget maxim */}
+            <input
+              type="number" min="0"
+              value={manualMaxPrice}
+              onChange={e => setManualMaxPrice(e.target.value)}
+              placeholder="Buget maxim (RON) — opțional"
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2
+                         text-primary text-[12px] outline-none placeholder:text-muted/35
+                         focus:border-accent/40 transition-colors"
+            />
+
+            {/* Filtere acordion cu faceting */}
+            {isFiltersLoading ? <Spinner /> : isFiltersError ? (
+              <ErrorBlock onRetry={() => retry(`filters_${manualCat}`, () => chatAPI.filters(manualCat))} />
+            ) : filters && Object.keys(filters).length > 0 ? (
+              <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl overflow-hidden">
+                {Object.entries(filters).slice(0, 5).map(([key, vals], idx, arr) => {
+                  const selected = manualFilters[key]
+                  const isOpen   = expandedFilter === key
+                  const isLast   = idx === arr.length - 1
+                  const availSet = getAvailableValues(key, manualFilters, allCatProducts)
+                  return (
+                    <div key={key} className={!isLast ? 'border-b border-white/[0.05]' : ''}>
+                      <button onClick={() => setExpandedFilter(isOpen ? null : key)}
+                              className="w-full flex items-center justify-between px-3 py-2.5 cursor-pointer
+                                         hover:bg-white/[0.04] transition-colors">
+                        <span className="text-secondary text-[12px] capitalize font-medium">
+                          {key.replace(/_/g, ' ')}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {selected && (
+                            <span className="px-2 py-0.5 rounded-full bg-accent/20 border border-accent/35
+                                             text-accent text-[10px] font-semibold max-w-[90px] truncate">
+                              {selected}
+                            </span>
+                          )}
+                          <CaretRight size={11} className={`text-muted/50 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+                        </div>
+                      </button>
+                      {isOpen && (
+                        <div className="px-3 pb-3 flex flex-wrap gap-1.5 max-h-[168px] overflow-y-auto">
+                          {vals.map(val => {
+                            const strVal    = String(val)
+                            const isSel     = selected === strVal
+                            const available = availSet === null || availSet.has(strVal) || isSel
+                            return (
+                              <button key={val}
+                                      disabled={!available}
+                                      onClick={() => {
+                                        if (!available) return
+                                        setManualFilters(prev => {
+                                          const next = { ...prev }
+                                          if (isSel) delete next[key]
+                                          else next[key] = strVal
+                                          return next
+                                        })
+                                        setExpandedFilter(null)
+                                      }}
+                                      title={!available ? 'Niciun produs cu această valoare' : undefined}
+                                      className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all
+                                                 ${isSel
+                                                   ? 'bg-accent/20 border-accent/50 text-accent cursor-pointer'
+                                                   : available
+                                                     ? 'bg-white/[0.06] border-white/15 text-secondary cursor-pointer hover:border-white/30 hover:text-primary'
+                                                     : 'bg-white/[0.02] border-white/[0.05] text-muted/25 cursor-not-allowed line-through'
+                                                 }`}>
+                                {strVal}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
-              <BtnSecondary onClick={() => { setManualResults(null); setManualFilters({}) }}>
-                ← Caută din nou
-              </BtnSecondary>
-            </>
-          )}
+            ) : null}
+
+            {/* Rezultate */}
+            {manualResults === 'empty' && (
+              <div className="bg-danger/[0.06] border border-danger/20 rounded-xl px-3 py-2.5 flex items-start gap-2">
+                <Warning size={14} className="text-danger shrink-0 mt-0.5" />
+                <span className="text-danger/90 text-[12px]">
+                  Niciun produs cu aceste filtre. Elimină un filtru sau mărește bugetul.
+                </span>
+              </div>
+            )}
+
+            {manualResults === 'error' && <ErrorBlock onRetry={runSearch} />}
+
+            {Array.isArray(manualResults) && (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted/60 text-[10.5px] uppercase tracking-wide font-bold">
+                    {manualResults.length} produs{manualResults.length !== 1 ? 'e' : ''} găsite
+                  </span>
+                  <span className="text-accent/60 text-[10.5px]">{catName}</span>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  {manualResults.map(p => renderProdRow(p))}
+                </div>
+              </>
+            )}
+
+          {/* ── Footer sticky — buton Caută + înapoi ── */}
+          <div className="sticky bottom-0 -mx-3.5 px-3.5 py-3 border-t border-white/[0.07] flex flex-col gap-2 bg-base">
+            {manualResults === 'loading' ? (
+              <div className="w-full py-2.5 rounded-xl bg-accent/10 border border-accent/20
+                              flex items-center justify-center gap-2">
+                <CircleNotch size={13} className="animate-spin text-accent shrink-0" />
+                <span className="text-accent text-[12.5px] font-medium">Se caută...</span>
+              </div>
+            ) : (
+              <button onClick={runSearch}
+                      disabled={approxCount === 0}
+                      className={`w-full py-2.5 rounded-xl text-[12.5px] font-bold tracking-wide
+                                 flex items-center justify-center gap-2 transition-all
+                                 ${approxCount === 0
+                                   ? 'bg-white/[0.04] border border-white/[0.08] text-muted/40 cursor-not-allowed'
+                                   : 'bg-accent text-base cursor-pointer hover:brightness-110 hover:shadow-glow-cyan active:scale-[0.98]'
+                                 }`}>
+                <MagnifyingGlass size={13} weight="bold" />
+                {searchBtnLabel}
+              </button>
+            )}
+            <BtnSecondary onClick={() => setManualCat(null)}>← Schimbă categoria</BtnSecondary>
+          </div>
         </>
       )
     }
@@ -951,10 +1194,28 @@ export default function ChatWidget() {
 
   const renderHome = () => (
     <>
-      <BotMsg>Bună ziua! 👋 Sunt asistentul tău virtual. Cu ce vă pot ajuta astăzi?</BotMsg>
-      <div className="flex flex-col gap-1.5 mt-1">
+      <div className="flex flex-col items-center text-center pt-1 pb-3">
+        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-accent/30 to-accent/10
+                        border border-accent/40 flex items-center justify-center mb-3 shadow-glow-cyan">
+          <Robot size={22} weight="duotone" className="text-accent" />
+        </div>
+        <p className="text-primary font-semibold text-[13px]">Bună ziua! Sunt asistentul tău.</p>
+        <p className="text-muted text-[11.5px] mt-0.5">Alege o opțiune din meniu:</p>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
         {MENU.map(m => (
-          <OptionBtn key={m.id} Icon={m.Icon} label={m.label} color={m.color} onClick={() => goTo(m.id)} />
+          <button key={m.id} onClick={() => goTo(m.id)}
+            className="flex flex-col items-center gap-2 px-2 py-3 rounded-xl
+                       bg-white/[0.04] border border-white/[0.08] cursor-pointer
+                       hover:border-white/20 hover:bg-white/[0.07] transition-all duration-150 group">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                 style={{ background: `${m.color}20`, border: `1px solid ${m.color}40` }}>
+              <m.Icon size={16} style={{ color: m.color }} />
+            </div>
+            <span className="text-primary text-[11px] font-semibold text-center leading-tight px-1">
+              {m.label}
+            </span>
+          </button>
         ))}
       </div>
     </>
@@ -1013,6 +1274,7 @@ export default function ChatWidget() {
             )}
           </div>
         )}
+        <BtnSecondary onClick={goHome}>← Înapoi la meniu</BtnSecondary>
       </>
     )
   }
@@ -1050,13 +1312,9 @@ export default function ChatWidget() {
           { n: '3', text: 'Descrie motivul returului' },
           { n: '4', text: 'Aștepți confirmare în 1–2 zile lucrătoare' },
         ]} />
-        <div className="flex gap-2">
-          <button onClick={() => goTo('retururi')}
-                  className="flex-1 py-2.5 rounded-xl bg-accent text-base text-[13px] font-bold
-                             cursor-pointer hover:shadow-glow-cyan transition-all">
-            Mergi la Retururi →
-          </button>
-          <BtnSecondary onClick={() => setProbStep(null)}>Înapoi</BtnSecondary>
+        <div className="flex flex-col gap-2">
+          <BtnPrimary onClick={() => goTo('retururi')}>Mergi la Retururi →</BtnPrimary>
+          <BtnSecondary onClick={() => setProbStep(null)}>← Înapoi</BtnSecondary>
         </div>
       </>
     )
@@ -1073,13 +1331,9 @@ export default function ChatWidget() {
           { n: '3', text: 'Ești contactat pentru programarea ridicării' },
           { n: '4', text: 'Urmărești statusul prin numărul de ticket' },
         ]} />
-        <div className="flex gap-2">
-          <button onClick={() => navigate('/profile?tab=service')}
-                  className="flex-1 py-2.5 rounded-xl bg-accent text-base text-[13px] font-bold
-                             cursor-pointer hover:shadow-glow-cyan transition-all">
-            Deschide cerere service →
-          </button>
-          <BtnSecondary onClick={() => setProbStep(null)}>Înapoi</BtnSecondary>
+        <div className="flex flex-col gap-2">
+          <BtnPrimary onClick={() => navigate('/profile?tab=service')}>Deschide cerere service →</BtnPrimary>
+          <BtnSecondary onClick={() => setProbStep(null)}>← Înapoi</BtnSecondary>
         </div>
       </>
     )
@@ -1148,127 +1402,81 @@ export default function ChatWidget() {
 
   // ── RETURURI ─────────────────────────────────────────────
 
-  const renderRetururi = () => {
-    const raw = cache['retururi']
-    const isLoading = raw === 'loading' || raw === undefined
-    const isError   = raw === 'error'
-    const retururi  = Array.isArray(raw) ? raw : null
-
-    return (
-      <>
-        <BotMsg>
-          <strong>Retururile</strong> se pot iniția în <strong>30 de zile</strong> de la livrare.
-        </BotMsg>
-        {!isAuthenticated ? <NotAuth /> : isLoading ? <Spinner /> : isError ? (
-          <ErrorBlock onRetry={() => retry('retururi', () => retururiAPI.get(user.id))} />
-        ) : (
-          <>
-            {retururi?.length > 0 ? (
-              <div className="flex flex-col gap-1.5">
-                <div className="text-muted text-[11px] font-bold uppercase tracking-wide">Retururile tale</div>
-                {retururi.slice(0, 3).map(r => (
-                  <div key={r.id} className="bg-white/[0.04] border border-white/10 rounded-xl p-3">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-primary text-[12px] font-semibold truncate flex-1">{r.product_name}</span>
-                      <span className="text-[11px] font-bold ml-2" style={{
-                        color: r.status === 'approved' || r.status === 'completed' ? '#00e5a0'
-                             : r.status === 'rejected' ? '#f87171' : '#f59e0b'
-                      }}>
-                        {RETUR_STATUS[r.status] || r.status}
-                      </span>
-                    </div>
-                    <div className="text-muted text-[11px]">{new Date(r.created_at).toLocaleDateString('ro-RO')}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <BotMsg>Nu ai niciun retur în curs momentan.</BotMsg>
-            )}
-            <InfoSteps steps={[
-              { n: '1', text: 'Completezi formularul cu comanda și motivul returului' },
-              { n: '2', text: 'Cererea este analizată în 1–2 zile lucrătoare' },
-              { n: '3', text: 'Ești contactat pentru ridicarea coletului' },
-              { n: '4', text: 'Rambursarea se procesează în 5–7 zile după primire' },
-            ]} />
-            <CheckList title="Condiții retur" items={[
-              'Produs în termen de 30 de zile de la livrare',
-              'Ambalaj original intact (dacă este posibil)',
-              'Toate accesoriile și documentele incluse',
-              'Produsul să nu prezinte deteriorări fizice',
-            ]} />
-            <BtnPrimary onClick={() => navigate('/profile?tab=returns')}>
-              Inițiază retur →
-            </BtnPrimary>
-          </>
-        )}
-      </>
-    )
-  }
+  const renderRetururi = () => (
+    <>
+      <BotMsg>
+        Retur în <strong>30 de zile</strong> de la livrare.
+        Rambursare în <strong>5–7 zile</strong> după primirea produsului.
+      </BotMsg>
+      <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 flex flex-col gap-2">
+        <div className="text-muted text-[10px] uppercase tracking-wider font-bold">Cum funcționează</div>
+        {[
+          { n: '1', text: 'Completezi formularul cu comanda și motivul' },
+          { n: '2', text: 'Cererea este analizată în 1–2 zile' },
+          { n: '3', text: 'Ești contactat pentru ridicarea coletului' },
+          { n: '4', text: 'Rambursarea în 5–7 zile după primire' },
+        ].map(({ n, text }) => (
+          <div key={n} className="flex items-center gap-2.5">
+            <div className="w-5 h-5 rounded-full bg-accent/15 border border-accent/35
+                            flex items-center justify-center text-accent text-[10px] font-bold shrink-0">
+              {n}
+            </div>
+            <span className="text-primary text-[12px]">{text}</span>
+          </div>
+        ))}
+      </div>
+      <div className="bg-white/[0.03] border border-accent/20 rounded-xl p-3 flex flex-col gap-2.5">
+        <div className="flex flex-col gap-1.5">
+          {['Produs în 30 de zile de la livrare', 'Ambalaj original intact', 'Accesorii și documente incluse'].map((item, i) => (
+            <div key={i} className="flex items-center gap-2 text-[11.5px]">
+              <span className="text-accent shrink-0">✓</span>
+              <span className="text-secondary">{item}</span>
+            </div>
+          ))}
+        </div>
+        <BtnPrimary onClick={() => navigate('/profile?tab=returns')}>Inițiază retur →</BtnPrimary>
+      </div>
+    </>
+  )
 
   // ── SERVICE ──────────────────────────────────────────────
 
-  const renderService = () => {
-    const raw = cache['service']
-    const isLoading = raw === 'loading' || raw === undefined
-    const isError   = raw === 'error'
-    const tickets   = Array.isArray(raw) ? raw : null
-
-    return (
-      <>
-        <BotMsg>
-          <strong>Service-ul</strong> este disponibil pentru produse defecte sau cu probleme tehnice.
-        </BotMsg>
-        {!isAuthenticated ? <NotAuth /> : isLoading ? <Spinner /> : isError ? (
-          <ErrorBlock onRetry={() => retry('service', () => serviceAPI.get(user.id))} />
-        ) : (
-          <>
-            {tickets?.length > 0 ? (
-              <div className="flex flex-col gap-1.5">
-                <div className="text-muted text-[11px] font-bold uppercase tracking-wide">Tichetele tale</div>
-                {tickets.slice(0, 3).map(t => (
-                  <div key={t.id} className="bg-white/[0.04] border border-white/10 rounded-xl p-3">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-primary text-[12px] font-semibold truncate flex-1">{t.product_name}</span>
-                      <span className="text-[11px] font-bold ml-2" style={{
-                        color: t.status === 'completed' ? '#00e5a0'
-                             : t.status === 'in_service' ? '#38bdf8'
-                             : t.status === 'rejected'   ? '#f87171' : '#f59e0b'
-                      }}>
-                        {SERVICE_STATUS[t.status] || t.status}
-                      </span>
-                    </div>
-                    {t.nr_ticket && <div className="text-muted text-[11px]">Ticket #{t.nr_ticket}</div>}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <BotMsg>Nu ai niciun tichet de service activ.</BotMsg>
-            )}
-            <InfoSteps steps={[
-              { n: '1', text: 'Completezi formularul cu datele produsului și descrierea problemei' },
-              { n: '2', text: 'Cererea este analizată în 1–2 zile lucrătoare' },
-              { n: '3', text: 'Ești contactat pentru programarea ridicării produsului' },
-              { n: '4', text: 'Primești număr de ticket pentru urmărirea statusului' },
-            ]} />
-            <CheckList title="Ce să pregătești" items={[
-              'Numărul comenzii din care face parte produsul',
-              'Descrierea clară a defecțiunii sau problemei',
-              'Număr de telefon la care poți fi contactat',
-              'Produsul în ambalaj original (dacă este posibil)',
-            ]} />
-            <BotMsg>
-              Durata: <strong>7–14 zile lucrătoare</strong>. Produsele în garanție — reparație <strong>gratuită</strong>.
-            </BotMsg>
-            <BtnPrimary onClick={() => navigate('/profile?tab=service')}>
-              Deschide cerere service →
-            </BtnPrimary>
-            <BotMsg>Ai o problemă urgentă? Contactează-ne direct:</BotMsg>
-            <ContactCard />
-          </>
-        )}
-      </>
-    )
-  }
+  const renderService = () => (
+    <>
+      <BotMsg>
+        <strong>Service</strong> pentru produse defecte sau cu probleme tehnice.
+        Produsele în garanție sunt reparate <strong>gratuit</strong>.
+      </BotMsg>
+      <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 flex flex-col gap-2">
+        <div className="text-muted text-[10px] uppercase tracking-wider font-bold">Cum funcționează</div>
+        {[
+          { n: '1', text: 'Completezi formularul cu descrierea problemei' },
+          { n: '2', text: 'Cererea analizată în 1–2 zile lucrătoare' },
+          { n: '3', text: 'Ești contactat pentru ridicarea produsului' },
+          { n: '4', text: 'Urmărești statusul cu numărul de ticket' },
+        ].map(({ n, text }) => (
+          <div key={n} className="flex items-center gap-2.5">
+            <div className="w-5 h-5 rounded-full bg-accent/15 border border-accent/35
+                            flex items-center justify-center text-accent text-[10px] font-bold shrink-0">
+              {n}
+            </div>
+            <span className="text-primary text-[12px]">{text}</span>
+          </div>
+        ))}
+      </div>
+      <div className="bg-white/[0.03] border border-accent/20 rounded-xl p-3 flex flex-col gap-2.5">
+        <div className="flex items-center justify-between text-[12px]">
+          <span className="text-muted">Durată estimată</span>
+          <span className="text-primary font-semibold">7–14 zile lucrătoare</span>
+        </div>
+        <div className="flex items-center justify-between text-[12px]">
+          <span className="text-muted">Produse în garanție</span>
+          <span className="text-success font-semibold">Reparație gratuită</span>
+        </div>
+        <BtnPrimary onClick={() => navigate('/profile?tab=service')}>Deschide cerere service →</BtnPrimary>
+      </div>
+    </>
+  )
 
   // ── GARANTII ─────────────────────────────────────────────
 
@@ -1321,6 +1529,7 @@ export default function ChatWidget() {
             <NavLinks links={[
               { label: 'Comenzile mele →', onClick: () => goTo('comenzi') },
             ]} />
+            <BtnSecondary onClick={goHome}>← Înapoi la meniu</BtnSecondary>
           </>
         )}
       </>
@@ -1361,6 +1570,7 @@ export default function ChatWidget() {
             <BtnPrimary onClick={() => navigate('/wishlist')}>
               Vezi toate favoritele →
             </BtnPrimary>
+            <BtnSecondary onClick={goHome}>← Înapoi la meniu</BtnSecondary>
           </>
         )}
       </>
@@ -1370,96 +1580,116 @@ export default function ChatWidget() {
   // ── VOUCHERE ─────────────────────────────────────────────
 
   const renderVouchere = () => {
-    const raw = cache['vouchere']
-    const isLoading = raw === 'loading' || raw === undefined
-    const isError   = raw === 'error'
-    const vouchers  = Array.isArray(raw) ? raw : null
-    const active    = vouchers?.filter(v => v.is_active) ?? []
+    const raw     = cache['vouchere']
+    const loading = raw === 'loading' || raw === undefined
+    const isError = raw === 'error'
+    const active  = Array.isArray(raw) ? raw.filter(v => v.is_active) : []
+
+    const copyCode = (code) => {
+      navigator.clipboard.writeText(code).catch(() => {})
+      setCopiedCode(code)
+      setTimeout(() => setCopiedCode(null), 2000)
+    }
 
     return (
       <>
-        <BotMsg><strong>Voucherele tale active</strong> — folosește-le la checkout pentru reduceri.</BotMsg>
-        {!isAuthenticated ? <NotAuth /> : isLoading ? <Spinner /> : isError ? (
+        <BotMsg>
+          <strong>Voucherele tale</strong> — aplică codul la checkout pentru reducere instantă.
+        </BotMsg>
+        {!isAuthenticated ? <NotAuth /> : loading ? <Spinner /> : isError ? (
           <ErrorBlock onRetry={() => retry('vouchere', () => vouchersAPI.getMy(user.id))} />
         ) : !active.length ? (
-          <BotMsg>Nu ai niciun voucher activ momentan. Urmărește promoțiile noastre! 🎁</BotMsg>
+          <>
+            <div className="flex flex-col items-center gap-2 py-4 bg-white/[0.03] border border-white/[0.07]
+                            rounded-xl text-center">
+              <Tag size={28} className="text-amber-400/40" />
+              <p className="text-muted text-[12px]">Nu ai niciun voucher activ momentan.</p>
+              <p className="text-muted/60 text-[11px]">Urmărește promoțiile noastre pentru oferte exclusive.</p>
+            </div>
+          </>
         ) : (
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             {active.map(v => (
-              <div key={v.id} className="bg-white/[0.04] border border-amber-500/20 rounded-xl p-3">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-amber-400 text-[14px]">{v.code}</span>
-                  <span className="text-success font-bold text-[13px]">
-                    {v.type === 'percent' ? `-${v.value}%` : `-${v.value} RON`}
-                  </span>
-                </div>
-                {v.description && <div className="text-muted text-[11px]">{v.description}</div>}
-                {v.expires_at && (
-                  <div className="text-muted text-[11px] mt-1">
-                    Expiră: {new Date(v.expires_at).toLocaleDateString('ro-RO')}
+              <div key={v.id}
+                   className="relative bg-white/[0.04] border border-amber-500/25 rounded-xl overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/60 via-amber-400/40 to-transparent" />
+                <div className="p-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/35
+                                       text-amber-400 text-[9px] font-bold uppercase tracking-wider">
+                        Voucher
+                      </span>
+                      {v.value != null && (
+                        <span className="font-mono font-bold text-success text-[14px]">
+                          {v.type === 'percent' ? `-${v.value}%` : `-${v.value} RON`}
+                        </span>
+                      )}
+                    </div>
+                    <button onClick={() => copyCode(v.code)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold
+                                       border transition-all cursor-pointer
+                                       ${copiedCode === v.code
+                                         ? 'bg-success/20 border-success/40 text-success'
+                                         : 'bg-white/[0.06] border-white/15 text-secondary hover:border-amber-500/40 hover:text-amber-400'
+                                       }`}>
+                      {copiedCode === v.code ? '✓ Copiat' : 'Copiază'}
+                    </button>
                   </div>
-                )}
+                  <div className="font-mono text-amber-300 text-[15px] font-bold tracking-widest mb-1.5">
+                    {v.code}
+                  </div>
+                  {v.description && (
+                    <div className="text-muted text-[11px] mb-1">{v.description}</div>
+                  )}
+                  {v.expires_at && (
+                    <div className="text-muted/60 text-[10.5px]">
+                      Expiră: {new Date(v.expires_at).toLocaleDateString('ro-RO')}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
+            <p className="text-muted/60 text-[11px] text-center">
+              Introdu codul la pasul de plată din checkout.
+            </p>
           </div>
         )}
+        <BtnSecondary onClick={goHome}>← Înapoi la meniu</BtnSecondary>
       </>
     )
   }
 
   // ── PROFIL ───────────────────────────────────────────────
 
-  const renderProfil = () => {
-    const raw = cache['addresses']
-    const isLoading = raw === 'loading' || raw === undefined
-    const addresses = Array.isArray(raw) ? raw : null
-
-    return (
-      <>
-        <BotMsg><strong>Profilul tău</strong> — date personale și adrese de livrare.</BotMsg>
-        {!isAuthenticated ? <NotAuth /> : (
-          <>
-            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-3 flex flex-col gap-1.5">
-              <div className="text-muted text-[10px] uppercase tracking-wide font-bold mb-1">Date cont</div>
-              <div className="flex justify-between text-[13px]">
-                <span className="text-muted">Nume</span>
-                <span className="text-primary font-semibold">{user?.name || '—'}</span>
-              </div>
-              <div className="flex justify-between text-[13px]">
-                <span className="text-muted">Email</span>
-                <span className="text-primary truncate ml-4">{user?.email || '—'}</span>
-              </div>
-              <div className="flex justify-between text-[13px]">
-                <span className="text-muted">Telefon</span>
-                <span className="text-primary">{user?.phone || 'Necompletat'}</span>
-              </div>
+  const renderProfil = () => (
+    <>
+      <BotMsg>
+        <strong>Profilul tău</strong> — gestionează datele contului și adresele de livrare.
+      </BotMsg>
+      {!isAuthenticated ? <NotAuth /> : (
+        <>
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-2.5 flex items-center gap-3 mb-0.5">
+            <div className="w-9 h-9 rounded-full bg-accent/15 border border-accent/30
+                            flex items-center justify-center shrink-0">
+              <User size={16} weight="duotone" className="text-accent" />
             </div>
-
-            {isLoading ? <Spinner /> : addresses?.length > 0 ? (
-              <div className="bg-white/[0.04] border border-white/10 rounded-xl p-3">
-                <div className="text-muted text-[10px] uppercase tracking-wide font-bold mb-2">Adresă implicită</div>
-                {(() => {
-                  const a = addresses.find(x => x.is_default) || addresses[0]
-                  return (
-                    <div className="text-[13px] text-primary leading-relaxed">
-                      {a.full_name}<br />{a.street}, {a.city}, {a.county}
-                      {a.postal_code && <><br /><span className="text-muted">{a.postal_code}</span></>}
-                    </div>
-                  )
-                })()}
-              </div>
-            ) : (
-              <BotMsg>Nu ai nicio adresă salvată.</BotMsg>
-            )}
-
-            <BtnPrimary onClick={() => navigate('/profile')}>
-              Mergi la Profilul meu →
-            </BtnPrimary>
-          </>
-        )}
-      </>
-    )
-  }
+            <div className="min-w-0">
+              <div className="text-primary text-[13px] font-semibold truncate">{user?.name || '—'}</div>
+              <div className="text-muted text-[11px] truncate">{user?.email || '—'}</div>
+            </div>
+          </div>
+          <OptionBtn Icon={User} label="Date cont" color="#38bdf8"
+            sub="Modifică nume, telefon, parolă"
+            onClick={() => navigate('/profile?tab=personal')} />
+          <OptionBtn Icon={Package} label="Adrese de livrare" color="#a78bfa"
+            sub="Adaugă sau editează adresele salvate"
+            onClick={() => navigate('/profile?tab=addresses')} />
+          <BtnSecondary onClick={goHome}>← Înapoi la meniu</BtnSecondary>
+        </>
+      )}
+    </>
+  )
 
   // ── ROUTING ───────────────────────────────────────────────
 
@@ -1481,21 +1711,21 @@ export default function ChatWidget() {
   const activeMenu  = MENU.find(m => m.id === screen)
   const headerTitle = selOrder
     ? `Comandă #${(selOrder.invoice_number || String(selOrder.id).slice(0, 8)).toUpperCase()}`
+    : chatSelProduct ? 'Detalii produs'
     : svcInfo ? 'Cerere service'
     : retInfo ? 'Inițiază retur'
     : screen === 'home' ? 'Asistent virtual'
     : activeMenu?.label || 'Asistent'
   const headerColor = selOrder ? '#a78bfa' : activeMenu?.color || 'var(--cyan)'
-  const showBack    = screen !== 'home' || !!selOrder || svcInfo || retInfo
+  const showBack    = screen !== 'home' || !!selOrder || svcInfo || retInfo || !!chatSelProduct
 
   const handleBack = () => {
     if (svcInfo)  { setSvcInfo(false); return }
     if (retInfo)  { setRetInfo(false); return }
     if (probStep) { setProbStep(null); return }
     if (selOrder) { setSelOrder(null); return }
-    if (screen === 'cautare' && manualCat) {
-      setManualCat(null); setManualSearch(''); setManualFilters({}); setManualResults(null); setExpandedFilter(null); return
-    }
+    if (screen === 'cautare' && chatSelProduct) { setChatSelProduct(null); return }
+    if (screen === 'cautare' && manualCat) { resetManual(); return }
     if (screen === 'cautare' && searchMode === 'ai' && aiPhase === 'followup') {
       setAiPhase('cat'); setAiMessages([]); setAiDetected(null); setAiInput(''); return
     }
@@ -1510,49 +1740,47 @@ export default function ChatWidget() {
   return (
     <div className="fixed bottom-6 right-6 z-[9999]">
       {open && (
-        <div className="absolute bottom-[72px] right-0 w-[320px] h-[520px]
-                        bg-base/98 rounded-2xl border border-accent/15 flex flex-col overflow-hidden
-                        backdrop-blur-xl shadow-elevated animate-fade-in">
+        <div className="absolute bottom-[72px] right-0 w-[340px] h-[600px]
+                        bg-base/98 rounded-2xl border border-white/[0.1] flex flex-col overflow-hidden
+                        backdrop-blur-xl shadow-[0_24px_80px_rgba(0,0,0,0.7),0_0_0_1px_rgba(14,246,255,0.08)] animate-fade-in">
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-base-1 to-base-2 px-4 py-3
-                          border-b border-accent/20 flex justify-between items-center shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                   style={{ background: `${headerColor}18`, border: `1px solid ${headerColor}35` }}>
-                <Robot size={16} weight="duotone" style={{ color: headerColor }} />
-              </div>
+          <div className="shrink-0 px-4 py-3 border-b border-white/[0.07] flex justify-between items-center"
+               style={{ background: 'linear-gradient(135deg, rgba(14,246,255,0.06) 0%, rgba(10,14,26,0.95) 100%)' }}>
+            <div className="flex items-center gap-3">
+              {showBack ? (
+                <button onClick={handleBack}
+                        className="w-7 h-7 rounded-full bg-white/[0.08] border border-white/10 text-secondary
+                                   flex items-center justify-center cursor-pointer
+                                   hover:bg-white/15 hover:text-primary transition-all shrink-0">
+                  <ArrowLeft size={12} weight="bold" />
+                </button>
+              ) : (
+                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                     style={{ background: `${headerColor}20`, border: `1px solid ${headerColor}40` }}>
+                  <Robot size={14} weight="duotone" style={{ color: headerColor }} />
+                </div>
+              )}
               <div>
-                <div className="text-primary font-semibold text-[13px]">{headerTitle}</div>
-                <div className="text-[11px] flex items-center gap-1" style={{ color: headerColor }}>
-                  <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: '#00e5a0' }} />
-                  {screen === 'home' ? 'Cu ce vă pot ajuta?' : 'Asistent virtual'}
+                <div className="text-primary font-bold text-[13px] leading-tight">{headerTitle}</div>
+                <div className="text-[10.5px] flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                  <span className="text-white/35">{screen === 'home' ? 'Online · Răspunde instant' : 'Asistent virtual PCShop'}</span>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              {showBack && (
-                <button onClick={handleBack}
-                        className="w-7 h-7 rounded-full bg-white/10 border-none text-secondary
-                                   flex items-center justify-center cursor-pointer
-                                   hover:bg-white/20 hover:text-primary transition-all"
-                        title="Înapoi">
-                  <ArrowLeft size={11} weight="bold" />
-                </button>
-              )}
-              <button onClick={() => setOpen(false)}
-                      className="w-7 h-7 rounded-full bg-white/10 border-none text-secondary
-                                 flex items-center justify-center cursor-pointer
-                                 hover:bg-white/20 hover:text-primary transition-all">
-                <X size={13} weight="bold" />
-              </button>
-            </div>
+            <button onClick={() => setOpen(false)}
+                    className="w-7 h-7 rounded-full bg-white/[0.06] border border-white/[0.08] text-white/40
+                               flex items-center justify-center cursor-pointer
+                               hover:bg-white/15 hover:text-white/80 transition-all shrink-0">
+              <X size={13} weight="bold" />
+            </button>
           </div>
 
           {/* Body */}
           {screen === 'cautare' && searchMode === 'ai'
             ? <div className="flex-1 min-h-0 flex flex-col overflow-hidden">{renderScreen()}</div>
-            : <div ref={bodyRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">{renderScreen()}</div>
+            : <div ref={bodyRef} className="flex-1 overflow-y-auto p-3.5 flex flex-col gap-2.5">{renderScreen()}</div>
           }
         </div>
       )}
@@ -1560,14 +1788,16 @@ export default function ChatWidget() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(v => !v)}
-        className={`w-14 h-14 rounded-full cursor-pointer flex items-center justify-center
-                   transition-all duration-300 hover:scale-110
+        className={`w-14 h-14 rounded-2xl cursor-pointer flex items-center justify-center
+                   transition-all duration-300 hover:scale-105 active:scale-95
                    ${open
-                     ? 'bg-white/10 border border-white/10 text-secondary'
+                     ? 'bg-white/[0.08] border border-white/10 text-white/60'
                      : 'bg-accent text-base border-none shadow-glow-cyan animate-glow-pulse'
                    }`}
       >
-        {open ? <X size={20} weight="bold" /> : <ChatCircleDots size={26} weight="duotone" />}
+        {open
+          ? <X size={18} weight="bold" />
+          : <ChatCircleDots size={24} weight="duotone" />}
       </button>
     </div>
   )

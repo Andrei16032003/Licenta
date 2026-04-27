@@ -44,6 +44,8 @@ export const productsAPI = {
   getCategories: () => API.get('/products/categories/all'),
   getFilters: (categorySlug) => API.get(`/products/categories/${categorySlug}/filters`),
   seedFilters: () => API.post('/products/admin/seed-filters'),
+  notifyStock: (productId, email, userId) => API.post(`/products/${productId}/notify-stock`, { email, user_id: userId || null }),
+  checkNotifyStock: (productId, email) => API.get(`/products/${productId}/notify-stock/check`, { params: { email } }),
 }
 
 export const cartAPI = {

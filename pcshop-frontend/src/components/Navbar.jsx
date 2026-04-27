@@ -1,19 +1,18 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Lightning, ShoppingCart, User, CaretDown, SignOut,
   Package, Heart, ShieldCheck, ArrowCounterClockwise,
-  Wrench, GearSix, MagnifyingGlass, House, Storefront,
-  Desktop, Cpu, Robot, Info, Phone, Tag, Question,
+  Wrench, GearSix, MagnifyingGlass, Desktop,
+  Tag, Question, Info, Phone, House, Storefront, Cpu, Robot,
 } from '@phosphor-icons/react'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
 import useFavoriteStore from '../store/favoriteStore'
 import { cartAPI, wishlistAPI, chatAPI, productsAPI } from '../services/api'
 import { imgUrl } from '../utils/imgUrl'
-import { detectSlug } from '../utils/categorySearch'
+import { SLUG_ALIASES } from '../utils/categorySearch'
 
-// Navbar fix sticky cu cautare, cos si meniu utilizator cu dropdown
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore()
   const { totalItems, setCart } = useCartStore()
@@ -22,89 +21,87 @@ export default function Navbar() {
   const location = useLocation()
 
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [searchVal, setSearchVal] = useState('')
-  const [suggestions, setSuggestions] = useState({ cats: [], products: [] })
-  const [sugLoading, setSugLoading] = useState(false)
-  const [catalogCats, setCatalogCats] = useState([])
-  const [favOpen, setFavOpen] = useState(false)
-  const [favLoaded, setFavLoaded] = useState(false)
+  const [searchVal, setSearchVal]       = useState('')
+  const [searchOpen, setSearchOpen]     = useState(false)
+  const [suggestions, setSuggestions]   = useState({ cats: [], products: [] })
+  const [catalogCats, setCatalogCats]   = useState([])
+  const [favOpen, setFavOpen]           = useState(false)
+  const [favLoaded, setFavLoaded]       = useState(false)
+
   const dropdownRef = useRef(null)
-  const searchRef = useRef(null)
-  const favRef = useRef(null)
+  const searchRef   = useRef(null)
+  const favRef      = useRef(null)
   const debounceRef = useRef(null)
+
   const isActive = (path) => location.pathname === path
 
-  // Încarcă categoriile din catalog o singură dată
+  /* ── Load catalog categories ── */
   useEffect(() => {
     chatAPI.categories()
       .then(r => setCatalogCats(Array.isArray(r.data) ? r.data : []))
       .catch(() => {})
   }, [])
 
-  // Caută sugestii când utilizatorul scrie
+  /* ── Live search suggestions ── */
   useEffect(() => {
     const q = searchVal.trim()
     if (!q) { setSuggestions({ cats: [], products: [] }); return }
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
-      setSugLoading(true)
       const lower = q.toLowerCase()
-
-      // Potrivire categorii: numele categoriei + aliasuri
       const matchedCats = catalogCats.filter(c => {
         if (c.name.toLowerCase().includes(lower)) return true
-        if (c.slug.includes(lower)) return true
         const aliases = SLUG_ALIASES[c.slug] || []
         return aliases.some(a => a.includes(lower) || lower.includes(a))
       })
-
-      // Produse din catalog
       let products = []
       try {
         const r = await productsAPI.getAll({ search: q, limit: 5 })
         products = r.data?.products || []
       } catch { products = [] }
-
       setSuggestions({ cats: matchedCats.slice(0, 4), products })
-      setSugLoading(false)
     }, 250)
   }, [searchVal, catalogCats])
 
+  /* ── Auth sync ── */
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       cartAPI.get(user.id).then(res => setCart(res.data)).catch(() => {})
-      wishlistAPI.get(user.id).then(res => { setFavorites(Array.isArray(res.data) ? res.data : (res.data.items || [])); setFavLoaded(true) }).catch(() => {})
+      wishlistAPI.get(user.id).then(res => {
+        setFavorites(Array.isArray(res.data) ? res.data : (res.data.items || []))
+        setFavLoaded(true)
+      }).catch(() => {})
     } else {
       clearFavorites()
       setFavLoaded(false)
     }
   }, [isAuthenticated, user?.id])
 
+  /* ── Click-outside + Escape ── */
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false)
-      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false)
-      if (favRef.current && !favRef.current.contains(e.target)) setFavOpen(false)
+      if (searchRef.current   && !searchRef.current.contains(e.target))   setSearchOpen(false)
+      if (favRef.current      && !favRef.current.contains(e.target))      setFavOpen(false)
     }
-    const escHandler = (e) => {
+    const onEsc = (e) => {
       if (e.key === 'Escape') { setSearchOpen(false); setDropdownOpen(false) }
     }
     document.addEventListener('mousedown', handler)
-    document.addEventListener('keydown', escHandler)
+    document.addEventListener('keydown', onEsc)
     return () => {
       document.removeEventListener('mousedown', handler)
-      document.removeEventListener('keydown', escHandler)
+      document.removeEventListener('keydown', onEsc)
     }
   }, [])
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setDropdownOpen(false); setSearchOpen(false); setFavOpen(false) }, [location.pathname])
+  /* ── Close dropdowns on route change ── */
+  useEffect(() => {
+    setDropdownOpen(false); setSearchOpen(false); setFavOpen(false)
+  }, [location.pathname])
 
   const closeSearch = () => {
-    setSearchOpen(false)
-    setSearchVal('')
-    setSuggestions({ cats: [], products: [] })
+    setSearchOpen(false); setSearchVal(''); setSuggestions({ cats: [], products: [] })
   }
 
   const handleSearch = (e) => {
@@ -115,217 +112,379 @@ export default function Navbar() {
     closeSearch()
   }
 
-  const goToProduct = (id) => {
-    navigate(`/product/${id}`)
-    closeSearch()
-  }
+  const goToProduct = (id) => { navigate(`/product/${id}`); closeSearch() }
 
+  /* ── Data ── */
   const navLinks = [
-    { to: '/',             label: 'Acasă',       Icon: House       },
-    { to: '/catalog',      label: 'Catalog',     Icon: Storefront  },
-    { to: '/builder',      label: 'PC Builder',  Icon: Cpu         },
-    { to: '/chat',         label: 'Prebuilt PC', Icon: Robot       },
-    { to: '/faq',          label: 'FAQ',         Icon: Question    },
-    { to: '/despre-noi',   label: 'Despre noi',  Icon: Info        },
-    { to: '/contact',      label: 'Contact',     Icon: Phone       },
+    { to: '/',           label: 'Acasă'       },
+    { to: '/catalog',    label: 'Catalog'     },
+    { to: '/builder',    label: 'PC Builder'  },
+    { to: '/chat',       label: 'Prebuilt PC' },
+    { to: '/promotii',   label: 'Promoții'    },
+    { to: '/faq',        label: 'FAQ'         },
+    { to: '/despre-noi', label: 'Despre noi'  },
+    { to: '/contact',    label: 'Contact'     },
   ]
 
   const dropItems = [
-    { to: '/profile',                Icon: User,                    label: 'Profilul meu'    },
-    { to: '/orders',                 Icon: Package,                 label: 'Comenzile mele'  },
-    { to: '/profile?tab=vouchers',   Icon: Tag,                     label: 'Voucherele mele' },
-    { to: '/wishlist',               Icon: Heart,                   label: 'Favorite'        },
-    { to: '/profile?tab=warranties', Icon: ShieldCheck,             label: 'Garanții'        },
-    { to: '/profile?tab=returns',    Icon: ArrowCounterClockwise,   label: 'Retururi'        },
-    { to: '/profile?tab=service',    Icon: Wrench,                  label: 'Service'         },
+    { to: '/profile',                Icon: User,                  label: 'Profilul meu'    },
+    { to: '/orders',                 Icon: Package,               label: 'Comenzile mele'  },
+    { to: '/profile?tab=vouchers',   Icon: Tag,                   label: 'Voucherele mele' },
+    { to: '/wishlist',               Icon: Heart,                 label: 'Favorite'        },
+    { to: '/profile?tab=warranties', Icon: ShieldCheck,           label: 'Garanții'        },
+    { to: '/profile?tab=returns',    Icon: ArrowCounterClockwise, label: 'Retururi'        },
+    { to: '/profile?tab=service',    Icon: Wrench,                label: 'Service'         },
   ]
 
+  /* ─────────────────────────────────────────────────────────
+     RENDER
+  ───────────────────────────────────────────────────────── */
   return (
-    <nav className="sticky top-0 z-[1000] h-16 flex items-center justify-between gap-6 px-8
-                    bg-base/90 backdrop-blur-xl border-b border-accent/10">
+    <nav className="sticky top-0 z-[1000]">
 
-      {/* LOGO */}
-      <Link to="/" className="flex items-center gap-2.5 no-underline shrink-0 group">
-        <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center
-                        shadow-glow-cyan group-hover:shadow-[0_0_28px_rgba(14,246,255,0.55)]
-                        transition-shadow duration-200">
-          <Lightning size={18} weight="bold" color="#050910" />
-        </div>
-        <span className="font-display font-extrabold text-[17px] tracking-tight text-primary">
-          ALEX <span className="text-accent">COMPUTERS</span>
-        </span>
-      </Link>
+      {/* ══ TOP ACCENT LINE ══ */}
+      <div style={{
+        height: '2px',
+        background: 'linear-gradient(90deg, transparent 0%, #0EF6FF 30%, #0EF6FF 70%, transparent 100%)',
+        opacity: 0.6,
+      }} />
 
-      {/* NAV LINKS */}
-      <div className="flex items-center gap-1 flex-1 justify-center">
-        {navLinks.map(({ to, label, Icon }) => {
-          const active = isActive(to)
-          return (
-            <Link
-              key={to}
-              to={to}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-                         no-underline transition-all duration-150 whitespace-nowrap relative
-                         ${active
-                           ? 'text-accent font-semibold'
-                           : 'text-secondary hover:text-primary hover:bg-white/[0.04]'
-                         }`}
+      {/* ══ ROW 1 — Logo · Search · Actions ══ */}
+      <div
+        className="flex items-center gap-4 px-8"
+        style={{
+          height: '56px',
+          background: 'rgba(7, 16, 28, 0.97)',
+          backdropFilter: 'blur(24px)',
+          borderBottom: '1px solid rgba(255,255,255,0.04)',
+        }}
+      >
+        {/* LOGO */}
+        <Link to="/" className="flex items-center gap-2.5 no-underline shrink-0 group mr-2">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+            style={{
+              background: '#0EF6FF',
+              boxShadow: '0 0 20px rgba(14,246,255,0.4)',
+              transition: 'box-shadow 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 32px rgba(14,246,255,0.7)'}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 20px rgba(14,246,255,0.4)'}
+          >
+            <Lightning size={17} weight="bold" color="#050910" />
+          </div>
+          <span className="font-display font-extrabold tracking-tight" style={{ fontSize: '16px' }}>
+            <span style={{ color: '#EEF2F7' }}>ALEX </span>
+            <span style={{ color: '#0EF6FF' }}>COMPUTERS</span>
+          </span>
+        </Link>
+
+        {/* SEARCH — grows to fill space */}
+        <div ref={searchRef} className="relative flex-1" style={{ maxWidth: '460px' }}>
+          <form
+            onSubmit={handleSearch}
+            className="flex items-center overflow-hidden"
+            style={{
+              background: '#0B1726',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '10px',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+            }}
+            onFocus={() => {
+              const el = document.getElementById('nav-search-form')
+              if (el) { el.style.borderColor = 'rgba(14,246,255,0.35)'; el.style.boxShadow = '0 0 0 3px rgba(14,246,255,0.07)' }
+            }}
+          >
+            <input
+              id="nav-search-input"
+              value={searchVal}
+              onChange={e => { setSearchVal(e.target.value); setSearchOpen(true) }}
+              onFocus={(e) => {
+                setSearchOpen(true)
+                e.currentTarget.closest('form').style.borderColor = 'rgba(14,246,255,0.35)'
+                e.currentTarget.closest('form').style.boxShadow = '0 0 0 3px rgba(14,246,255,0.07)'
+              }}
+              onBlur={(e) => {
+                e.currentTarget.closest('form').style.borderColor = 'rgba(255,255,255,0.08)'
+                e.currentTarget.closest('form').style.boxShadow = 'none'
+              }}
+              placeholder="Caută produse, categorii..."
+              style={{
+                flex: 1,
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                color: '#EEF2F7',
+                fontSize: '13px',
+                padding: '9px 14px',
+                fontFamily: 'Outfit, sans-serif',
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                flexShrink: 0,
+                padding: '9px 14px',
+                background: 'transparent',
+                border: 'none',
+                borderLeft: '1px solid rgba(255,255,255,0.06)',
+                color: '#8B9EBA',
+                cursor: 'pointer',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = '#0EF6FF'}
+              onMouseLeave={e => e.currentTarget.style.color = '#8B9EBA'}
             >
-              <Icon size={15} weight={active ? 'bold' : 'regular'} />
-              {label}
-              {active && (
-                <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-accent rounded-full" />
-              )}
-            </Link>
-          )
-        })}
-      </div>
+              <MagnifyingGlass size={15} />
+            </button>
+          </form>
 
-      {/* RIGHT SECTION */}
-      <div className="flex items-center gap-2 shrink-0">
-
-        {/* Search */}
-        <div ref={searchRef} className="relative flex items-center">
-          {searchOpen ? (
-            <div className="relative">
-              <form onSubmit={handleSearch} className="flex items-center">
-                <input
-                  autoFocus
-                  value={searchVal}
-                  onChange={e => setSearchVal(e.target.value)}
-                  placeholder="Caută produse, categorii..."
-                  className="w-64 bg-base-2 border border-accent/20 text-primary text-sm
-                             rounded-lg px-3 py-1.5 outline-none placeholder:text-muted
-                             focus:border-accent/40 focus:shadow-[0_0_0_3px_rgba(14,246,255,0.08)]"
-                />
-                <button type="submit" className="ml-1 p-1.5 text-secondary hover:text-accent transition-colors">
-                  <MagnifyingGlass size={16} weight="regular" />
-                </button>
-              </form>
-
-              {/* Dropdown sugestii produse */}
-              {searchVal.trim() && suggestions.products.length > 0 && (
-                <div className="absolute top-full left-0 mt-1.5 w-80 bg-[#0d1117] border border-white/[0.1]
-                                rounded-xl shadow-2xl overflow-hidden z-[9999]">
-                  <p className="text-muted text-[11px] font-semibold uppercase tracking-wider px-3 pt-3 pb-1">
-                    Produse
-                  </p>
-                  {suggestions.products.map(p => {
-                    const imgSrc = p.image_url || p.image
-                    const price = p.discount_percent > 0
-                      ? (p.price * (1 - p.discount_percent / 100)).toFixed(0)
-                      : p.price
-                    return (
-                      <button key={p.id} onClick={() => goToProduct(p.id)}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.05]
-                                         transition-colors cursor-pointer text-left">
-                        {imgSrc
-                          ? <img src={imgUrl(imgSrc)} alt={p.name}
-                                 className="w-8 h-8 object-contain rounded-lg bg-white/5 shrink-0" />
-                          : <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
-                              <Package size={14} className="text-muted/40" />
-                            </div>
-                        }
-                        <div className="flex-1 min-w-0">
-                          <p className="text-primary text-[12px] font-semibold truncate">{p.name}</p>
-                          <p className="text-accent text-[11px] font-mono">{price} RON</p>
+          {/* Search suggestions */}
+          {searchOpen && searchVal.trim() && suggestions.products.length > 0 && (
+            <div
+              className="absolute top-full left-0 right-0 mt-2 overflow-hidden animate-slide-down"
+              style={{
+                background: '#07101C',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                boxShadow: '0 12px 48px rgba(0,0,0,0.7)',
+                zIndex: 9999,
+              }}
+            >
+              <p style={{ color: '#3E5268', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px', padding: '10px 14px 6px' }}>
+                Produse
+              </p>
+              {suggestions.products.map(p => {
+                const imgSrc = p.image_url || p.image
+                const price = p.discount_percent > 0
+                  ? (p.price * (1 - p.discount_percent / 100)).toFixed(0)
+                  : p.price
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => goToProduct(p.id)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+                      padding: '8px 14px', background: 'transparent', border: 'none',
+                      cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    {imgSrc
+                      ? <img src={imgUrl(imgSrc)} alt={p.name} style={{ width: 32, height: 32, objectFit: 'contain', borderRadius: 8, background: '#162B3D', flexShrink: 0 }} />
+                      : <div style={{ width: 32, height: 32, borderRadius: 8, background: '#162B3D', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Package size={14} style={{ color: 'rgba(62,82,104,0.6)' }} />
                         </div>
-                      </button>
-                    )
-                  })}
-                  <div className="border-t border-white/[0.06] px-3 py-2">
-                    <button onClick={handleSearch}
-                            className="text-accent text-[12px] hover:underline cursor-pointer w-full text-left">
-                      Caută „{searchVal.trim()}" în tot catalogul →
+                    }
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ color: '#EEF2F7', fontSize: 12, fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
+                      <p style={{ color: '#FF8C00', fontSize: 11, fontFamily: '"Space Mono", monospace', margin: 0 }}>{price} RON</p>
+                    </div>
+                  </button>
+                )
+              })}
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '8px 14px' }}>
+                <button
+                  onClick={handleSearch}
+                  style={{ color: '#0EF6FF', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}
+                >
+                  Caută „{searchVal.trim()}" în tot catalogul →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* SPACER */}
+        <div style={{ flex: 1 }} />
+
+        {/* ── ACTION ITEMS ── */}
+        <div className="flex items-center" style={{ gap: '2px' }}>
+
+          {/* Contul meu */}
+          {isAuthenticated ? (
+            <div ref={dropdownRef} className="relative">
+              <ActionButton
+                onClick={() => setDropdownOpen(o => !o)}
+                active={dropdownOpen}
+                label="Contul meu"
+                sublabel={`Salut, ${user?.name?.split(' ')[0]}`}
+                badge={null}
+                icon={
+                  <div style={{
+                    width: 26, height: 26, borderRadius: '50%',
+                    background: '#0EF6FF', color: '#050910',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12, fontWeight: 800, fontFamily: 'Syne, sans-serif', flexShrink: 0,
+                  }}>
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                }
+                caret
+                caretOpen={dropdownOpen}
+              />
+
+              {dropdownOpen && (
+                <div
+                  className="absolute animate-slide-down"
+                  style={{
+                    top: 'calc(100% + 8px)', right: 0,
+                    background: '#07101C', border: '1px solid rgba(255,255,255,0.09)',
+                    borderRadius: 16, minWidth: 210,
+                    boxShadow: '0 12px 48px rgba(0,0,0,0.7)', overflow: 'hidden', zIndex: 200,
+                  }}
+                >
+                  <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(14,246,255,0.04)' }}>
+                    <p style={{ color: '#EEF2F7', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 14, margin: 0 }}>{user?.name}</p>
+                    <p style={{ color: '#3E5268', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '2px', margin: 0, marginTop: 2 }}>
+                      {{ admin: 'Administrator', manager: 'Manager', achizitii: 'Achizitii', marketing: 'Marketing', suport: 'Suport Clienti' }[user?.role] || 'Client'}
+                    </p>
+                  </div>
+                  <div style={{ padding: '6px 0' }}>
+                    {dropItems.map(item => (
+                      <DropItem key={item.to} {...item} navigate={navigate} isActive={isActive} />
+                    ))}
+                    {['admin','manager','achizitii','marketing','suport'].includes(user?.role) && (
+                      <>
+                        <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+                        <DropItem
+                          to="/admin"
+                          Icon={GearSix}
+                          label={{ admin: 'Panou Admin', manager: 'Panou Manager', achizitii: 'Panou Achizitii', marketing: 'Panou Marketing', suport: 'Panou Suport' }[user?.role]}
+                          navigate={navigate} isActive={isActive} accent
+                        />
+                      </>
+                    )}
+                    <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+                    <button
+                      onClick={() => { logout(); navigate('/') }}
+                      style={{
+                        width: '100%', textAlign: 'left', padding: '9px 16px',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        color: '#FF4757', fontSize: 13,
+                        background: 'transparent', border: 'none', cursor: 'pointer',
+                        transition: 'background 0.15s', fontFamily: 'Outfit, sans-serif',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,71,87,0.08)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <SignOut size={14} /> Deconectare
                     </button>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="p-2 text-secondary hover:text-primary hover:bg-white/[0.04]
-                         rounded-lg transition-all duration-150"
-            >
-              <MagnifyingGlass size={17} weight="regular" />
-            </button>
+            <Link to="/login" style={{ textDecoration: 'none' }}>
+              <ActionButton
+                label="Contul meu"
+                sublabel="Autentificare"
+                badge={null}
+                icon={
+                  <div style={{
+                    width: 26, height: 26, borderRadius: '50%',
+                    border: '1.5px solid rgba(255,255,255,0.15)',
+                    background: 'rgba(255,255,255,0.05)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <User size={14} style={{ color: '#8B9EBA' }} />
+                  </div>
+                }
+              />
+            </Link>
           )}
-        </div>
 
-        {/* Favorites */}
-        {isAuthenticated && (
+          {/* Separator */}
+          <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.07)', margin: '0 4px' }} />
+
+          {/* Favorite */}
           <div
             ref={favRef}
-            className="relative flex items-center"
+            className="relative"
             onMouseEnter={() => setFavOpen(true)}
             onMouseLeave={() => setFavOpen(false)}
           >
-            <Link
-              to="/wishlist"
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
-                          font-medium no-underline transition-all duration-150
-                          ${isActive('/wishlist')
-                            ? 'text-danger bg-danger/10 border border-danger/30'
-                            : 'text-secondary hover:text-danger hover:bg-danger/[0.06] border border-transparent'
-                          }`}
-            >
-              <Heart size={17} weight={isActive('/wishlist') ? 'fill' : 'regular'} />
-              {favTotal > 0 && (
-                <span className="bg-danger text-white text-[10px] font-extrabold font-mono
-                                 min-w-[18px] h-[18px] rounded-full px-1 flex items-center justify-center">
-                  {favTotal > 99 ? '99+' : favTotal}
-                </span>
-              )}
+            <Link to="/wishlist" style={{ textDecoration: 'none' }}>
+              <ActionButton
+                active={isActive('/wishlist')}
+                label="Favorite"
+                sublabel={favTotal > 0 ? `${favTotal} ${favTotal === 1 ? 'produs' : 'produse'}` : 'Lista ta'}
+                badge={favTotal > 0 ? favTotal : null}
+                badgeColor="#FF4757"
+                icon={
+                  <Heart
+                    size={20}
+                    weight={isActive('/wishlist') ? 'fill' : 'regular'}
+                    style={{ color: isActive('/wishlist') ? '#FF4757' : '#8B9EBA', flexShrink: 0 }}
+                  />
+                }
+                hoverDanger
+              />
             </Link>
 
-            {/* Hover dropdown — ultimele 3 favorite */}
             {favOpen && favLoaded && (
-              <div className="absolute top-[calc(100%+6px)] right-0 bg-base-1 border border-white/[0.09]
-                              rounded-2xl min-w-[280px] shadow-elevated z-[200] animate-fade-in overflow-hidden">
-                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
-                  <span className="text-primary font-semibold text-sm flex items-center gap-2">
-                    <Heart size={14} weight="fill" className="text-danger" /> Favorite
+              <div
+                className="absolute animate-slide-down"
+                style={{
+                  top: 'calc(100% + 8px)', right: 0,
+                  background: '#07101C', border: '1px solid rgba(255,255,255,0.09)',
+                  borderRadius: 16, minWidth: 280,
+                  boxShadow: '0 12px 48px rgba(0,0,0,0.7)', overflow: 'hidden', zIndex: 200,
+                }}
+              >
+                <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#EEF2F7', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Heart size={13} weight="fill" style={{ color: '#FF4757' }} /> Favorite
                   </span>
-                  <span className="text-muted text-[11px]">{favTotal} {favTotal === 1 ? 'produs' : 'produse'}</span>
+                  <span style={{ color: '#3E5268', fontSize: 11 }}>{favTotal} {favTotal === 1 ? 'produs' : 'produse'}</span>
                 </div>
-
                 {favItems.length === 0 ? (
-                  <div className="px-4 py-5 text-center text-muted text-sm">
+                  <div style={{ padding: '20px 16px', textAlign: 'center', color: '#3E5268', fontSize: 13 }}>
                     Niciun produs favorit încă
                   </div>
                 ) : (
                   <>
-                    <div className="py-1.5">
+                    <div style={{ padding: '6px 0' }}>
                       {[...favItems].slice(-3).reverse().map((item) => (
                         <button
                           key={item.wishlist_id || item.product_id}
                           onClick={() => navigate(`/product/${item.product_id}`)}
-                          className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-white/[0.04]
-                                     transition-colors bg-transparent border-none cursor-pointer text-left"
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                            padding: '8px 14px', background: 'transparent', border: 'none',
+                            cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
-                          <div className="w-10 h-10 rounded-lg bg-[#f8f9fa] flex-shrink-0 flex items-center justify-center overflow-hidden">
+                          <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f8f9fa', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                             {item.image_url
-                              ? <img src={imgUrl(item.image_url)} alt={item.name}
-                                     className="w-full h-full object-contain" />
-                              : <Desktop size={20} className="text-muted/40" />
+                              ? <img src={imgUrl(item.image_url)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                              : <Desktop size={20} style={{ color: 'rgba(62,82,104,0.5)' }} />
                             }
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-primary text-[13px] font-medium leading-tight truncate">{item.name}</p>
-                            <p className="text-price text-[12px] font-bold font-mono mt-0.5">
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ color: '#EEF2F7', fontSize: 13, fontWeight: 500, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</p>
+                            <p style={{ color: '#FF8C00', fontSize: 12, fontFamily: '"Space Mono", monospace', margin: 0, marginTop: 2 }}>
                               {parseFloat(item.price).toLocaleString('ro-RO', { minimumFractionDigits: 2 })} RON
                             </p>
                           </div>
                         </button>
                       ))}
                     </div>
-                    <div className="px-3 pb-3">
+                    <div style={{ padding: '0 12px 12px' }}>
                       <button
                         onClick={() => navigate('/wishlist')}
-                        className="w-full py-2 text-center text-accent text-[12px] font-semibold
-                                   bg-accent/[0.06] border border-accent/20 rounded-xl hover:bg-accent/10
-                                   transition-colors cursor-pointer"
+                        style={{
+                          width: '100%', padding: '8px', textAlign: 'center',
+                          color: '#0EF6FF', fontSize: 12, fontWeight: 600,
+                          background: 'rgba(14,246,255,0.06)', border: '1px solid rgba(14,246,255,0.2)',
+                          borderRadius: 10, cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+                          transition: 'background 0.15s',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(14,246,255,0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(14,246,255,0.06)'}
                       >
                         Vezi toate favoritele →
                       </button>
@@ -335,135 +494,192 @@ export default function Navbar() {
               </div>
             )}
           </div>
-        )}
 
-        {/* Cart */}
-        <Link
-          to="/cart"
-          className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
-                      font-medium no-underline transition-all duration-150
-                      ${isActive('/cart')
-                        ? 'text-accent bg-accent-dim border border-accent'
-                        : 'text-secondary hover:text-primary hover:bg-white/[0.04] border border-transparent'
-                      }`}
-        >
-          <ShoppingCart size={17} weight={isActive('/cart') ? 'bold' : 'regular'} />
-          <span>Coș</span>
-          {totalItems > 0 && (
-            <span className="bg-accent text-base text-[10px] font-extrabold font-mono
-                             min-w-[18px] h-[18px] rounded-full px-1 flex items-center justify-center
-                             shadow-glow-cyan">
-              {totalItems > 99 ? '99+' : totalItems}
-            </span>
-          )}
-        </Link>
+          {/* Separator */}
+          <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.07)', margin: '0 4px' }} />
 
-        {/* Divider */}
-        <div className="w-px h-6 bg-white/[0.08]" />
+          {/* Coșul meu */}
+          <Link to="/cart" style={{ textDecoration: 'none' }}>
+            <ActionButton
+              active={isActive('/cart')}
+              label="Coșul meu"
+              sublabel={totalItems > 0 ? `${totalItems} ${totalItems === 1 ? 'produs' : 'produse'}` : '0 produse'}
+              badge={totalItems > 0 ? totalItems : null}
+              badgeColor="#0EF6FF"
+              badgeTextColor="#050910"
+              badgeGlow
+              icon={
+                <ShoppingCart
+                  size={20}
+                  weight={isActive('/cart') ? 'bold' : 'regular'}
+                  style={{ color: isActive('/cart') ? '#0EF6FF' : '#8B9EBA', flexShrink: 0 }}
+                />
+              }
+              hoverAccent
+            />
+          </Link>
 
-        {/* Auth */}
-        {isAuthenticated ? (
-          <div ref={dropdownRef} className="relative">
-            <button
-              onClick={() => setDropdownOpen(o => !o)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-150 cursor-pointer
-                         ${dropdownOpen
-                           ? 'bg-accent-dim border-accent/30'
-                           : 'bg-white/[0.04] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.15]'
-                         }`}
-            >
-              <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center
-                              text-[11px] font-extrabold text-base font-display shrink-0">
-                {user?.name?.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-primary text-sm font-medium max-w-[90px] truncate">
-                {user?.name}
-              </span>
-              <CaretDown
-                size={11}
-                weight="bold"
-                className={`text-muted transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-
-            {dropdownOpen && (
-              <div className="absolute top-[calc(100%+8px)] right-0 bg-base-1 border border-white/[0.09]
-                              rounded-2xl min-w-[210px] shadow-elevated overflow-hidden z-[200]
-                              animate-fade-in">
-                <div className="px-4 py-3.5 border-b border-white/[0.06] bg-accent/[0.04]">
-                  <p className="text-primary font-display font-bold text-sm mb-0.5">{user?.name}</p>
-                  <p className="text-muted text-[11px] font-medium uppercase tracking-widest">
-                    {{ admin: 'Administrator', manager: 'Manager', achizitii: 'Achizitii', marketing: 'Marketing', suport: 'Suport Clienti' }[user?.role] || 'Client'}
-                  </p>
-                </div>
-                <div className="py-1.5">
-                  {dropItems.map(item => (
-                    <DropItem key={item.to} {...item} navigate={navigate} isActive={isActive} />
-                  ))}
-                  {['admin','manager','achizitii','marketing','suport'].includes(user?.role) && (
-                    <>
-                      <div className="h-px bg-white/[0.06] my-1" />
-                      <DropItem
-                        to="/admin"
-                        Icon={GearSix}
-                        label={{ admin: 'Panou Admin', manager: 'Panou Manager', achizitii: 'Panou Achizitii', marketing: 'Panou Marketing', suport: 'Panou Suport' }[user?.role]}
-                        navigate={navigate} isActive={isActive} accent
-                      />
-                    </>
-                  )}
-                  <div className="h-px bg-white/[0.06] my-1" />
-                  <button
-                    onClick={() => { logout(); navigate('/') }}
-                    className="w-full text-left px-4 py-2.5 flex items-center gap-2.5 text-danger
-                               text-sm bg-transparent border-none cursor-pointer
-                               hover:bg-danger/[0.08] transition-colors duration-150"
-                  >
-                    <SignOut size={14} weight="regular" /> Deconectare
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-            <Link
-              to="/login"
-              className="text-secondary text-sm font-medium px-3 py-1.5 rounded-lg
-                         no-underline border border-transparent
-                         hover:text-primary hover:bg-white/[0.04] transition-all duration-150"
-            >
-              Autentificare
-            </Link>
-            <Link
-              to="/register"
-              className="bg-accent text-base text-sm font-bold px-5 py-2 rounded-lg
-                         no-underline shadow-glow-cyan tracking-[0.2px]
-                         hover:shadow-[0_0_24px_rgba(14,246,255,0.55)] hover:-translate-y-px
-                         transition-all duration-150"
-            >
-              Cont nou
-            </Link>
-          </>
-        )}
+        </div>
       </div>
+
+      {/* ══ ROW 2 — Navigation links ══ */}
+      <div
+        className="flex items-center justify-center"
+        style={{
+          height: '36px',
+          background: 'rgba(5, 9, 16, 0.97)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(14,246,255,0.08)',
+        }}
+      >
+        <div className="flex items-center" style={{ gap: 2 }}>
+          {navLinks.map(({ to, label }) => {
+            const active = isActive(to)
+            return (
+              <NavLink key={to} to={to} label={label} active={active} />
+            )
+          })}
+        </div>
+      </div>
+
     </nav>
   )
 }
 
-// Element din dropdown-ul de utilizator; suporta stil accent pentru linkuri speciale (ex: Admin)
+/* ─────────────────────────────────────────────────────────
+   SUB-COMPONENTS
+───────────────────────────────────────────────────────── */
+
+function ActionButton({ icon, label, sublabel, badge, badgeColor = '#FF4757', badgeTextColor = '#fff', badgeGlow, active, onClick, hoverDanger, hoverAccent, caret, caretOpen }) {
+  const [hovered, setHovered] = useState(false)
+
+  const borderColor = active
+    ? hoverDanger ? 'rgba(255,71,87,0.3)' : 'rgba(14,246,255,0.3)'
+    : hovered
+    ? hoverDanger ? 'rgba(255,71,87,0.2)' : 'rgba(255,255,255,0.1)'
+    : 'transparent'
+
+  const bgColor = active
+    ? hoverDanger ? 'rgba(255,71,87,0.08)' : 'rgba(14,246,255,0.08)'
+    : hovered
+    ? 'rgba(255,255,255,0.04)'
+    : 'transparent'
+
+  const labelColor = active
+    ? hoverDanger ? '#FF4757' : '#0EF6FF'
+    : hovered
+    ? hoverDanger ? '#FF4757' : hoverAccent ? '#0EF6FF' : '#EEF2F7'
+    : '#EEF2F7'
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '6px 10px', borderRadius: 10,
+        background: bgColor, border: `1px solid ${borderColor}`,
+        cursor: 'pointer', transition: 'all 0.15s',
+        fontFamily: 'Outfit, sans-serif',
+      }}
+    >
+      {/* Icon + badge */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        {icon}
+        {badge != null && (
+          <span style={{
+            position: 'absolute', top: -6, right: -6,
+            background: badgeColor, color: badgeTextColor,
+            fontSize: 9, fontWeight: 800, lineHeight: 1,
+            minWidth: 15, height: 15, borderRadius: 99,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '0 3px', fontFamily: 'Outfit, sans-serif',
+            boxShadow: badgeGlow ? `0 0 8px ${badgeColor}80` : 'none',
+          }}>
+            {badge > 99 ? '99+' : badge}
+          </span>
+        )}
+      </div>
+
+      {/* Text */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1, lineHeight: 1 }}>
+        <span style={{ color: '#3E5268', fontSize: 10, fontWeight: 500, whiteSpace: 'nowrap' }}>
+          {sublabel}
+        </span>
+        <span style={{ color: labelColor, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', transition: 'color 0.15s' }}>
+          {label}
+        </span>
+      </div>
+
+      {caret && (
+        <CaretDown
+          size={9}
+          weight="bold"
+          style={{
+            color: '#3E5268',
+            transform: caretOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s',
+            flexShrink: 0,
+          }}
+        />
+      )}
+    </button>
+  )
+}
+
+function NavLink({ to, label, active }) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <Link
+      to={to}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: 'relative',
+        padding: '6px 12px',
+        borderRadius: 7,
+        fontSize: 13,
+        fontWeight: active ? 600 : 400,
+        color: active ? '#0EF6FF' : hovered ? '#EEF2F7' : '#8B9EBA',
+        textDecoration: 'none',
+        transition: 'color 0.15s, background 0.15s',
+        background: active ? 'rgba(14,246,255,0.07)' : hovered ? 'rgba(255,255,255,0.04)' : 'transparent',
+        whiteSpace: 'nowrap',
+        fontFamily: 'Outfit, sans-serif',
+      }}
+    >
+      {label}
+      {active && (
+        <span style={{
+          position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+          width: 20, height: 2, borderRadius: 2,
+          background: '#0EF6FF',
+          boxShadow: '0 0 8px rgba(14,246,255,0.6)',
+        }} />
+      )}
+    </Link>
+  )
+}
+
 function DropItem({ to, Icon, label, navigate, isActive, accent }) {
   const active = isActive(to)
+  const [hovered, setHovered] = useState(false)
+
   return (
     <button
       onClick={() => navigate(to)}
-      className={`w-full text-left px-4 py-2.5 flex items-center gap-2.5 text-sm
-                  bg-transparent border-none cursor-pointer transition-all duration-150
-                  ${accent
-                    ? 'text-price hover:bg-price/[0.07]'
-                    : active
-                      ? 'text-accent bg-accent-dim hover:bg-accent-dim'
-                      : 'text-secondary hover:text-primary hover:bg-white/[0.04]'
-                  }`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: '100%', textAlign: 'left',
+        padding: '9px 16px', display: 'flex', alignItems: 'center', gap: 10,
+        fontSize: 13,
+        color: accent ? '#FF8C00' : active ? '#0EF6FF' : hovered ? '#EEF2F7' : '#8B9EBA',
+        background: active ? 'rgba(14,246,255,0.06)' : hovered ? 'rgba(255,255,255,0.04)' : 'transparent',
+        border: 'none', cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'Outfit, sans-serif',
+      }}
     >
       <Icon size={14} weight={active ? 'bold' : 'regular'} />
       {label}

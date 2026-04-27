@@ -9,8 +9,11 @@ import uuid as uuid_module
 import shutil, os
 
 from app.database import get_db
-from app.models.product import Product, Category, ProductImage
+from app.models.product import Product, Category, ProductImage, StockNotification
 from app.models.user_profile import Review
+from app.notifications import notify_back_in_stock
+from app.config import FRONTEND_URL
+from sqlalchemy.sql import func as sqlfunc  # noqa — alias for nullable timestamp update
 from app.models.filter_option import FilterOption
 from app.dependencies import require_role
 _require_products  = require_role("admin", "achizitii")
@@ -164,6 +167,28 @@ def get_products(
         query = query.order_by(Product.price.desc())
     elif sort_by == "name_asc":
         query = query.order_by(Product.name.asc())
+    elif sort_by == "rating_desc":
+        rating_subq = (
+            db.query(
+                Review.product_id.label("pid"),
+                func.avg(Review.rating).label("avg_r"),
+                func.count(Review.id).label("cnt"),
+            )
+            .filter(Review.is_approved == True)
+            .group_by(Review.product_id)
+            .subquery("rating_sub")
+        )
+        query = query.outerjoin(rating_subq, Product.id == rating_subq.c.pid)
+        query = query.order_by(
+            func.coalesce(rating_subq.c.avg_r, 0).desc(),
+            func.coalesce(rating_subq.c.cnt, 0).desc(),
+            Product.created_at.desc(),
+        )
+    elif sort_by == "discount_desc":
+        query = query.filter(Product.old_price != None, Product.old_price > Product.price)
+        query = query.order_by(
+            ((Product.old_price - Product.price) / Product.old_price).desc()
+        )
     else:
         query = query.order_by(Product.created_at.desc())
 
@@ -220,6 +245,8 @@ def get_product(product_id: UUID, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produsul nu a fost gasit")
+    product.views_count = (product.views_count or 0) + 1
+    db.commit()
     rating_row = db.query(
         func.avg(Review.rating).label("avg_rating"),
         func.count(Review.id).label("count"),
@@ -260,10 +287,55 @@ def update_product(product_id: UUID, req: ProductCreate, db: Session = Depends(g
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(404, "Produsul nu a fost gasit")
+    was_out_of_stock = product.stock == 0
     for key, val in req.model_dump().items():
         setattr(product, key, val)
     db.commit()
+    # Trimite notificari daca produsul a revenit in stoc
+    if was_out_of_stock and req.stock > 0:
+        pending = db.query(StockNotification).filter(
+            StockNotification.product_id == product_id,
+            StockNotification.sent_at == None,
+        ).all()
+        product_url = f"{FRONTEND_URL}/product/{product_id}"
+        for notif in pending:
+            notify_back_in_stock(notif.email, product.name, product_url, float(product.price))
+            notif.sent_at = sqlfunc.now()
+        if pending:
+            db.commit()
     return {"message": "Produs actualizat"}
+
+
+class StockNotifyRequest(BaseModel):
+    email: str
+    user_id: Optional[UUID] = None
+
+@router.post("/{product_id}/notify-stock", status_code=201)
+def register_stock_notify(product_id: UUID, req: StockNotifyRequest, db: Session = Depends(get_db)):
+    product = db.query(Product).filter(Product.id == product_id, Product.is_active == True).first()
+    if not product:
+        raise HTTPException(404, "Produsul nu exista")
+    if product.stock > 0:
+        raise HTTPException(400, "Produsul este deja in stoc")
+    existing = db.query(StockNotification).filter(
+        StockNotification.product_id == product_id,
+        StockNotification.email == req.email,
+        StockNotification.sent_at == None,
+    ).first()
+    if existing:
+        return {"message": "Esti deja abonat la notificari pentru acest produs"}
+    db.add(StockNotification(product_id=product_id, email=req.email, user_id=req.user_id))
+    db.commit()
+    return {"message": "Vei fi notificat cand produsul revine in stoc"}
+
+@router.get("/{product_id}/notify-stock/check")
+def check_stock_notify(product_id: UUID, email: str, db: Session = Depends(get_db)):
+    exists = db.query(StockNotification).filter(
+        StockNotification.product_id == product_id,
+        StockNotification.email == email,
+        StockNotification.sent_at == None,
+    ).first()
+    return {"subscribed": exists is not None}
 
 @router.put("/{product_id}/featured")
 def toggle_featured(product_id: UUID, db: Session = Depends(get_db), _: User = Depends(_require_products)):

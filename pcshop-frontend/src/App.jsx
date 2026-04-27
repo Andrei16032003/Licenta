@@ -22,6 +22,7 @@ import DespreNoi from './pages/DespreNoi'
 import Contact from './pages/Contact'
 import Termeni from './pages/Termeni'
 import Confidentialitate from './pages/Confidentialitate'
+import Promotii from './pages/Promotii'
 import NotFound from './pages/NotFound'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
@@ -120,6 +121,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/termeni" element={<Termeni />} />
             <Route path="/confidentialitate" element={<Confidentialitate />} />
+            <Route path="/promotii" element={<Promotii />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
