@@ -211,13 +211,13 @@ export default function ChatWidget() {
     const matching = allProds.filter(p =>
       Object.entries(otherFilters).every(([k, v]) => {
         const val = p[k] ?? p.specs?.[k] ?? p.attributes?.[k] ?? p.specifications?.[k]
-        return val !== undefined && String(val) === v
+        return val !== undefined && String(val).toLowerCase() === v
       })
     )
     const available = new Set()
     matching.forEach(p => {
       const val = p[filterKey] ?? p.specs?.[filterKey] ?? p.attributes?.[filterKey] ?? p.specifications?.[filterKey]
-      if (val != null) available.add(String(val))
+      if (val != null) available.add(String(val).toLowerCase())
     })
     return available
   }
@@ -908,7 +908,7 @@ export default function ChatWidget() {
         ? allCatProducts.filter(p => {
             const mf = Object.entries(manualFilters).every(([k, v]) => {
               const val = p[k] ?? p.specs?.[k] ?? p.attributes?.[k] ?? p.specifications?.[k]
-              return val != null && String(val) === v
+              return val != null && String(val).toLowerCase() === v
             })
             const mp = !manualMaxPrice || (p.price != null && p.price <= parseFloat(manualMaxPrice))
             return mf && mp
@@ -1045,7 +1045,7 @@ export default function ChatWidget() {
                           onClick={() => setManualFilters(prev => { const n = {...prev}; delete n[k]; return n })}
                           className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/15 border border-accent/30
                                      text-accent text-[11px] cursor-pointer hover:bg-accent/25 transition-all">
-                    <span className="capitalize">{k.replace(/_/g,' ')}: {v}</span>
+                    <span className="capitalize">{k.replace(/_/g,' ')}: {v === 'true' ? 'Da' : v === 'false' ? 'Nu' : v}</span>
                     <X size={9} weight="bold" />
                   </button>
                 ))}
@@ -1103,8 +1103,11 @@ export default function ChatWidget() {
                         <div className="px-3 pb-3 flex flex-wrap gap-1.5 max-h-[168px] overflow-y-auto">
                           {vals.map(val => {
                             const strVal    = String(val)
-                            const isSel     = selected === strVal
-                            const available = availSet === null || availSet.has(strVal) || isSel
+                            const strLower  = strVal.toLowerCase()
+                            const displayVal = strLower === 'true' ? 'Da' : strLower === 'false' ? 'Nu' : strVal
+                            const isSel     = selected === strLower
+                            const availNorm = !isNaN(parseFloat(strLower)) ? String(parseFloat(strLower)) : strLower
+                            const available = availSet === null || availSet.has(strLower) || availSet.has(availNorm) || isSel
                             return (
                               <button key={val}
                                       disabled={!available}
@@ -1113,7 +1116,7 @@ export default function ChatWidget() {
                                         setManualFilters(prev => {
                                           const next = { ...prev }
                                           if (isSel) delete next[key]
-                                          else next[key] = strVal
+                                          else next[key] = availNorm
                                           return next
                                         })
                                         setExpandedFilter(null)
@@ -1126,7 +1129,7 @@ export default function ChatWidget() {
                                                      ? 'bg-white/[0.06] border-white/15 text-secondary cursor-pointer hover:border-white/30 hover:text-primary'
                                                      : 'bg-white/[0.02] border-white/[0.05] text-muted/25 cursor-not-allowed line-through'
                                                  }`}>
-                                {strVal}
+                                {displayVal}
                               </button>
                             )
                           })}

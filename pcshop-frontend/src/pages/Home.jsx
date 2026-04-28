@@ -88,7 +88,7 @@ export default function Home() {
             if (vals.includes('Membrana')) return productVal === 'Membrana'
             if (vals.includes('Mecanica')) return productVal !== 'Membrana'
           }
-          return vals.includes(String(productVal))
+          return vals.some(v => String(v).toLowerCase() === String(productVal).toLowerCase())
         })
       })
     }
@@ -118,18 +118,21 @@ export default function Home() {
   useEffect(() => {
     const cat = searchParams.get('category')
     const q = searchParams.get('search')
-    loadCategories()
     setSelectedBrands([])
     setSelectedSpecs({})
     setCurrentPage(1)
     setSearch(q || '')
-    if (cat) {
-      setSelectedCategory(cat)
-      doLoad({ category: cat, search: q || undefined })
-    } else {
-      setSelectedCategory('')
-      doLoad({ search: q || undefined })
-    }
+    loadCategories().then(cats => {
+      if (cat) {
+        const match = cats.find(c => c.slug === cat || c.name.toLowerCase() === cat.toLowerCase())
+        const resolvedCat = match ? match.slug : cat
+        setSelectedCategory(resolvedCat)
+        doLoad({ category: resolvedCat, search: q || undefined })
+      } else {
+        setSelectedCategory('')
+        doLoad({ search: q || undefined })
+      }
+    })
   }, [searchParams])
 
   useEffect(() => {
@@ -151,8 +154,8 @@ export default function Home() {
   }
 
   const loadCategories = async () => {
-    try { const res = await productsAPI.getCategories(); setCategories(res.data) }
-    catch (err) { console.error(err) }
+    try { const res = await productsAPI.getCategories(); setCategories(res.data); return res.data }
+    catch (err) { console.error(err); return [] }
   }
 
   useEffect(() => {
@@ -562,7 +565,7 @@ export default function Home() {
                       <div className="flex flex-col gap-1">
                         {values.map(val => {
                           const active = activeVals.includes(val)
-                          const displayVal = DISPLAY_LABELS[val] || val
+                          const displayVal = DISPLAY_LABELS[String(val)] || val
                           return (
                             <label
                               key={val}

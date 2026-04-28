@@ -109,7 +109,7 @@ export default function Compare() {
                   {items.map((p) => (
                     <Cell
                       key={`${p.id}-${key}`}
-                      value={(p.specs || {})[key] !== undefined ? String((p.specs || {})[key]) : '—'}
+                      value={(() => { const v = (p.specs || {})[key]; if (v === undefined) return '—'; if (typeof v === 'boolean') return v ? 'Da' : 'Nu'; return String(v) })()}
                       highlight={!allSame && (p.specs || {})[key] !== undefined}
                     />
                   ))}

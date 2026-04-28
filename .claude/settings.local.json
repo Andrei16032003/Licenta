@@ -41,7 +41,15 @@
       "Bash(/c/Licenta/PCShop/venv/Scripts/python.exe -m pip install pytest)",
       "PowerShell(Get-Command py -ErrorAction SilentlyContinue)",
       "PowerShell(Get-Command python3.11 -ErrorAction SilentlyContinue)",
-      "Bash(python add_stock_notifications.py)"
+      "Bash(python add_stock_notifications.py)",
+      "mcp__plugin_playwright_playwright__browser_type",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "PowerShell(Invoke-RestMethod \"http://127.0.0.1:8000/chat/filters/tastaturi\")",
+      "PowerShell($r = Invoke-RestMethod \"http://127.0.0.1:8000/chat/filters/tastaturi\"; $r | Where-Object { $_.key -eq \"rgb\" } | ConvertTo-Json)",
+      "PowerShell($r = Invoke-RestMethod \"http://127.0.0.1:8000/chat/filters/tastaturi\" -ErrorAction Stop; Write-Output \\($r | ConvertTo-Json -Depth 10\\))",
+      "PowerShell(\\(Invoke-WebRequest \"http://127.0.0.1:8000/chat/filters/tastaturi\"\\).Content)",
+      "PowerShell($wc = New-Object System.Net.WebClient; $wc.DownloadString\\(\"http://127.0.0.1:8000/chat/filters/tastaturi\"\\))"
     ]
   }
 }

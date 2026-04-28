@@ -70,6 +70,7 @@ FILTER_SEEDS = {
         {"key": "size",     "label": "Marime",        "values": ["full", "TKL", "75%", "60%"],  "order": 0},
         {"key": "wireless", "label": "Conectivitate", "values": ["Wireless", "Fir"],             "order": 1},
         {"key": "switches", "label": "Tip Tastatura", "values": ["Mecanica", "Membrana"],        "order": 2},
+        {"key": "rgb",      "label": "RGB",           "values": ["true", "false"],               "order": 3},
     ],
     "headset": [
         {"key": "wireless",   "label": "Conectivitate", "values": ["Wireless", "Fir"],                                                                          "order": 0},

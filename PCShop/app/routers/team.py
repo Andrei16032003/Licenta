@@ -27,12 +27,12 @@ class TeamMemberUpdate(BaseModel):
     phone: Optional[str] = None
     is_active: Optional[bool] = None
 
-# Lista toti angajatii (exclude clientii obisnuiti)
+# Lista toti utilizatorii care nu sunt clienti obisnuiti
 @router.get("/")
 def list_team(db: Session = Depends(get_db), _: User = Depends(require_admin)):
     members = (
         db.query(User)
-        .filter(User.role.in_(STAFF_ROLES))
+        .filter(User.role != "client")
         .order_by(User.created_at)
         .all()
     )

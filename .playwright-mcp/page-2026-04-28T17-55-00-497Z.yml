@@ -1,0 +1,253 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "ALEX COMPUTERS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e9]
+        - generic [ref=e11]: ALEX COMPUTERS
+      - generic [ref=e13]:
+        - textbox "Caută produse, categorii..." [ref=e14]
+        - button [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+      - generic [ref=e18]:
+        - button "T Salut, Test Contul meu" [ref=e20] [cursor=pointer]:
+          - generic [ref=e22]: T
+          - generic [ref=e23]:
+            - generic [ref=e24]: Salut, Test
+            - generic [ref=e25]: Contul meu
+          - img [ref=e26]
+        - link "4 4 produse Favorite" [ref=e30] [cursor=pointer]:
+          - /url: /wishlist
+          - button "4 4 produse Favorite" [ref=e31]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e35]: "4"
+            - generic [ref=e36]:
+              - generic [ref=e37]: 4 produse
+              - generic [ref=e38]: Favorite
+        - link "0 produse Coșul meu" [ref=e40] [cursor=pointer]:
+          - /url: /cart
+          - button "0 produse Coșul meu" [ref=e41]:
+            - img [ref=e43]
+            - generic [ref=e45]:
+              - generic [ref=e46]: 0 produse
+              - generic [ref=e47]: Coșul meu
+    - generic [ref=e49]:
+      - link "Acasă" [ref=e50] [cursor=pointer]:
+        - /url: /
+      - link "Catalog" [ref=e51] [cursor=pointer]:
+        - /url: /catalog
+      - link "PC Builder" [ref=e52] [cursor=pointer]:
+        - /url: /builder
+      - link "Prebuilt PC" [ref=e53] [cursor=pointer]:
+        - /url: /chat
+        - text: Prebuilt PC
+      - link "Promoții" [ref=e55] [cursor=pointer]:
+        - /url: /promotii
+      - link "FAQ" [ref=e56] [cursor=pointer]:
+        - /url: /faq
+      - link "Despre noi" [ref=e57] [cursor=pointer]:
+        - /url: /despre-noi
+      - link "Contact" [ref=e58] [cursor=pointer]:
+        - /url: /contact
+  - main [ref=e59]:
+    - generic [ref=e60]:
+      - generic [ref=e61]:
+        - img [ref=e63]
+        - heading "Configuratie PC pe bugetul tau" [level=1] [ref=e65]
+        - paragraph [ref=e66]: Spune-ne bugetul si ce folosesti PC-ul — iti recomandam configuratia optima
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - img [ref=e70]
+          - generic [ref=e72]: 2.080 RON
+          - generic [ref=e73]: Buget minim
+        - generic [ref=e74]:
+          - img [ref=e76]
+          - generic [ref=e78]: 21.600 RON
+          - generic [ref=e79]: Buget maxim
+        - generic [ref=e80]:
+          - img [ref=e82]
+          - generic [ref=e84]: "8"
+          - generic [ref=e85]: Componente verificate
+        - generic [ref=e86]:
+          - img [ref=e88]
+          - generic [ref=e90]: "11"
+          - generic [ref=e91]: Reguli compatibilitate
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - generic [ref=e94]:
+            - img [ref=e96]
+            - heading "Preferintele tale" [level=2] [ref=e98]
+          - generic [ref=e99]:
+            - generic [ref=e100]: BUGET (RON)
+            - spinbutton [ref=e101]: "3000"
+            - generic [ref=e211]:
+              - generic [ref=e212]: 2.080 RON
+              - generic [ref=e213]: 21.600 RON
+            - generic [ref=e102]:
+              - generic [ref=e103]: "Pret minim config. completa:"
+              - generic [ref=e104]: 2.080 RON
+          - generic [ref=e105]:
+            - generic [ref=e106]: UTILIZARE
+            - generic [ref=e107]:
+              - button "Gaming Focusat pe GPU puternic pentru FPS maxim. CPU rapid, RAM 16-32GB DDR5. Ideal pentru 1080p, 1440p sau 4K. GPU puternic CPU rapid RAM 16-32GB" [ref=e108] [cursor=pointer]:
+                - generic [ref=e109]: Gaming
+                - generic [ref=e110]: Focusat pe GPU puternic pentru FPS maxim. CPU rapid, RAM 16-32GB DDR5. Ideal pentru 1080p, 1440p sau 4K.
+                - generic [ref=e111]:
+                  - generic [ref=e112]: GPU puternic
+                  - generic [ref=e113]: CPU rapid
+                  - generic [ref=e114]: RAM 16-32GB
+              - button "Editare video" [ref=e115] [cursor=pointer]:
+                - generic [ref=e116]: Editare video
+              - button "Office" [ref=e117] [cursor=pointer]:
+                - generic [ref=e118]: Office
+              - button "Productivitate" [ref=e119] [cursor=pointer]:
+                - generic [ref=e120]: Productivitate
+              - button "Streaming" [ref=e121] [cursor=pointer]:
+                - generic [ref=e122]: Streaming
+          - button "Genereaza configuratie" [ref=e123] [cursor=pointer]:
+            - img [ref=e214]
+            - text: Genereaza configuratie
+        - generic [ref=e126]:
+          - generic [ref=e216]:
+            - generic [ref=e217]:
+              - img [ref=e219]
+              - generic [ref=e221]:
+                - heading "Configuratie recomandata" [level=2] [ref=e222]
+                - paragraph [ref=e223]: Gaming · buget 3.000 RON
+            - generic [ref=e224]:
+              - img [ref=e225]
+              - text: 100% Compatibil
+          - generic [ref=e131]:
+            - generic [ref=e227]:
+              - img [ref=e229]
+              - generic [ref=e231]:
+                - generic [ref=e232]: Procesor
+                - generic [ref=e233]: Intel Core i5-12400F
+                - generic [ref=e234]: Intel
+              - generic [ref=e235]: 599.99 RON
+            - generic [ref=e236]:
+              - img [ref=e238]
+              - generic [ref=e240]:
+                - generic [ref=e241]: Placa de baza
+                - generic [ref=e242]: Gigabyte B560M DS3H
+                - generic [ref=e243]: Gigabyte
+              - generic [ref=e244]: 349.99 RON
+            - generic [ref=e245]:
+              - img [ref=e247]
+              - generic [ref=e249]:
+                - generic [ref=e250]: Memorie RAM
+                - generic [ref=e251]: Corsair Vengeance 32GB DDR4
+                - generic [ref=e252]: Corsair
+              - generic [ref=e253]: 329.99 RON
+            - generic [ref=e254]:
+              - img [ref=e256]
+              - generic [ref=e258]:
+                - generic [ref=e259]: Placa video
+                - generic [ref=e260]: NVIDIA GeForce GTX 1660 Super
+                - generic [ref=e261]: NVIDIA
+              - generic [ref=e262]: 799.99 RON
+            - generic [ref=e263]:
+              - img [ref=e265]
+              - generic [ref=e267]:
+                - generic [ref=e268]: Cooler
+                - generic [ref=e269]: Scythe Mugen 6
+                - generic [ref=e270]: Scythe
+              - generic [ref=e271]: 199.99 RON
+            - generic [ref=e272]:
+              - img [ref=e274]
+              - generic [ref=e276]:
+                - generic [ref=e277]: Sursa
+                - generic [ref=e278]: Seasonic S12III 500W
+                - generic [ref=e279]: Seasonic
+              - generic [ref=e280]: 249.99 RON
+            - generic [ref=e281]:
+              - img [ref=e283]
+              - generic [ref=e285]:
+                - generic [ref=e286]: Carcasa
+                - generic [ref=e287]: Deepcool CC560 V2
+                - generic [ref=e288]: DeepCool
+              - generic [ref=e289]: 299.99 RON
+            - generic [ref=e290]:
+              - img [ref=e292]
+              - generic [ref=e294]:
+                - generic [ref=e295]: Stocare
+                - generic [ref=e296]: Kingston A400 240GB SSD
+                - generic [ref=e297]: Kingston
+              - generic [ref=e298]: 159.99 RON
+          - generic [ref=e299]:
+            - generic [ref=e300]:
+              - generic [ref=e301]: Total
+              - generic [ref=e302]: 2989.92 RON
+            - generic [ref=e304]: "Ramas: 10.08 RON"
+            - button "Adauga toate în coș" [ref=e305] [cursor=pointer]:
+              - img [ref=e306]
+              - text: Adauga toate în coș
+            - paragraph [ref=e308]: Configuratie optimizata pentru gaming.
+  - contentinfo [ref=e144]:
+    - generic [ref=e145]:
+      - generic [ref=e146]:
+        - link "ALEX COMPUTERS" [ref=e147] [cursor=pointer]:
+          - /url: /
+          - img [ref=e149]
+          - generic [ref=e151]: ALEX COMPUTERS
+        - paragraph [ref=e152]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e153]:
+          - link "aa387@student.ugal.ro" [ref=e154] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e155]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e158] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e159]
+            - text: 0770 648 476
+      - generic [ref=e162]:
+        - heading "Navigare" [level=4] [ref=e163]
+        - list [ref=e164]:
+          - listitem [ref=e165]:
+            - link "Catalog Produse" [ref=e166] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e167]
+              - text: Catalog Produse
+          - listitem [ref=e169]:
+            - link "PC Builder" [ref=e170] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e171]
+              - text: PC Builder
+          - listitem [ref=e173]:
+            - link "Prebuilt PC" [ref=e174] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e175]
+              - text: Prebuilt PC
+          - listitem [ref=e177]:
+            - link "FAQ" [ref=e178] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e179]
+              - text: FAQ
+      - generic [ref=e181]:
+        - heading "Informații" [level=4] [ref=e182]
+        - list [ref=e183]:
+          - listitem [ref=e184]:
+            - link "Despre Noi" [ref=e185] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e186]
+              - text: Despre Noi
+          - listitem [ref=e188]:
+            - link "Contact" [ref=e189] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e190]
+              - text: Contact
+          - listitem [ref=e192]:
+            - button "Termeni și Condiții" [ref=e193] [cursor=pointer]:
+              - img [ref=e194]
+              - text: Termeni și Condiții
+          - listitem [ref=e196]:
+            - button "Politică Confidențialitate" [ref=e197] [cursor=pointer]:
+              - img [ref=e198]
+              - text: Politică Confidențialitate
+        - paragraph [ref=e200]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e202]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e204] [cursor=pointer]:
+    - img [ref=e205]
