@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, Boolean, DateTime, Integer, Numeric, Fore
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from pgvector.sqlalchemy import Vector
 import uuid
 from app.database import Base
 
@@ -34,6 +35,7 @@ class Product(Base):
     specs           = Column(JSONB, default={})
     warranty_months = Column(Integer, default=24)
     discount_expires_at = Column(Date, nullable=True)
+    embedding       = Column(Vector(3072), nullable=True)
     is_active       = Column(Boolean, default=True)
     is_featured     = Column(Boolean, default=False)
     views_count     = Column(Integer, default=0)

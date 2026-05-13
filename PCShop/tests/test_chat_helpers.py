@@ -5,7 +5,6 @@ from app.routers.chat import (
     _detect_category_slug,
     _extract_brand,
     _extract_spec_keywords,
-    _build_category_filters,
 )
 
 SLUGS = ["cpu", "gpu", "ram", "storage", "monitor", "motherboard", "psu", "case", "cooler"]
@@ -66,6 +65,3 @@ def test_specs_storage_nvme():
 def test_specs_no_match():
     assert _extract_spec_keywords("orice procesor", "cpu") == {}
 
-def test_build_category_filters_empty():
-    result = _build_category_filters(None, [])
-    assert result == {}

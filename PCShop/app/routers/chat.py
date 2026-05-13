@@ -7,7 +7,7 @@ import re
 
 from app.database import get_db
 from app.models.product import Product, Category
-import app.services.ollama_service as ollama_service
+from app.services.gemini_service import embed_query, generate_search_message
 
 router = APIRouter(prefix="/chat", tags=["Chat buget"])
 
@@ -537,17 +537,6 @@ def chat_message(req: ChatRequest, db: Session = Depends(get_db)):
 
 # ── ENDPOINT-URI CHAT GHIDAT ─────────────────────────────────
 
-@router.get("/ai-status")
-async def chat_ai_status():
-    """Verifică dacă Ollama este disponibil."""
-    import httpx
-    try:
-        async with httpx.AsyncClient(timeout=2.0) as client:
-            r = await client.get("http://localhost:11434/api/tags")
-            return {"available": r.status_code == 200}
-    except Exception:
-        return {"available": False}
-
 
 @router.get("/categories")
 def chat_get_categories(db: Session = Depends(get_db)):
@@ -683,33 +672,6 @@ def _extract_spec_keywords(message: str, slug: str) -> dict:
     return result
 
 
-def _build_category_filters(db, slugs: list) -> dict:
-    if db is None or not slugs:
-        return {}
-    result = {}
-    for slug in slugs:
-        products = get_products_by_slug(db, slug)
-        if not products:
-            continue
-        filters: dict = {}
-        brands = sorted({p.brand for p in products if p.brand})
-        if brands:
-            filters["brand"] = brands
-        spec_vals: dict = {}
-        for p in products:
-            for k, v in (p.specs or {}).items():
-                if k in SKIP_FILTER_KEYS:
-                    continue
-                if isinstance(v, (str, int, float)):
-                    spec_vals.setdefault(k, set()).add(v)
-        for k, vals in spec_vals.items():
-            sorted_vals = sorted(str(v) for v in vals)
-            if len(sorted_vals) > 1:
-                filters[k] = sorted_vals
-        if filters:
-            result[slug] = filters
-    return result
-
 
 class ChatSearchRequest(BaseModel):
     category_slug: str
@@ -763,65 +725,95 @@ def chat_search(req: ChatSearchRequest, db: Session = Depends(get_db)):
     return result
 
 
-class ChatDescribeRequest(BaseModel):
-    product_id: str
+
+class ChatSemanticRequest(BaseModel):
+    message: str
+    category_slug: Optional[str] = None
+    filters: dict = {}
+    max_price: Optional[float] = None
+    min_price: Optional[float] = None
+    limit: int = 8
 
 
-@router.post("/describe")
-async def chat_describe(req: ChatDescribeRequest, db: Session = Depends(get_db)):
-    from uuid import UUID
-    try:
-        pid = UUID(req.product_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="product_id invalid")
+@router.post("/semantic-search")
+async def chat_semantic_search(req: ChatSemanticRequest, db: Session = Depends(get_db)):
+    query_vector = await embed_query(req.message)
 
-    product = db.query(Product).filter(Product.id == pid).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Produs negasit")
-
-    description = await ollama_service.describe_product(
-        name=product.name,
-        specs=product.specs or {},
-        price=float(product.price),
+    base = db.query(Product).join(Category).filter(
+        Product.is_active == True,
+        Product.stock > 0,
+        Product.embedding.isnot(None),
     )
-    return {"description": description}
+
+    if req.category_slug:
+        base = base.filter(Category.slug == req.category_slug)
+    if req.max_price is not None:
+        base = base.filter(Product.price <= req.max_price)
+    if req.min_price is not None:
+        base = base.filter(Product.price >= req.min_price)
+
+    if req.filters.get("brand"):
+        brand_val = req.filters["brand"].lower()
+        base = base.filter(Product.brand.ilike(f"%{brand_val}%"))
+
+    if query_vector is not None:
+        products = base.order_by(
+            Product.embedding.cosine_distance(query_vector)
+        ).limit(req.limit).all()
+    else:
+        products = base.order_by(Product.price).limit(req.limit).all()
+
+    result = []
+    for p in products:
+        old = float(p.old_price) if p.old_price else None
+        cur = float(p.price)
+        discount_pct = round((1 - cur / old) * 100) if old and old > cur else 0
+        result.append({
+            "id": str(p.id),
+            "name": p.name,
+            "brand": p.brand,
+            "price": cur,
+            "old_price": old,
+            "discount_percent": discount_pct,
+            "specs": p.specs,
+            "image": p.images[0].url if p.images else None,
+            "category": p.category.name if p.category else None,
+            "category_slug": p.category.slug if p.category else None,
+        })
+
+    category_name = products[0].category.name if products else None
+    product_names = [p["name"] for p in result]
+    message = await generate_search_message(req.message, category_name, product_names)
+
+    return {"message": message, "results": result}
 
 
 class ChatExtractRequest(BaseModel):
     message: str
+    context_slug: Optional[str] = None
 
 
 @router.post("/extract-filters")
-async def chat_extract_filters(req: ChatExtractRequest, db: Session = Depends(get_db)):
+def chat_extract_filters(req: ChatExtractRequest, db: Session = Depends(get_db)):
     categories = db.query(Category).all()
     slugs = [c.slug for c in categories]
 
-    # ── Strat 1: Python (întotdeauna) ────────────────────────────
     price_data = _extract_price(req.message)
     slug = _detect_category_slug(req.message, slugs)
+    effective_slug = slug or req.context_slug
 
-    python_filters: dict = {}
-    if slug:
-        products = get_products_by_slug(db, slug)
+    filters: dict = {}
+    if effective_slug:
+        products = get_products_by_slug(db, effective_slug)
         brand = _extract_brand(req.message, products)
         if brand:
-            python_filters["brand"] = brand
-        python_filters.update(_extract_spec_keywords(req.message, slug))
+            filters["brand"] = brand
+        filters.update(_extract_spec_keywords(req.message, effective_slug))
 
-    # ── Strat 2: Ollama (opțional) ───────────────────────────────
-    if slug:
-        cat_filters = _build_category_filters(db, [slug])
-        ollama_result = await ollama_service.extract_filters(req.message, [slug], cat_filters) or {}
-    else:
-        cat_filters = _build_category_filters(db, slugs)
-        ollama_result = await ollama_service.extract_filters(req.message, slugs, cat_filters) or {}
-        slug = slug or ollama_result.get("category_slug")
-
-    # ── Strat 3: Merge (Python câștigă pe brand/preț/specs) ──────
-    merged: dict = dict(ollama_result.get("filters", {}))
-    merged.update(python_filters)  # Python suprascriem Ollama
-
-    if not slug:
+    if not slug and not req.context_slug:
         return {**price_data} if price_data else {}
 
-    return {"category_slug": slug, "filters": merged, **price_data}
+    result = {"filters": filters, **price_data}
+    if slug:
+        result["category_slug"] = slug
+    return result
