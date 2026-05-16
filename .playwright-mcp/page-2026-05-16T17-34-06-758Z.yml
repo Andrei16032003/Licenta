@@ -1,0 +1,220 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "ALEX COMPUTERS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e9]
+        - generic [ref=e11]: ALEX COMPUTERS
+      - generic [ref=e13]:
+        - textbox "Caută produse, categorii..." [ref=e14]
+        - button [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+      - generic [ref=e18]:
+        - button "T Salut, Test Contul meu" [ref=e20] [cursor=pointer]:
+          - generic [ref=e22]: T
+          - generic [ref=e23]:
+            - generic [ref=e24]: Salut, Test
+            - generic [ref=e25]: Contul meu
+          - img [ref=e26]
+        - link "Lista ta Favorite" [ref=e30] [cursor=pointer]:
+          - /url: /wishlist
+          - button "Lista ta Favorite" [ref=e31]:
+            - img [ref=e33]
+            - generic [ref=e35]:
+              - generic [ref=e36]: Lista ta
+              - generic [ref=e37]: Favorite
+        - link "1 1 produs Coșul meu" [ref=e39] [cursor=pointer]:
+          - /url: /cart
+          - button "1 1 produs Coșul meu" [ref=e40]:
+            - generic [ref=e41]:
+              - img [ref=e42]
+              - generic [ref=e44]: "1"
+            - generic [ref=e45]:
+              - generic [ref=e46]: 1 produs
+              - generic [ref=e47]: Coșul meu
+    - generic [ref=e49]:
+      - link "Acasă" [ref=e50] [cursor=pointer]:
+        - /url: /
+      - link "Catalog" [ref=e51] [cursor=pointer]:
+        - /url: /catalog
+      - link "PC Builder" [ref=e52] [cursor=pointer]:
+        - /url: /builder
+      - link "Prebuilt PC" [ref=e53] [cursor=pointer]:
+        - /url: /chat
+      - link "Promoții" [ref=e54] [cursor=pointer]:
+        - /url: /promotii
+      - link "FAQ" [ref=e55] [cursor=pointer]:
+        - /url: /faq
+        - text: FAQ
+      - link "Despre noi" [ref=e57] [cursor=pointer]:
+        - /url: /despre-noi
+      - link "Contact" [ref=e58] [cursor=pointer]:
+        - /url: /contact
+  - main [ref=e59]:
+    - generic [ref=e60]:
+      - generic [ref=e61]:
+        - img [ref=e63]
+        - heading "Întrebări Frecvente" [level=1] [ref=e65]
+        - paragraph [ref=e66]: Răspunsuri la cele mai comune întrebări despre platforma și serviciile noastre.
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - img [ref=e70]
+          - generic [ref=e72]: "15"
+          - generic [ref=e73]: Intrebari
+        - generic [ref=e74]:
+          - img [ref=e76]
+          - generic [ref=e78]: 24/7
+          - generic [ref=e79]: Suport online
+        - generic [ref=e80]:
+          - img [ref=e82]
+          - generic [ref=e84]: 1–3
+          - generic [ref=e85]: Zile livrare
+        - generic [ref=e86]:
+          - img [ref=e88]
+          - generic [ref=e90]: "14"
+          - generic [ref=e91]: Zile retur
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - button "Comenzi Cum plasez o comandă?" [ref=e95] [cursor=pointer]:
+            - generic [ref=e96]: Comenzi
+            - generic [ref=e97]: Cum plasez o comandă?
+            - img [ref=e98]
+          - button "Plăți Care sunt metodele de plată acceptate?" [ref=e101] [cursor=pointer]:
+            - generic [ref=e102]: Plăți
+            - generic [ref=e103]: Care sunt metodele de plată acceptate?
+            - img [ref=e104]
+          - button "Plăți Pot plăti în rate?" [ref=e107] [cursor=pointer]:
+            - generic [ref=e108]: Plăți
+            - generic [ref=e109]: Pot plăti în rate?
+            - img [ref=e110]
+          - button "Comenzi Pot modifica sau anula o comandă după plasare?" [ref=e113] [cursor=pointer]:
+            - generic [ref=e114]: Comenzi
+            - generic [ref=e115]: Pot modifica sau anula o comandă după plasare?
+            - img [ref=e116]
+          - button "Livrare Cât durează livrarea?" [ref=e119] [cursor=pointer]:
+            - generic [ref=e120]: Livrare
+            - generic [ref=e121]: Cât durează livrarea?
+            - img [ref=e122]
+          - button "Livrare Cât costă livrarea?" [ref=e125] [cursor=pointer]:
+            - generic [ref=e126]: Livrare
+            - generic [ref=e127]: Cât costă livrarea?
+            - img [ref=e128]
+          - button "Livrare Cum urmăresc coletul meu?" [ref=e131] [cursor=pointer]:
+            - generic [ref=e132]: Livrare
+            - generic [ref=e133]: Cum urmăresc coletul meu?
+            - img [ref=e134]
+          - button "Retururi Pot returna un produs?" [ref=e137] [cursor=pointer]:
+            - generic [ref=e138]: Retururi
+            - generic [ref=e139]: Pot returna un produs?
+            - img [ref=e140]
+        - generic [ref=e142]:
+          - button "Retururi Cum inițiez un retur?" [ref=e144] [cursor=pointer]:
+            - generic [ref=e145]: Retururi
+            - generic [ref=e146]: Cum inițiez un retur?
+            - img [ref=e147]
+          - button "Garanție Oferiți garanție pentru produsele vândute?" [ref=e150] [cursor=pointer]:
+            - generic [ref=e151]: Garanție
+            - generic [ref=e152]: Oferiți garanție pentru produsele vândute?
+            - img [ref=e153]
+          - button "Garanție Ce fac dacă produsul primit este defect?" [ref=e156] [cursor=pointer]:
+            - generic [ref=e157]: Garanție
+            - generic [ref=e158]: Ce fac dacă produsul primit este defect?
+            - img [ref=e159]
+          - button "Cont Trebuie să am cont pentru a cumpăra?" [ref=e162] [cursor=pointer]:
+            - generic [ref=e163]: Cont
+            - generic [ref=e164]: Trebuie să am cont pentru a cumpăra?
+            - img [ref=e165]
+          - button "Cont Mi-am uitat parola. Ce fac?" [ref=e168] [cursor=pointer]:
+            - generic [ref=e169]: Cont
+            - generic [ref=e170]: Mi-am uitat parola. Ce fac?
+            - img [ref=e171]
+          - button "PC Builder Cum verifică sistemul compatibilitatea componentelor?" [ref=e174] [cursor=pointer]:
+            - generic [ref=e175]: PC Builder
+            - generic [ref=e176]: Cum verifică sistemul compatibilitatea componentelor?
+            - img [ref=e177]
+          - button "PC Builder Pot adăuga o configurație din PC Builder direct în coș?" [ref=e180] [cursor=pointer]:
+            - generic [ref=e181]: PC Builder
+            - generic [ref=e182]: Pot adăuga o configurație din PC Builder direct în coș?
+            - img [ref=e183]
+      - generic [ref=e185]:
+        - generic [ref=e186]:
+          - img [ref=e187]
+          - heading "PC Builder inteligent" [level=3] [ref=e190]
+          - paragraph [ref=e191]: Verificare automată a compatibilității pentru toate cele 8 componente — socket, RAM, alimentare, formfactor.
+        - generic [ref=e192]:
+          - img [ref=e193]
+          - heading "Asistent AI" [level=3] [ref=e196]
+          - paragraph [ref=e197]: Introdu bugetul și tipul de utilizare — sistemul îți recomandă instant configurația optimă.
+        - generic [ref=e198]:
+          - img [ref=e199]
+          - heading "Nu ai găsit răspunsul?" [level=3] [ref=e202]
+          - paragraph [ref=e203]: Echipa noastră îți răspunde în cel mult 24h.
+          - link "Contactează-ne →" [ref=e204] [cursor=pointer]:
+            - /url: /contact
+  - contentinfo [ref=e205]:
+    - generic [ref=e206]:
+      - generic [ref=e207]:
+        - link "ALEX COMPUTERS" [ref=e208] [cursor=pointer]:
+          - /url: /
+          - img [ref=e210]
+          - generic [ref=e212]: ALEX COMPUTERS
+        - paragraph [ref=e213]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e214]:
+          - link "aa387@student.ugal.ro" [ref=e215] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e216]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e219] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e220]
+            - text: 0770 648 476
+      - generic [ref=e223]:
+        - heading "Navigare" [level=4] [ref=e224]
+        - list [ref=e225]:
+          - listitem [ref=e226]:
+            - link "Catalog Produse" [ref=e227] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e228]
+              - text: Catalog Produse
+          - listitem [ref=e230]:
+            - link "PC Builder" [ref=e231] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e232]
+              - text: PC Builder
+          - listitem [ref=e234]:
+            - link "Prebuilt PC" [ref=e235] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e236]
+              - text: Prebuilt PC
+          - listitem [ref=e238]:
+            - link "FAQ" [ref=e239] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e240]
+              - text: FAQ
+      - generic [ref=e242]:
+        - heading "Informații" [level=4] [ref=e243]
+        - list [ref=e244]:
+          - listitem [ref=e245]:
+            - link "Despre Noi" [ref=e246] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e247]
+              - text: Despre Noi
+          - listitem [ref=e249]:
+            - link "Contact" [ref=e250] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e251]
+              - text: Contact
+          - listitem [ref=e253]:
+            - button "Termeni și Condiții" [ref=e254] [cursor=pointer]:
+              - img [ref=e255]
+              - text: Termeni și Condiții
+          - listitem [ref=e257]:
+            - button "Politică Confidențialitate" [ref=e258] [cursor=pointer]:
+              - img [ref=e259]
+              - text: Politică Confidențialitate
+        - paragraph [ref=e261]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e263]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e265] [cursor=pointer]:
+    - img [ref=e266]

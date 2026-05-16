@@ -10,7 +10,7 @@ from app.config import SECRET_KEY, ALGORITHM
 bearer_scheme = HTTPBearer()
 
 # Roluri cu acces la panoul de administrare
-STAFF_ROLES = {"admin", "manager", "achizitii", "marketing", "suport"}
+STAFF_ROLES = {"admin", "manager", "achizitii", "marketing", "suport", "garantii_service"}
 
 # Extrage token-ul JWT din header Authorization si returneaza utilizatorul activ din DB
 def get_current_user(

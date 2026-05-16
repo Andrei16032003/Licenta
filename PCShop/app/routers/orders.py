@@ -13,7 +13,7 @@ from app.models.product import Product
 from app.models.user_profile import UserAddress
 from app.models.voucher import Voucher
 from app.dependencies import require_role
-_require_orders = require_role("admin", "suport", "manager")
+_require_orders = require_role("admin", "suport", "manager", "garantii_service")
 from app.models.user import User
 from app.config import STRIPE_SECRET_KEY
 from app.notifications import notify_order_placed, notify_order_status

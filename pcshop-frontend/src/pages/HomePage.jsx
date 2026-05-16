@@ -456,22 +456,22 @@ export default function HomePage() {
             </span>
           </div>
         </Link>
-        <Link to="/chat" className="no-underline">
+        <Link to="/builder" className="no-underline">
           <div className="rounded-[18px] p-8 h-full transition-all duration-200 hover:-translate-y-1 cursor-pointer"
                style={{ background: 'linear-gradient(135deg, #1A0D3E 0%, #2A1A5E 100%)', border: '1px solid rgba(167,139,250,0.25)' }}
                onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 12px 40px rgba(167,139,250,0.2)'; e.currentTarget.style.borderColor = 'rgba(167,139,250,0.5)' }}
                onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = 'rgba(167,139,250,0.25)' }}>
             <div className="w-[54px] h-[54px] rounded-xl flex items-center justify-center mb-4"
                  style={{ background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.35)' }}>
-              <Robot size={26} weight="duotone" className="text-violet" />
+              <Cpu size={26} weight="duotone" className="text-violet" />
             </div>
-            <div className="text-violet font-extrabold text-[19px] mb-2">Asistent AI</div>
+            <div className="text-violet font-extrabold text-[19px] mb-2">PC Builder</div>
             <div className="text-secondary text-sm leading-relaxed mb-[18px]">
-              Spune-ne bugetul și scopul și îți recomandăm configurația perfectă pentru tine.
+              Alege componentele și configurează-ți PC-ul ideal cu filtrare automată de compatibilitate.
             </div>
             <span className="inline-flex items-center gap-1.5 text-primary text-sm font-bold px-[18px] py-2 rounded-lg"
                   style={{ background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.4)' }}>
-              Încearcă acum →
+              Configurează acum →
             </span>
           </div>
         </Link>

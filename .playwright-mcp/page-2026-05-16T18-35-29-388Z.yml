@@ -1,0 +1,494 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "ALEX COMPUTERS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e9]
+        - generic [ref=e11]: ALEX COMPUTERS
+      - generic [ref=e13]:
+        - textbox "Caută produse, categorii..." [ref=e14]
+        - button [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+      - generic [ref=e18]:
+        - button "T Salut, Test Contul meu" [ref=e20] [cursor=pointer]:
+          - generic [ref=e22]: T
+          - generic [ref=e23]:
+            - generic [ref=e24]: Salut, Test
+            - generic [ref=e25]: Contul meu
+          - img [ref=e26]
+        - link "4 4 produse Favorite" [ref=e30] [cursor=pointer]:
+          - /url: /wishlist
+          - button "4 4 produse Favorite" [ref=e31]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e35]: "4"
+            - generic [ref=e36]:
+              - generic [ref=e37]: 4 produse
+              - generic [ref=e38]: Favorite
+        - link "2 2 produse Coșul meu" [ref=e40] [cursor=pointer]:
+          - /url: /cart
+          - button "2 2 produse Coșul meu" [ref=e41]:
+            - generic [ref=e42]:
+              - img [ref=e43]
+              - generic [ref=e45]: "2"
+            - generic [ref=e46]:
+              - generic [ref=e47]: 2 produse
+              - generic [ref=e48]: Coșul meu
+    - generic [ref=e50]:
+      - link "Acasă" [ref=e51] [cursor=pointer]:
+        - /url: /
+      - link "Catalog" [ref=e52] [cursor=pointer]:
+        - /url: /catalog
+      - link "PC Builder" [ref=e53] [cursor=pointer]:
+        - /url: /builder
+      - link "Prebuilt PC" [ref=e54] [cursor=pointer]:
+        - /url: /chat
+      - link "Promoții" [ref=e55] [cursor=pointer]:
+        - /url: /promotii
+      - link "FAQ" [ref=e56] [cursor=pointer]:
+        - /url: /faq
+      - link "Despre noi" [ref=e57] [cursor=pointer]:
+        - /url: /despre-noi
+      - link "Contact" [ref=e58] [cursor=pointer]:
+        - /url: /contact
+  - main [ref=e59]:
+    - generic [ref=e344]:
+      - generic [ref=e345]:
+        - heading "Comenzile mele" [level=1] [ref=e346]:
+          - img [ref=e347]
+          - text: Comenzile mele
+        - button "Comandă nouă" [ref=e349] [cursor=pointer]:
+          - img [ref=e350]
+          - text: Comandă nouă
+      - generic [ref=e352]:
+        - text: "Comandă plasată! Total:"
+        - strong [ref=e353]: 1154.98 RON
+        - generic [ref=e354]: "ID: #29BBECD3"
+      - generic [ref=e355]:
+        - generic [ref=e357] [cursor=pointer]:
+          - generic [ref=e358]:
+            - generic [ref=e359]:
+              - paragraph [ref=e360]: "Comanda #29BBECD3"
+              - paragraph [ref=e361]:
+                - text: 16 mai 2026
+                - generic [ref=e362]: • FC-2026-0179
+            - generic [ref=e363]: În așteptare
+          - generic [ref=e364]:
+            - generic [ref=e365]:
+              - generic [ref=e366]: 2 produse
+              - generic [ref=e367]: Ramburs
+              - button "Factură" [ref=e368]:
+                - img [ref=e369]
+                - text: Factură
+            - generic [ref=e371]:
+              - generic [ref=e372]: 1154.98 RON
+              - img [ref=e373]
+        - generic [ref=e377] [cursor=pointer]:
+          - generic [ref=e378]:
+            - generic [ref=e379]:
+              - paragraph [ref=e380]: "Comanda #80F70ED0"
+              - paragraph [ref=e381]:
+                - text: 18 aprilie 2026
+                - generic [ref=e382]: • FC-2026-0177
+            - generic [ref=e383]: Confirmat
+          - generic [ref=e384]:
+            - generic [ref=e385]:
+              - generic [ref=e386]: 1 produs
+              - generic [ref=e387]: Plătit
+              - button "Factură" [ref=e388]:
+                - img [ref=e389]
+                - text: Factură
+            - generic [ref=e391]:
+              - generic [ref=e392]: 1199.99 RON
+              - img [ref=e393]
+        - generic [ref=e396] [cursor=pointer]:
+          - generic [ref=e397]:
+            - generic [ref=e398]:
+              - paragraph [ref=e399]: "Comanda #9A6A916B"
+              - paragraph [ref=e400]:
+                - text: 14 aprilie 2026
+                - generic [ref=e401]: • FC-2026-0176
+            - generic [ref=e402]: Confirmat
+          - generic [ref=e403]:
+            - generic [ref=e404]:
+              - generic [ref=e405]: 1 produs
+              - generic [ref=e406]: Plătit
+              - button "Factură" [ref=e407]:
+                - img [ref=e408]
+                - text: Factură
+            - generic [ref=e410]:
+              - generic [ref=e411]: 1199.99 RON
+              - img [ref=e412]
+        - generic [ref=e415] [cursor=pointer]:
+          - generic [ref=e416]:
+            - generic [ref=e417]:
+              - paragraph [ref=e418]: "Comanda #7BF82DBA"
+              - paragraph [ref=e419]:
+                - text: 11 aprilie 2026
+                - generic [ref=e420]: • FC-2026-0175
+            - generic [ref=e421]: Confirmat
+          - generic [ref=e422]:
+            - generic [ref=e423]:
+              - generic [ref=e424]: 1 produs
+              - generic [ref=e425]: Plătit
+              - button "Factură" [ref=e426]:
+                - img [ref=e427]
+                - text: Factură
+            - generic [ref=e429]:
+              - generic [ref=e430]: 1199.99 RON
+              - img [ref=e431]
+        - generic [ref=e434] [cursor=pointer]:
+          - generic [ref=e435]:
+            - generic [ref=e436]:
+              - paragraph [ref=e437]: "Comanda #BDE1786A"
+              - paragraph [ref=e438]:
+                - text: 4 aprilie 2026
+                - generic [ref=e439]: • FC-2026-0024
+            - generic [ref=e440]: În așteptare
+          - generic [ref=e441]:
+            - generic [ref=e442]:
+              - generic [ref=e443]: 11 produse
+              - generic [ref=e444]: Ramburs
+              - button "Factură" [ref=e445]:
+                - img [ref=e446]
+                - text: Factură
+            - generic [ref=e448]:
+              - generic [ref=e449]: 13294.88 RON
+              - img [ref=e450]
+        - generic [ref=e453] [cursor=pointer]:
+          - generic [ref=e454]:
+            - generic [ref=e455]:
+              - paragraph [ref=e456]: "Comanda #63B3E8A3"
+              - paragraph [ref=e457]:
+                - text: 2 aprilie 2026
+                - generic [ref=e458]: • FP-2026-0023
+            - generic [ref=e459]: În așteptare
+          - generic [ref=e460]:
+            - generic [ref=e461]:
+              - generic [ref=e462]: 2 produse
+              - generic [ref=e463]: Transfer
+              - button "Factură" [ref=e464]:
+                - img [ref=e465]
+                - text: Factură
+            - generic [ref=e467]:
+              - generic [ref=e468]: 4149.92 RON
+              - img [ref=e469]
+        - generic [ref=e472] [cursor=pointer]:
+          - generic [ref=e473]:
+            - generic [ref=e474]:
+              - paragraph [ref=e475]: "Comanda #A3BA632E"
+              - paragraph [ref=e476]:
+                - text: 26 martie 2026
+                - generic [ref=e477]: • FC-2026-0022
+            - generic [ref=e478]: Anulat
+          - generic [ref=e479]:
+            - generic [ref=e480]:
+              - generic [ref=e481]: 1 produs
+              - generic [ref=e482]: Ramburs
+              - button "Factură" [ref=e483]:
+                - img [ref=e484]
+                - text: Factură
+            - generic [ref=e486]:
+              - generic [ref=e487]: 3804.99 RON
+              - img [ref=e488]
+        - generic [ref=e491] [cursor=pointer]:
+          - generic [ref=e492]:
+            - generic [ref=e493]:
+              - paragraph [ref=e494]: "Comanda #75481BE4"
+              - paragraph [ref=e495]:
+                - text: 26 martie 2026
+                - generic [ref=e496]: • FC-2026-0021
+            - generic [ref=e497]: Anulat
+          - generic [ref=e498]:
+            - generic [ref=e499]:
+              - generic [ref=e500]: 1 produs
+              - generic [ref=e501]: Ramburs
+              - button "Factură" [ref=e502]:
+                - img [ref=e503]
+                - text: Factură
+            - generic [ref=e505]:
+              - generic [ref=e506]: 3504.99 RON
+              - img [ref=e507]
+        - generic [ref=e510] [cursor=pointer]:
+          - generic [ref=e511]:
+            - generic [ref=e512]:
+              - paragraph [ref=e513]: "Comanda #3511E132"
+              - paragraph [ref=e514]:
+                - text: 24 martie 2026
+                - generic [ref=e515]: • FC-2026-0020
+            - generic [ref=e516]: În așteptare
+          - generic [ref=e517]:
+            - generic [ref=e518]:
+              - generic [ref=e519]: 1 produs
+              - generic [ref=e520]: Ramburs
+              - button "Factură" [ref=e521]:
+                - img [ref=e522]
+                - text: Factură
+            - generic [ref=e524]:
+              - generic [ref=e525]: 334.99 RON
+              - img [ref=e526]
+        - generic [ref=e529] [cursor=pointer]:
+          - generic [ref=e530]:
+            - generic [ref=e531]:
+              - paragraph [ref=e532]: "Comanda #C267895E"
+              - paragraph [ref=e533]:
+                - text: 24 martie 2026
+                - generic [ref=e534]: • FP-2026-0019
+            - generic [ref=e535]: În așteptare
+          - generic [ref=e536]:
+            - generic [ref=e537]:
+              - generic [ref=e538]: 1 produs
+              - generic [ref=e539]: Transfer
+              - button "Factură" [ref=e540]:
+                - img [ref=e541]
+                - text: Factură
+            - generic [ref=e543]:
+              - generic [ref=e544]: 404.99 RON
+              - img [ref=e545]
+        - generic [ref=e548] [cursor=pointer]:
+          - generic [ref=e549]:
+            - generic [ref=e550]:
+              - paragraph [ref=e551]: "Comanda #EEA51CC4"
+              - paragraph [ref=e552]:
+                - text: 24 martie 2026
+                - generic [ref=e553]: • FC-2026-0018
+            - generic [ref=e554]: În așteptare
+          - generic [ref=e555]:
+            - generic [ref=e556]:
+              - generic [ref=e557]: 1 produs
+              - generic [ref=e558]: Plată card
+              - button "Factură" [ref=e559]:
+                - img [ref=e560]
+                - text: Factură
+            - generic [ref=e562]:
+              - generic [ref=e563]: 404.99 RON
+              - img [ref=e564]
+        - generic [ref=e567] [cursor=pointer]:
+          - generic [ref=e568]:
+            - generic [ref=e569]:
+              - paragraph [ref=e570]: "Comanda #6F2896E7"
+              - paragraph [ref=e571]:
+                - text: 22 martie 2026
+                - generic [ref=e572]: • FC-2026-0017
+            - generic [ref=e573]: Livrat
+          - generic [ref=e574]:
+            - generic [ref=e575]:
+              - generic [ref=e576]: 5 produse
+              - generic [ref=e577]: Plătit
+              - button "Factură" [ref=e578]:
+                - img [ref=e579]
+                - text: Factură
+            - generic [ref=e581]:
+              - generic [ref=e582]: 7099.95 RON
+              - img [ref=e583]
+        - generic [ref=e586] [cursor=pointer]:
+          - generic [ref=e587]:
+            - generic [ref=e588]:
+              - paragraph [ref=e589]: "Comanda #BBEA312F"
+              - paragraph [ref=e590]:
+                - text: 22 martie 2026
+                - generic [ref=e591]: • FC-2026-0016
+            - generic [ref=e592]: Livrat
+          - generic [ref=e593]:
+            - generic [ref=e594]:
+              - generic [ref=e595]: 8 produse
+              - generic [ref=e596]: Ramburs
+              - button "Factură" [ref=e597]:
+                - img [ref=e598]
+                - text: Factură
+            - generic [ref=e600]:
+              - generic [ref=e601]: 4584.92 RON
+              - img [ref=e602]
+        - generic [ref=e605] [cursor=pointer]:
+          - generic [ref=e606]:
+            - generic [ref=e607]:
+              - paragraph [ref=e608]: "Comanda #B699854A"
+              - paragraph [ref=e609]:
+                - text: 22 martie 2026
+                - generic [ref=e610]: • FC-2026-0015
+            - generic [ref=e611]: Livrat
+          - generic [ref=e612]:
+            - generic [ref=e613]:
+              - generic [ref=e614]: 1 produs
+              - generic [ref=e615]: Ramburs
+              - button "Factură" [ref=e616]:
+                - img [ref=e617]
+                - text: Factură
+            - generic [ref=e619]:
+              - generic [ref=e620]: 89.99 RON
+              - img [ref=e621]
+        - generic [ref=e624] [cursor=pointer]:
+          - generic [ref=e625]:
+            - generic [ref=e626]:
+              - paragraph [ref=e627]: "Comanda #19044305"
+              - paragraph [ref=e628]:
+                - text: 22 martie 2026
+                - generic [ref=e629]: • FC-2026-0014
+            - generic [ref=e630]: Livrat
+          - generic [ref=e631]:
+            - generic [ref=e632]:
+              - generic [ref=e633]: 1 produs
+              - generic [ref=e634]: Plătit
+              - button "Factură" [ref=e635]:
+                - img [ref=e636]
+                - text: Factură
+            - generic [ref=e638]:
+              - generic [ref=e639]: 849.99 RON
+              - img [ref=e640]
+        - generic [ref=e643] [cursor=pointer]:
+          - generic [ref=e644]:
+            - generic [ref=e645]:
+              - paragraph [ref=e646]: "Comanda #B481F0E6"
+              - paragraph [ref=e647]:
+                - text: 21 martie 2026
+                - generic [ref=e648]: • FC-2026-0013
+            - generic [ref=e649]: Livrat
+          - generic [ref=e650]:
+            - generic [ref=e651]:
+              - generic [ref=e652]: 23 produse
+              - generic [ref=e653]: Ramburs
+              - button "Factură" [ref=e654]:
+                - img [ref=e655]
+                - text: Factură
+            - generic [ref=e657]:
+              - generic [ref=e658]: 12744.75 RON
+              - img [ref=e659]
+        - generic [ref=e662] [cursor=pointer]:
+          - generic [ref=e663]:
+            - generic [ref=e664]:
+              - paragraph [ref=e665]: "Comanda #D743A96D"
+              - paragraph [ref=e666]:
+                - text: 20 martie 2026
+                - generic [ref=e667]: • FC-2026-0012
+            - generic [ref=e668]: Anulat
+          - generic [ref=e669]:
+            - generic [ref=e670]:
+              - generic [ref=e671]: 10 produse
+              - generic [ref=e672]: Plătit
+              - button "Factură" [ref=e673]:
+                - img [ref=e674]
+                - text: Factură
+            - generic [ref=e676]:
+              - generic [ref=e677]: 21749.9 RON
+              - img [ref=e678]
+        - generic [ref=e681] [cursor=pointer]:
+          - generic [ref=e682]:
+            - generic [ref=e683]:
+              - paragraph [ref=e684]: "Comanda #EBB6C294"
+              - paragraph [ref=e685]:
+                - text: 19 martie 2026
+                - generic [ref=e686]: • FC-2026-0011
+            - generic [ref=e687]: Livrat
+          - generic [ref=e688]:
+            - generic [ref=e689]:
+              - generic [ref=e690]: 1 produs
+              - generic [ref=e691]: Plătit
+              - button "Factură" [ref=e692]:
+                - img [ref=e693]
+                - text: Factură
+            - generic [ref=e695]:
+              - generic [ref=e696]: 799.99 RON
+              - img [ref=e697]
+        - generic [ref=e700] [cursor=pointer]:
+          - generic [ref=e701]:
+            - generic [ref=e702]:
+              - paragraph [ref=e703]: "Comanda #631A306F"
+              - paragraph [ref=e704]:
+                - text: 19 martie 2026
+                - generic [ref=e705]: • FC-2026-0010
+            - generic [ref=e706]: Livrat
+          - generic [ref=e707]:
+            - generic [ref=e708]:
+              - generic [ref=e709]: 1 produs
+              - generic [ref=e710]: Plătit
+              - button "Factură" [ref=e711]:
+                - img [ref=e712]
+                - text: Factură
+            - generic [ref=e714]:
+              - generic [ref=e715]: 424.99 RON
+              - img [ref=e716]
+        - generic [ref=e719] [cursor=pointer]:
+          - generic [ref=e720]:
+            - generic [ref=e721]:
+              - paragraph [ref=e722]: "Comanda #25AAF91E"
+              - paragraph [ref=e723]:
+                - text: 19 martie 2026
+                - generic [ref=e724]: • FC-2026-0009
+            - generic [ref=e725]: Confirmat
+          - generic [ref=e726]:
+            - generic [ref=e727]:
+              - generic [ref=e728]: 1 produs
+              - generic [ref=e729]: Ramburs
+              - button "Factură" [ref=e730]:
+                - img [ref=e731]
+                - text: Factură
+            - generic [ref=e733]:
+              - generic [ref=e734]: 3304.99 RON
+              - img [ref=e735]
+  - contentinfo [ref=e167]:
+    - generic [ref=e168]:
+      - generic [ref=e169]:
+        - link "ALEX COMPUTERS" [ref=e170] [cursor=pointer]:
+          - /url: /
+          - img [ref=e172]
+          - generic [ref=e174]: ALEX COMPUTERS
+        - paragraph [ref=e175]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e176]:
+          - link "aa387@student.ugal.ro" [ref=e177] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e178]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e181] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e182]
+            - text: 0770 648 476
+      - generic [ref=e185]:
+        - heading "Navigare" [level=4] [ref=e186]
+        - list [ref=e187]:
+          - listitem [ref=e188]:
+            - link "Catalog Produse" [ref=e189] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e190]
+              - text: Catalog Produse
+          - listitem [ref=e192]:
+            - link "PC Builder" [ref=e193] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e194]
+              - text: PC Builder
+          - listitem [ref=e196]:
+            - link "Prebuilt PC" [ref=e197] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e198]
+              - text: Prebuilt PC
+          - listitem [ref=e200]:
+            - link "FAQ" [ref=e201] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e202]
+              - text: FAQ
+      - generic [ref=e204]:
+        - heading "Informații" [level=4] [ref=e205]
+        - list [ref=e206]:
+          - listitem [ref=e207]:
+            - link "Despre Noi" [ref=e208] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e209]
+              - text: Despre Noi
+          - listitem [ref=e211]:
+            - link "Contact" [ref=e212] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e213]
+              - text: Contact
+          - listitem [ref=e215]:
+            - button "Termeni și Condiții" [ref=e216] [cursor=pointer]:
+              - img [ref=e217]
+              - text: Termeni și Condiții
+          - listitem [ref=e219]:
+            - button "Politică Confidențialitate" [ref=e220] [cursor=pointer]:
+              - img [ref=e221]
+              - text: Politică Confidențialitate
+        - paragraph [ref=e223]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e225]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e227] [cursor=pointer]:
+    - img [ref=e228]

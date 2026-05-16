@@ -5,6 +5,7 @@ import {
   Package, Heart, ShieldCheck, ArrowCounterClockwise,
   Wrench, GearSix, MagnifyingGlass, Desktop,
   Tag, Question, Info, Phone, House, Storefront, Cpu, Robot,
+  List, X as XIcon,
 } from '@phosphor-icons/react'
 import useAuthStore from '../store/authStore'
 import useCartStore from '../store/cartStore'
@@ -27,6 +28,7 @@ export default function Navbar() {
   const [catalogCats, setCatalogCats]   = useState([])
   const [favOpen, setFavOpen]           = useState(false)
   const [favLoaded, setFavLoaded]       = useState(false)
+  const [mobileOpen, setMobileOpen]     = useState(false)
 
   const dropdownRef = useRef(null)
   const searchRef   = useRef(null)
@@ -85,7 +87,7 @@ export default function Navbar() {
       if (favRef.current      && !favRef.current.contains(e.target))      setFavOpen(false)
     }
     const onEsc = (e) => {
-      if (e.key === 'Escape') { setSearchOpen(false); setDropdownOpen(false) }
+      if (e.key === 'Escape') { setSearchOpen(false); setDropdownOpen(false); setMobileOpen(false) }
     }
     document.addEventListener('mousedown', handler)
     document.addEventListener('keydown', onEsc)
@@ -97,7 +99,7 @@ export default function Navbar() {
 
   /* ── Close dropdowns on route change ── */
   useEffect(() => {
-    setDropdownOpen(false); setSearchOpen(false); setFavOpen(false)
+    setDropdownOpen(false); setSearchOpen(false); setFavOpen(false); setMobileOpen(false)
   }, [location.pathname])
 
   const closeSearch = () => {
@@ -119,7 +121,7 @@ export default function Navbar() {
     { to: '/',           label: 'Acasă'       },
     { to: '/catalog',    label: 'Catalog'     },
     { to: '/builder',    label: 'PC Builder'  },
-    { to: '/chat',       label: 'Prebuilt PC' },
+    { to: '/prebuilt',   label: 'Prebuilt PC' },
     { to: '/promotii',   label: 'Promoții'    },
     { to: '/faq',        label: 'FAQ'         },
     { to: '/despre-noi', label: 'Despre noi'  },
@@ -151,7 +153,7 @@ export default function Navbar() {
 
       {/* ══ ROW 1 — Logo · Search · Actions ══ */}
       <div
-        className="flex items-center gap-4 px-8"
+        className="flex items-center gap-4 px-4 md:px-8"
         style={{
           height: '56px',
           background: 'rgba(7, 16, 28, 0.97)',
@@ -179,8 +181,8 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* SEARCH — grows to fill space */}
-        <div ref={searchRef} className="relative flex-1" style={{ maxWidth: '460px' }}>
+        {/* SEARCH — grows to fill space, hidden on mobile */}
+        <div ref={searchRef} className="relative flex-1 hidden sm:block" style={{ maxWidth: '460px' }}>
           <form
             onSubmit={handleSearch}
             className="flex items-center overflow-hidden"
@@ -299,8 +301,23 @@ export default function Navbar() {
         {/* SPACER */}
         <div style={{ flex: 1 }} />
 
-        {/* ── ACTION ITEMS ── */}
-        <div className="flex items-center" style={{ gap: '2px' }}>
+        {/* HAMBURGER — visible only on mobile */}
+        <button
+          className="sm:hidden ml-auto flex items-center justify-center"
+          onClick={() => setMobileOpen(o => !o)}
+          style={{
+            width: 36, height: 36, borderRadius: 8,
+            background: mobileOpen ? 'rgba(14,246,255,0.1)' : 'transparent',
+            border: `1px solid ${mobileOpen ? 'rgba(14,246,255,0.3)' : 'rgba(255,255,255,0.1)'}`,
+            color: mobileOpen ? '#0EF6FF' : '#8B9EBA',
+            cursor: 'pointer', transition: 'all 0.15s',
+          }}
+        >
+          {mobileOpen ? <XIcon size={18} weight="bold" /> : <List size={18} weight="bold" />}
+        </button>
+
+        {/* ── ACTION ITEMS — hidden on mobile ── */}
+        <div className="hidden sm:flex items-center" style={{ gap: '2px' }}>
 
           {/* Contul meu */}
           {isAuthenticated ? (
@@ -338,20 +355,20 @@ export default function Navbar() {
                   <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(14,246,255,0.04)' }}>
                     <p style={{ color: '#EEF2F7', fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 14, margin: 0 }}>{user?.name}</p>
                     <p style={{ color: '#3E5268', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '2px', margin: 0, marginTop: 2 }}>
-                      {{ admin: 'Administrator', manager: 'Manager', achizitii: 'Achizitii', marketing: 'Marketing', suport: 'Suport Clienti' }[user?.role] || 'Client'}
+                      {{ admin: 'Administrator', manager: 'Manager', achizitii: 'Achizitii', marketing: 'Marketing', suport: 'Suport Clienti', garantii_service: 'Garantii & Service' }[user?.role] || 'Client'}
                     </p>
                   </div>
                   <div style={{ padding: '6px 0' }}>
                     {dropItems.map(item => (
                       <DropItem key={item.to} {...item} navigate={navigate} isActive={isActive} />
                     ))}
-                    {['admin','manager','achizitii','marketing','suport'].includes(user?.role) && (
+                    {['admin','manager','achizitii','marketing','suport','garantii_service'].includes(user?.role) && (
                       <>
                         <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
                         <DropItem
                           to="/admin"
                           Icon={GearSix}
-                          label={{ admin: 'Panou Admin', manager: 'Panou Manager', achizitii: 'Panou Achizitii', marketing: 'Panou Marketing', suport: 'Panou Suport' }[user?.role]}
+                          label={{ admin: 'Panou Admin', manager: 'Panou Manager', achizitii: 'Panou Achizitii', marketing: 'Panou Marketing', suport: 'Panou Suport', garantii_service: 'Panou Garantii' }[user?.role]}
                           navigate={navigate} isActive={isActive} accent
                         />
                       </>
@@ -522,9 +539,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ══ ROW 2 — Navigation links ══ */}
+      {/* ══ ROW 2 — Navigation links (desktop) ══ */}
       <div
-        className="flex items-center justify-center"
+        className="hidden sm:flex items-center justify-center"
         style={{
           height: '36px',
           background: 'rgba(5, 9, 16, 0.97)',
@@ -533,14 +550,100 @@ export default function Navbar() {
         }}
       >
         <div className="flex items-center" style={{ gap: 2 }}>
-          {navLinks.map(({ to, label }) => {
-            const active = isActive(to)
-            return (
-              <NavLink key={to} to={to} label={label} active={active} />
-            )
-          })}
+          {navLinks.map(({ to, label }) => (
+            <NavLink key={to} to={to} label={label} active={isActive(to)} />
+          ))}
         </div>
       </div>
+
+      {/* ══ MOBILE MENU ══ */}
+      {mobileOpen && (
+        <div
+          className="sm:hidden"
+          style={{
+            background: 'rgba(5,9,16,0.99)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(14,246,255,0.08)',
+            padding: '8px 0 12px',
+          }}
+        >
+          {/* Search on mobile */}
+          <div style={{ padding: '8px 16px 4px' }}>
+            <form
+              onSubmit={handleSearch}
+              className="flex items-center overflow-hidden"
+              style={{
+                background: '#0B1726',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '10px',
+              }}
+            >
+              <input
+                value={searchVal}
+                onChange={e => setSearchVal(e.target.value)}
+                placeholder="Caută produse, categorii..."
+                style={{
+                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                  color: '#EEF2F7', fontSize: '13px', padding: '9px 14px',
+                  fontFamily: 'Outfit, sans-serif',
+                }}
+              />
+              <button type="submit" style={{ padding: '9px 14px', background: 'transparent', border: 'none', color: '#8B9EBA', cursor: 'pointer' }}>
+                <MagnifyingGlass size={15} />
+              </button>
+            </form>
+          </div>
+
+          {/* Nav links */}
+          {navLinks.map(({ to, label }) => (
+            <Link
+              key={to}
+              to={to}
+              style={{
+                display: 'block', padding: '10px 20px',
+                color: isActive(to) ? '#0EF6FF' : '#8B9EBA',
+                background: isActive(to) ? 'rgba(14,246,255,0.06)' : 'transparent',
+                textDecoration: 'none', fontSize: '14px', fontWeight: isActive(to) ? 600 : 400,
+                fontFamily: 'Outfit, sans-serif', transition: 'color 0.15s',
+              }}
+            >
+              {label}
+            </Link>
+          ))}
+
+          {/* Auth actions on mobile */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '8px 0 0', padding: '8px 16px 0' }}>
+            {isAuthenticated ? (
+              <>
+                <p style={{ color: '#EEF2F7', fontWeight: 700, fontSize: 14, padding: '6px 4px 2px', fontFamily: 'Syne, sans-serif', margin: 0 }}>{user?.name}</p>
+                <p style={{ color: '#3E5268', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '2px', padding: '0 4px 8px', margin: 0 }}>
+                  {{ admin: 'Administrator', manager: 'Manager', achizitii: 'Achizitii', marketing: 'Marketing', suport: 'Suport Clienti', garantii_service: 'Garantii & Service' }[user?.role] || 'Client'}
+                </p>
+                {dropItems.map(item => (
+                  <Link key={item.to} to={item.to} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 4px', color: '#8B9EBA', textDecoration: 'none', fontSize: 13, fontFamily: 'Outfit, sans-serif' }}>
+                    <item.Icon size={14} /> {item.label}
+                  </Link>
+                ))}
+                {['admin','manager','achizitii','marketing','suport','garantii_service'].includes(user?.role) && (
+                  <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 4px', color: '#FF8C00', textDecoration: 'none', fontSize: 13, fontFamily: 'Outfit, sans-serif' }}>
+                    <GearSix size={14} /> {{ admin: 'Panou Admin', manager: 'Panou Manager', achizitii: 'Panou Achizitii', marketing: 'Panou Marketing', suport: 'Panou Suport', garantii_service: 'Panou Garantii' }[user?.role]}
+                  </Link>
+                )}
+                <button
+                  onClick={() => { logout(); navigate('/') }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 4px', color: '#FF4757', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontFamily: 'Outfit, sans-serif', width: '100%', textAlign: 'left' }}
+                >
+                  <SignOut size={14} /> Deconectare
+                </button>
+              </>
+            ) : (
+              <Link to="/login" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 4px', color: '#0EF6FF', textDecoration: 'none', fontSize: 13, fontFamily: 'Outfit, sans-serif' }}>
+                <User size={14} /> Autentificare
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
     </nav>
   )

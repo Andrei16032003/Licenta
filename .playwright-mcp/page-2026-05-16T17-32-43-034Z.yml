@@ -1,0 +1,295 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "ALEX COMPUTERS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e9]
+        - generic [ref=e11]: ALEX COMPUTERS
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - textbox "Caută produse, categorii..." [active] [ref=e14]: RTX 4090
+          - button [ref=e15] [cursor=pointer]:
+            - img [ref=e16]
+        - generic [ref=e311]:
+          - paragraph [ref=e312]: Produse
+          - button "Corsair RM1000x 1000W Corsair RM1000x 1000W 849.99 RON" [ref=e313] [cursor=pointer]:
+            - img "Corsair RM1000x 1000W" [ref=e314]
+            - generic [ref=e315]:
+              - paragraph [ref=e316]: Corsair RM1000x 1000W
+              - paragraph [ref=e317]: 849.99 RON
+          - button "Corsair RM850x 850W Corsair RM850x 850W 649.99 RON" [ref=e318] [cursor=pointer]:
+            - img "Corsair RM850x 850W" [ref=e319]
+            - generic [ref=e320]:
+              - paragraph [ref=e321]: Corsair RM850x 850W
+              - paragraph [ref=e322]: 649.99 RON
+          - button "NVIDIA GeForce RTX 4090 NVIDIA GeForce RTX 4090 6999.99 RON" [ref=e323] [cursor=pointer]:
+            - img "NVIDIA GeForce RTX 4090" [ref=e324]
+            - generic [ref=e325]:
+              - paragraph [ref=e326]: NVIDIA GeForce RTX 4090
+              - paragraph [ref=e327]: 6999.99 RON
+          - button "Corsair RM1000x 1000W Corsair RM1000x 1000W 799.99 RON" [ref=e328] [cursor=pointer]:
+            - img "Corsair RM1000x 1000W" [ref=e329]
+            - generic [ref=e330]:
+              - paragraph [ref=e331]: Corsair RM1000x 1000W
+              - paragraph [ref=e332]: 799.99 RON
+          - button "Caută „RTX 4090\" în tot catalogul →" [ref=e334] [cursor=pointer]
+      - generic [ref=e18]:
+        - button "T Salut, Test Contul meu" [ref=e20] [cursor=pointer]:
+          - generic [ref=e22]: T
+          - generic [ref=e23]:
+            - generic [ref=e24]: Salut, Test
+            - generic [ref=e25]: Contul meu
+          - img [ref=e26]
+        - link "4 4 produse Favorite" [ref=e30] [cursor=pointer]:
+          - /url: /wishlist
+          - button "4 4 produse Favorite" [ref=e31]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e35]: "4"
+            - generic [ref=e36]:
+              - generic [ref=e37]: 4 produse
+              - generic [ref=e38]: Favorite
+        - link "1 1 produs Coșul meu" [ref=e303] [cursor=pointer]:
+          - /url: /cart
+          - button "1 1 produs Coșul meu" [ref=e304]:
+            - generic [ref=e42]:
+              - img [ref=e43]
+              - generic [ref=e305]: "1"
+            - generic [ref=e45]:
+              - generic [ref=e46]: 1 produs
+              - generic [ref=e47]: Coșul meu
+    - generic [ref=e49]:
+      - link "Acasă" [ref=e50] [cursor=pointer]:
+        - /url: /
+      - link "Catalog" [ref=e51] [cursor=pointer]:
+        - /url: /catalog
+      - link "PC Builder" [ref=e52] [cursor=pointer]:
+        - /url: /builder
+      - link "Prebuilt PC" [ref=e53] [cursor=pointer]:
+        - /url: /chat
+      - link "Promoții" [ref=e54] [cursor=pointer]:
+        - /url: /promotii
+      - link "FAQ" [ref=e55] [cursor=pointer]:
+        - /url: /faq
+      - link "Despre noi" [ref=e56] [cursor=pointer]:
+        - /url: /despre-noi
+      - link "Contact" [ref=e57] [cursor=pointer]:
+        - /url: /contact
+  - main [ref=e58]:
+    - generic [ref=e59]:
+      - generic [ref=e60]:
+        - button "Inapoi" [ref=e61] [cursor=pointer]:
+          - img [ref=e62]
+          - generic [ref=e64]: Inapoi
+        - img [ref=e65]
+        - link "Acasa" [ref=e67] [cursor=pointer]:
+          - /url: /
+        - img [ref=e68]
+        - link "Tastaturi" [ref=e70] [cursor=pointer]:
+          - /url: /?category=keyboard
+        - img [ref=e71]
+        - generic [ref=e73]: Logitech MX Keys Advanced
+      - generic [ref=e74]:
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - generic [ref=e77]:
+              - img "Logitech MX Keys Advanced" [ref=e78]
+              - generic [ref=e79]: "-19%"
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - img [ref=e83]
+                - generic [ref=e85]: Plata securizata
+              - generic [ref=e86]:
+                - img [ref=e88]
+                - generic [ref=e90]: Livrare 1-3 zile
+              - generic [ref=e91]:
+                - img [ref=e93]
+                - generic [ref=e95]: Retur 30 zile
+              - generic [ref=e96]:
+                - img [ref=e98]
+                - generic [ref=e100]: Garantie 24 luni
+          - generic [ref=e101]:
+            - generic [ref=e102]:
+              - generic [ref=e103]: Tastaturi
+              - generic [ref=e104]: Logitech
+            - heading "Logitech MX Keys Advanced" [level=1] [ref=e105]
+            - generic [ref=e106] [cursor=pointer]:
+              - generic [ref=e107]:
+                - img [ref=e108]
+                - img [ref=e110]
+                - img [ref=e112]
+                - img [ref=e114]
+                - img [ref=e116]
+              - generic [ref=e118]: —
+              - generic [ref=e119]: din 5
+              - generic [ref=e120]: ·
+              - generic [ref=e121]: Fii primul care recenzeaza
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - generic [ref=e124]: 649,99 RON
+                - generic [ref=e125]: 799,99 RON
+              - paragraph [ref=e126]: Economisesti 150 RON (19% reducere)
+              - paragraph [ref=e127]: Pret cu TVA inclus
+            - generic [ref=e128]:
+              - generic [ref=e130]: In stoc
+              - paragraph [ref=e131]: Livrat in 1-3 zile lucratoare
+            - generic [ref=e132]:
+              - button "Adauga in cos" [ref=e133] [cursor=pointer]:
+                - img [ref=e309]
+                - text: Adauga in cos
+              - button "Adauga la favorite" [ref=e136] [cursor=pointer]:
+                - img [ref=e137]
+              - button "Compara produse" [ref=e139] [cursor=pointer]:
+                - img [ref=e140]
+            - generic [ref=e142]:
+              - generic [ref=e143]:
+                - img [ref=e145]
+                - generic [ref=e147]: "Garantie:"
+                - generic [ref=e148]: 24 luni producator
+              - generic [ref=e149]:
+                - img [ref=e151]
+                - generic [ref=e153]: "Retur:"
+                - generic [ref=e154]: 30 de zile, fara intrebari
+              - generic [ref=e155]:
+                - img [ref=e157]
+                - generic [ref=e159]: "Livrare:"
+                - generic [ref=e160]: Gratuita peste 500 RON
+              - generic [ref=e161]:
+                - img [ref=e163]
+                - generic [ref=e165]: "Plata:"
+                - generic [ref=e166]: Card, transfer, ramburs
+        - generic [ref=e167]:
+          - generic [ref=e168]:
+            - button "Specificatii" [ref=e169] [cursor=pointer]:
+              - img [ref=e170]
+              - text: Specificatii
+            - button "Descriere" [ref=e172] [cursor=pointer]:
+              - img [ref=e173]
+              - text: Descriere
+            - button "Recenzii (0)" [ref=e175] [cursor=pointer]:
+              - img [ref=e176]
+              - text: Recenzii (0)
+            - button "Garantie & Retur" [ref=e178] [cursor=pointer]:
+              - img [ref=e179]
+              - text: Garantie & Retur
+          - generic [ref=e183]:
+            - generic [ref=e184]: Specificatii tehnice
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - generic [ref=e187]: rgb
+                - generic [ref=e188]: Nu
+              - generic [ref=e189]:
+                - generic [ref=e190]: size
+                - generic [ref=e191]: full
+              - generic [ref=e192]:
+                - generic [ref=e193]: Tip
+                - generic [ref=e194]: keyboard
+              - generic [ref=e195]:
+                - generic [ref=e196]: switches
+                - generic [ref=e197]: Scissor
+              - generic [ref=e198]:
+                - generic [ref=e199]: wireless
+                - generic [ref=e200]: Da
+              - generic [ref=e201]:
+                - generic [ref=e202]: actuation mm
+                - generic [ref=e203]: "1.8"
+      - generic [ref=e268]:
+        - generic [ref=e269]:
+          - img [ref=e271]
+          - heading "Produse similare" [level=2] [ref=e273]
+        - generic [ref=e274]:
+          - link "SteelSeries Apex 3 TKL SteelSeries SteelSeries Apex 3 TKL 229,99 RON" [ref=e275] [cursor=pointer]:
+            - /url: /product/1ad64c06-db50-4185-8bfc-1b4817bae4b9
+            - generic [ref=e276]:
+              - img "SteelSeries Apex 3 TKL" [ref=e278]
+              - paragraph [ref=e279]: SteelSeries
+              - paragraph [ref=e280]: SteelSeries Apex 3 TKL
+              - paragraph [ref=e281]: 229,99 RON
+          - link "Razer Huntsman Mini Razer Razer Huntsman Mini 499,99 RON" [ref=e282] [cursor=pointer]:
+            - /url: /product/e6599c54-0cfd-4430-9d9e-f167cfffa24e
+            - generic [ref=e283]:
+              - img "Razer Huntsman Mini" [ref=e285]
+              - paragraph [ref=e286]: Razer
+              - paragraph [ref=e287]: Razer Huntsman Mini
+              - paragraph [ref=e288]: 499,99 RON
+          - link "Logitech G Pro Mechanical TKL Logitech Logitech G Pro Mechanical TKL 549,99 RON" [ref=e289] [cursor=pointer]:
+            - /url: /product/2dd10564-633e-419a-8962-44c42ef65927
+            - generic [ref=e290]:
+              - img "Logitech G Pro Mechanical TKL" [ref=e292]
+              - paragraph [ref=e293]: Logitech
+              - paragraph [ref=e294]: Logitech G Pro Mechanical TKL
+              - paragraph [ref=e295]: 549,99 RON
+          - link "Logitech MK270 Wireless Combo Logitech Logitech MK270 Wireless Combo 119,99 RON" [ref=e296] [cursor=pointer]:
+            - /url: /product/0ee34adb-e0c9-4019-9a46-4b3ab04cf70f
+            - generic [ref=e297]:
+              - img "Logitech MK270 Wireless Combo" [ref=e299]
+              - paragraph [ref=e300]: Logitech
+              - paragraph [ref=e301]: Logitech MK270 Wireless Combo
+              - paragraph [ref=e302]: 119,99 RON
+  - contentinfo [ref=e204]:
+    - generic [ref=e205]:
+      - generic [ref=e206]:
+        - link "ALEX COMPUTERS" [ref=e207] [cursor=pointer]:
+          - /url: /
+          - img [ref=e209]
+          - generic [ref=e211]: ALEX COMPUTERS
+        - paragraph [ref=e212]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e213]:
+          - link "aa387@student.ugal.ro" [ref=e214] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e215]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e218] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e219]
+            - text: 0770 648 476
+      - generic [ref=e222]:
+        - heading "Navigare" [level=4] [ref=e223]
+        - list [ref=e224]:
+          - listitem [ref=e225]:
+            - link "Catalog Produse" [ref=e226] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e227]
+              - text: Catalog Produse
+          - listitem [ref=e229]:
+            - link "PC Builder" [ref=e230] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e231]
+              - text: PC Builder
+          - listitem [ref=e233]:
+            - link "Prebuilt PC" [ref=e234] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e235]
+              - text: Prebuilt PC
+          - listitem [ref=e237]:
+            - link "FAQ" [ref=e238] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e239]
+              - text: FAQ
+      - generic [ref=e241]:
+        - heading "Informații" [level=4] [ref=e242]
+        - list [ref=e243]:
+          - listitem [ref=e244]:
+            - link "Despre Noi" [ref=e245] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e246]
+              - text: Despre Noi
+          - listitem [ref=e248]:
+            - link "Contact" [ref=e249] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e250]
+              - text: Contact
+          - listitem [ref=e252]:
+            - button "Termeni și Condiții" [ref=e253] [cursor=pointer]:
+              - img [ref=e254]
+              - text: Termeni și Condiții
+          - listitem [ref=e256]:
+            - button "Politică Confidențialitate" [ref=e257] [cursor=pointer]:
+              - img [ref=e258]
+              - text: Politică Confidențialitate
+        - paragraph [ref=e260]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e262]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e264] [cursor=pointer]:
+    - img [ref=e265]

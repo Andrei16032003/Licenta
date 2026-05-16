@@ -9,7 +9,7 @@ from app.database import get_db
 from app.models.service import ServiceRequest
 from app.models.product import Product, ProductImage
 from app.dependencies import require_role
-_require_service = require_role("admin", "suport", "manager")
+_require_service = require_role("admin", "suport", "manager", "garantii_service")
 from app.models.user import User
 from app.notifications import notify_service_created, notify_service_status
 

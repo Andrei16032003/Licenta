@@ -6,7 +6,7 @@ import LegalModal from './LegalModal'
 const quickLinks = [
   { to: '/catalog', label: 'Catalog Produse' },
   { to: '/builder', label: 'PC Builder'      },
-  { to: '/chat',    label: 'Prebuilt PC'     },
+  { to: '/prebuilt', label: 'Prebuilt PC'     },
   { to: '/faq',     label: 'FAQ'             },
 ]
 

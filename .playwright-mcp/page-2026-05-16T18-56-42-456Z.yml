@@ -1,0 +1,289 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "ALEX COMPUTERS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e9]
+        - generic [ref=e11]: ALEX COMPUTERS
+      - generic [ref=e13]:
+        - textbox "Caută produse, categorii..." [ref=e14]
+        - button [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+      - generic [ref=e18]:
+        - button "T Salut, Test Contul meu" [ref=e20] [cursor=pointer]:
+          - generic [ref=e22]: T
+          - generic [ref=e23]:
+            - generic [ref=e24]: Salut, Test
+            - generic [ref=e25]: Contul meu
+          - img [ref=e26]
+        - link "4 4 produse Favorite" [ref=e30] [cursor=pointer]:
+          - /url: /wishlist
+          - button "4 4 produse Favorite" [ref=e31]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e35]: "4"
+            - generic [ref=e36]:
+              - generic [ref=e37]: 4 produse
+              - generic [ref=e38]: Favorite
+        - link "0 produse Coșul meu" [ref=e40] [cursor=pointer]:
+          - /url: /cart
+          - button "0 produse Coșul meu" [ref=e41]:
+            - img [ref=e43]
+            - generic [ref=e45]:
+              - generic [ref=e46]: 0 produse
+              - generic [ref=e47]: Coșul meu
+    - generic [ref=e49]:
+      - link "Acasă" [ref=e50] [cursor=pointer]:
+        - /url: /
+      - link "Catalog" [ref=e51] [cursor=pointer]:
+        - /url: /catalog
+      - link "PC Builder" [ref=e52] [cursor=pointer]:
+        - /url: /builder
+      - link "Prebuilt PC" [ref=e53] [cursor=pointer]:
+        - /url: /chat
+      - link "Promoții" [ref=e54] [cursor=pointer]:
+        - /url: /promotii
+      - link "FAQ" [ref=e55] [cursor=pointer]:
+        - /url: /faq
+      - link "Despre noi" [ref=e56] [cursor=pointer]:
+        - /url: /despre-noi
+      - link "Contact" [ref=e57] [cursor=pointer]:
+        - /url: /contact
+  - main [ref=e58]:
+    - generic [ref=e59]:
+      - complementary [ref=e126]:
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - generic [ref=e129]: PCShop
+            - generic [ref=e130]: ADMIN PANEL
+          - button [ref=e131] [cursor=pointer]:
+            - img [ref=e132]
+        - navigation [ref=e134]:
+          - generic [ref=e135]: GENERAL
+          - button "Dashboard" [ref=e136] [cursor=pointer]:
+            - img [ref=e137]
+            - generic [ref=e139]: Dashboard
+          - generic [ref=e140]: ECHIPA
+          - button "Gestionare echipa" [active] [ref=e141] [cursor=pointer]:
+            - img [ref=e142]
+            - generic [ref=e144]: Gestionare echipa
+        - generic [ref=e145]:
+          - generic [ref=e146]: A
+          - generic [ref=e147]:
+            - generic [ref=e148]: Test User
+            - generic [ref=e149]: ADMINISTRATOR
+      - main [ref=e150]:
+        - generic [ref=e210]:
+          - generic [ref=e211]:
+            - generic [ref=e212]:
+              - heading "Gestionare Echipa" [level=2] [ref=e213]:
+                - img [ref=e214]
+                - text: Gestionare Echipa
+              - paragraph [ref=e216]: 7 angajati inregistrati
+            - generic [ref=e217]:
+              - button "Atribuie rol cont existent" [ref=e218] [cursor=pointer]
+              - button "+ Angajat nou" [ref=e219] [cursor=pointer]
+          - table [ref=e221]:
+            - rowgroup [ref=e222]:
+              - row "Angajat Email Rol Telefon Status Ultima logare Actiuni" [ref=e223]:
+                - columnheader "Angajat" [ref=e224]
+                - columnheader "Email" [ref=e225]
+                - columnheader "Rol" [ref=e226]
+                - columnheader "Telefon" [ref=e227]
+                - columnheader "Status" [ref=e228]
+                - columnheader "Ultima logare" [ref=e229]
+                - columnheader "Actiuni" [ref=e230]
+            - rowgroup [ref=e231]:
+              - row "A Alexandru Avram alexavram160303@gmail.com ADMIN — Activ Niciodata Edit Sterge" [ref=e232]:
+                - cell "A Alexandru Avram" [ref=e233]:
+                  - generic [ref=e234]:
+                    - generic [ref=e235]: A
+                    - generic [ref=e236]: Alexandru Avram
+                - cell "alexavram160303@gmail.com" [ref=e237]
+                - cell "ADMIN" [ref=e238]
+                - cell "—" [ref=e239]
+                - cell "Activ" [ref=e240]
+                - cell "Niciodata" [ref=e241]
+                - cell "Edit Sterge" [ref=e242]:
+                  - generic [ref=e243]:
+                    - button "Edit" [ref=e244] [cursor=pointer]:
+                      - img [ref=e245]
+                      - text: Edit
+                    - button "Sterge" [ref=e247] [cursor=pointer]:
+                      - img [ref=e248]
+                      - text: Sterge
+              - row "T Test User test@test.com ADMIN — Activ Niciodata Edit Sterge" [ref=e250]:
+                - cell "T Test User" [ref=e251]:
+                  - generic [ref=e252]:
+                    - generic [ref=e253]: T
+                    - generic [ref=e254]: Test User
+                - cell "test@test.com" [ref=e255]
+                - cell "ADMIN" [ref=e256]
+                - cell "—" [ref=e257]
+                - cell "Activ" [ref=e258]
+                - cell "Niciodata" [ref=e259]
+                - cell "Edit Sterge" [ref=e260]:
+                  - generic [ref=e261]:
+                    - button "Edit" [ref=e262] [cursor=pointer]:
+                      - img [ref=e263]
+                      - text: Edit
+                    - button "Sterge" [ref=e265] [cursor=pointer]:
+                      - img [ref=e266]
+                      - text: Sterge
+              - row "S suport suport@suport.com SUPORT 123 Activ Niciodata Edit Sterge" [ref=e268]:
+                - cell "S suport" [ref=e269]:
+                  - generic [ref=e270]:
+                    - generic [ref=e271]: S
+                    - generic [ref=e272]: suport
+                - cell "suport@suport.com" [ref=e273]
+                - cell "SUPORT" [ref=e274]
+                - cell "123" [ref=e275]
+                - cell "Activ" [ref=e276]
+                - cell "Niciodata" [ref=e277]
+                - cell "Edit Sterge" [ref=e278]:
+                  - generic [ref=e279]:
+                    - button "Edit" [ref=e280] [cursor=pointer]:
+                      - img [ref=e281]
+                      - text: Edit
+                    - button "Sterge" [ref=e283] [cursor=pointer]:
+                      - img [ref=e284]
+                      - text: Sterge
+              - row "M marketing marketing@marketing.com MARKETING 123 Activ Niciodata Edit Sterge" [ref=e286]:
+                - cell "M marketing" [ref=e287]:
+                  - generic [ref=e288]:
+                    - generic [ref=e289]: M
+                    - generic [ref=e290]: marketing
+                - cell "marketing@marketing.com" [ref=e291]
+                - cell "MARKETING" [ref=e292]
+                - cell "123" [ref=e293]
+                - cell "Activ" [ref=e294]
+                - cell "Niciodata" [ref=e295]
+                - cell "Edit Sterge" [ref=e296]:
+                  - generic [ref=e297]:
+                    - button "Edit" [ref=e298] [cursor=pointer]:
+                      - img [ref=e299]
+                      - text: Edit
+                    - button "Sterge" [ref=e301] [cursor=pointer]:
+                      - img [ref=e302]
+                      - text: Sterge
+              - row "A achizitii achizitii@achizitii.com ACHIZIȚII 123 Activ Niciodata Edit Sterge" [ref=e304]:
+                - cell "A achizitii" [ref=e305]:
+                  - generic [ref=e306]:
+                    - generic [ref=e307]: A
+                    - generic [ref=e308]: achizitii
+                - cell "achizitii@achizitii.com" [ref=e309]
+                - cell "ACHIZIȚII" [ref=e310]
+                - cell "123" [ref=e311]
+                - cell "Activ" [ref=e312]
+                - cell "Niciodata" [ref=e313]
+                - cell "Edit Sterge" [ref=e314]:
+                  - generic [ref=e315]:
+                    - button "Edit" [ref=e316] [cursor=pointer]:
+                      - img [ref=e317]
+                      - text: Edit
+                    - button "Sterge" [ref=e319] [cursor=pointer]:
+                      - img [ref=e320]
+                      - text: Sterge
+              - row "M manager manager@manager.com MANAGER 123 Activ Niciodata Edit Sterge" [ref=e322]:
+                - cell "M manager" [ref=e323]:
+                  - generic [ref=e324]:
+                    - generic [ref=e325]: M
+                    - generic [ref=e326]: manager
+                - cell "manager@manager.com" [ref=e327]
+                - cell "MANAGER" [ref=e328]
+                - cell "123" [ref=e329]
+                - cell "Activ" [ref=e330]
+                - cell "Niciodata" [ref=e331]
+                - cell "Edit Sterge" [ref=e332]:
+                  - generic [ref=e333]:
+                    - button "Edit" [ref=e334] [cursor=pointer]:
+                      - img [ref=e335]
+                      - text: Edit
+                    - button "Sterge" [ref=e337] [cursor=pointer]:
+                      - img [ref=e338]
+                      - text: Sterge
+              - row "G Garantii Service garantiiservice@garantiiservice.com GARANTII & SERVICE — Activ Niciodata Edit Sterge" [ref=e340]:
+                - cell "G Garantii Service" [ref=e341]:
+                  - generic [ref=e342]:
+                    - generic [ref=e343]: G
+                    - generic [ref=e344]: Garantii Service
+                - cell "garantiiservice@garantiiservice.com" [ref=e345]
+                - cell "GARANTII & SERVICE" [ref=e346]
+                - cell "—" [ref=e347]
+                - cell "Activ" [ref=e348]
+                - cell "Niciodata" [ref=e349]
+                - cell "Edit Sterge" [ref=e350]:
+                  - generic [ref=e351]:
+                    - button "Edit" [ref=e352] [cursor=pointer]:
+                      - img [ref=e353]
+                      - text: Edit
+                    - button "Sterge" [ref=e355] [cursor=pointer]:
+                      - img [ref=e356]
+                      - text: Sterge
+  - contentinfo [ref=e62]:
+    - generic [ref=e63]:
+      - generic [ref=e64]:
+        - link "ALEX COMPUTERS" [ref=e65] [cursor=pointer]:
+          - /url: /
+          - img [ref=e67]
+          - generic [ref=e69]: ALEX COMPUTERS
+        - paragraph [ref=e70]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e71]:
+          - link "aa387@student.ugal.ro" [ref=e72] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e73]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e76] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e77]
+            - text: 0770 648 476
+      - generic [ref=e80]:
+        - heading "Navigare" [level=4] [ref=e81]
+        - list [ref=e82]:
+          - listitem [ref=e83]:
+            - link "Catalog Produse" [ref=e84] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e85]
+              - text: Catalog Produse
+          - listitem [ref=e87]:
+            - link "PC Builder" [ref=e88] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e89]
+              - text: PC Builder
+          - listitem [ref=e91]:
+            - link "Prebuilt PC" [ref=e92] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e93]
+              - text: Prebuilt PC
+          - listitem [ref=e95]:
+            - link "FAQ" [ref=e96] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e97]
+              - text: FAQ
+      - generic [ref=e99]:
+        - heading "Informații" [level=4] [ref=e100]
+        - list [ref=e101]:
+          - listitem [ref=e102]:
+            - link "Despre Noi" [ref=e103] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e104]
+              - text: Despre Noi
+          - listitem [ref=e106]:
+            - link "Contact" [ref=e107] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e108]
+              - text: Contact
+          - listitem [ref=e110]:
+            - button "Termeni și Condiții" [ref=e111] [cursor=pointer]:
+              - img [ref=e112]
+              - text: Termeni și Condiții
+          - listitem [ref=e114]:
+            - button "Politică Confidențialitate" [ref=e115] [cursor=pointer]:
+              - img [ref=e116]
+              - text: Politică Confidențialitate
+        - paragraph [ref=e118]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e120]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e122] [cursor=pointer]:
+    - img [ref=e123]

@@ -1,0 +1,175 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "ALEX COMPUTERS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e9]
+        - generic [ref=e11]: ALEX COMPUTERS
+      - generic [ref=e13]:
+        - textbox "Caută produse, categorii..." [ref=e14]
+        - button [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+      - generic [ref=e18]:
+        - button "T Salut, Test Contul meu" [ref=e20] [cursor=pointer]:
+          - generic [ref=e22]: T
+          - generic [ref=e23]:
+            - generic [ref=e24]: Salut, Test
+            - generic [ref=e25]: Contul meu
+          - img [ref=e26]
+        - link "4 4 produse Favorite" [ref=e30] [cursor=pointer]:
+          - /url: /wishlist
+          - button "4 4 produse Favorite" [ref=e31]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e35]: "4"
+            - generic [ref=e36]:
+              - generic [ref=e37]: 4 produse
+              - generic [ref=e38]: Favorite
+        - link "0 produse Coșul meu" [ref=e40] [cursor=pointer]:
+          - /url: /cart
+          - button "0 produse Coșul meu" [ref=e41]:
+            - img [ref=e43]
+            - generic [ref=e45]:
+              - generic [ref=e46]: 0 produse
+              - generic [ref=e47]: Coșul meu
+    - generic [ref=e49]:
+      - link "Acasă" [ref=e50] [cursor=pointer]:
+        - /url: /
+      - link "Catalog" [ref=e51] [cursor=pointer]:
+        - /url: /catalog
+      - link "PC Builder" [ref=e52] [cursor=pointer]:
+        - /url: /builder
+      - link "Prebuilt PC" [ref=e53] [cursor=pointer]:
+        - /url: /chat
+      - link "Promoții" [ref=e54] [cursor=pointer]:
+        - /url: /promotii
+      - link "FAQ" [ref=e55] [cursor=pointer]:
+        - /url: /faq
+      - link "Despre noi" [ref=e56] [cursor=pointer]:
+        - /url: /despre-noi
+      - link "Contact" [ref=e57] [cursor=pointer]:
+        - /url: /contact
+        - text: Contact
+  - main [ref=e59]:
+    - generic [ref=e60]:
+      - generic [ref=e61]:
+        - img [ref=e63]
+        - heading "Ia legătura cu noi" [level=1] [ref=e65]
+        - paragraph [ref=e66]: Suntem aici să te ajutăm. Trimite-ne un mesaj și îți vom răspunde în cel mai scurt timp.
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - img [ref=e70]
+          - generic [ref=e72]:
+            - paragraph [ref=e73]: Adresă
+            - paragraph [ref=e74]: Strada Științei nr. 2
+            - paragraph [ref=e75]: Galați, România
+        - generic [ref=e76]:
+          - img [ref=e78]
+          - generic [ref=e80]:
+            - paragraph [ref=e81]: Telefon
+            - paragraph [ref=e82]: 0770 648 476
+            - paragraph [ref=e83]: Luni–Vineri, 09:00–18:00
+        - generic [ref=e84]:
+          - img [ref=e86]
+          - generic [ref=e88]:
+            - paragraph [ref=e89]: Email
+            - paragraph [ref=e90]: aa387@student.ugal.ro
+            - paragraph [ref=e91]: Răspuns în max. 24h
+      - generic [ref=e92]:
+        - generic [ref=e208]:
+          - img [ref=e210]
+          - heading "Mesaj trimis!" [level=3] [ref=e212]
+          - paragraph [ref=e213]:
+            - text: Îți mulțumim! Te vom contacta în cel mai scurt timp la adresa
+            - strong [ref=e214]: test@test.com
+            - text: .
+          - button "Trimite alt mesaj" [ref=e215] [cursor=pointer]
+        - generic [ref=e118]:
+          - generic [ref=e119]:
+            - img [ref=e120]
+            - paragraph [ref=e123]: Strada Științei nr. 2
+            - paragraph [ref=e124]: Galați, România
+          - generic [ref=e125]:
+            - generic [ref=e126]:
+              - img [ref=e128]
+              - paragraph [ref=e130]: Program
+            - generic [ref=e131]:
+              - generic [ref=e132]: Luni – Vineri
+              - generic [ref=e133]: 09:00 – 18:00
+            - generic [ref=e134]:
+              - generic [ref=e135]: Sâmbătă
+              - generic [ref=e136]: 10:00 – 14:00
+            - generic [ref=e137]:
+              - generic [ref=e138]: Duminică
+              - generic [ref=e139]: Închis
+          - generic [ref=e140]:
+            - paragraph [ref=e141]: Răspuns garantat în maximum
+            - paragraph [ref=e142]: 24h
+            - paragraph [ref=e143]: în zilele lucrătoare
+  - contentinfo [ref=e144]:
+    - generic [ref=e145]:
+      - generic [ref=e146]:
+        - link "ALEX COMPUTERS" [ref=e147] [cursor=pointer]:
+          - /url: /
+          - img [ref=e149]
+          - generic [ref=e151]: ALEX COMPUTERS
+        - paragraph [ref=e152]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e153]:
+          - link "aa387@student.ugal.ro" [ref=e154] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e155]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e158] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e159]
+            - text: 0770 648 476
+      - generic [ref=e162]:
+        - heading "Navigare" [level=4] [ref=e163]
+        - list [ref=e164]:
+          - listitem [ref=e165]:
+            - link "Catalog Produse" [ref=e166] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e167]
+              - text: Catalog Produse
+          - listitem [ref=e169]:
+            - link "PC Builder" [ref=e170] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e171]
+              - text: PC Builder
+          - listitem [ref=e173]:
+            - link "Prebuilt PC" [ref=e174] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e175]
+              - text: Prebuilt PC
+          - listitem [ref=e177]:
+            - link "FAQ" [ref=e178] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e179]
+              - text: FAQ
+      - generic [ref=e181]:
+        - heading "Informații" [level=4] [ref=e182]
+        - list [ref=e183]:
+          - listitem [ref=e184]:
+            - link "Despre Noi" [ref=e185] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e186]
+              - text: Despre Noi
+          - listitem [ref=e188]:
+            - link "Contact" [ref=e189] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e190]
+              - text: Contact
+          - listitem [ref=e192]:
+            - button "Termeni și Condiții" [ref=e193] [cursor=pointer]:
+              - img [ref=e194]
+              - text: Termeni și Condiții
+          - listitem [ref=e196]:
+            - button "Politică Confidențialitate" [ref=e197] [cursor=pointer]:
+              - img [ref=e198]
+              - text: Politică Confidențialitate
+        - paragraph [ref=e200]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e202]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e204] [cursor=pointer]:
+    - img [ref=e205]

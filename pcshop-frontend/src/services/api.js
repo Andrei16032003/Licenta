@@ -149,9 +149,8 @@ export const chatAPI = {
   categories: () => API.get('/chat/categories'),
   filters: (slug) => API.get(`/chat/filters/${slug}`),
   search: (data) => API.post('/chat/search', data),
-  describe: (productId) => API.post('/chat/describe', { product_id: productId }),
-  extractFilters: (message) => API.post('/chat/extract-filters', { message }),
-  aiStatus: () => API.get('/chat/ai-status'),
+  extractFilters: (message, context_slug) => API.post('/chat/extract-filters', { message, context_slug }),
+  semanticSearch: (data) => API.post('/chat/semantic-search', data),
 }
 export const teamAPI = {
   list:       ()          => API.get('/team/'),

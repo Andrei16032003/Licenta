@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import {
   UserPlus, EnvelopeSimple, Lock, User, Warning,
   CircleNotch, Eye, EyeSlash, CheckCircle, XCircle, Key,
@@ -26,8 +26,11 @@ function passwordStrength(pw) {
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Register() {
-  const navigate   = useNavigate()
-  const storeLogin = useAuthStore(s => s.login)
+  const navigate      = useNavigate()
+  const storeLogin    = useAuthStore(s => s.login)
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated)
+
+  if (isAuthenticated) return <Navigate to="/" replace />
 
   const [step,     setStep]     = useState('form')  // 'form' | 'verify'
   const [name,     setName]     = useState('')

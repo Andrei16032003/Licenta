@@ -12,7 +12,6 @@ import {
   retururiAPI, serviceAPI, vouchersAPI, productsAPI, chatAPI,
 } from '../services/api'
 import useAuthStore from '../store/authStore'
-import { detectSlug } from '../utils/categorySearch'
 
 // ── Constants ────────────────────────────────────────────────
 const STATUS_MAP = {
@@ -51,6 +50,68 @@ const MENU = [
   { id: 'vouchere', label: 'Vouchere',         Icon: Tag,                   color: '#f59e0b' },
   { id: 'profil',   label: 'Profilul meu',     Icon: User,                  color: '#38bdf8' },
 ]
+
+const CAT_META = {
+  cpu:         { Icon: Cpu,        color: '#38bdf8' },
+  gpu:         { Icon: Monitor,    color: '#a78bfa' },
+  ram:         { Icon: Memory,     color: '#00e5a0' },
+  motherboard: { Icon: Memory,     color: '#fb923c' },
+  storage:     { Icon: HardDrive,  color: '#f59e0b' },
+  psu:         { Icon: Lightning,  color: '#f87171' },
+  case:        { Icon: Package,    color: '#94a3b8' },
+  cooler:      { Icon: Wind,       color: '#38bdf8' },
+  monitor:     { Icon: Monitor,    color: '#00e5a0' },
+  mouse:       { Icon: Mouse,      color: '#a78bfa' },
+  keyboard:    { Icon: Keyboard,   color: '#fb923c' },
+  headset:     { Icon: Headphones, color: '#f59e0b' },
+}
+
+const CAT_KEYWORDS = {
+  cpu:         ['procesor', 'cpu', 'ryzen', 'intel', 'i5', 'i7', 'i9', 'amd'],
+  gpu:         ['placa video', 'gpu', 'rtx', 'gtx', 'radeon', 'nvidia', 'geforce', 'grafica'],
+  ram:         ['ram', 'memorie', 'ddr4', 'ddr5', 'ddr3'],
+  motherboard: ['placa de baza', 'motherboard', 'mainboard'],
+  storage:     ['ssd', 'hdd', 'nvme', 'stocare', 'm.2', 'disc'],
+  psu:         ['sursa', 'psu', 'alimentare', 'watt'],
+  case:        ['carcasa', 'tower', 'cabinet'],
+  cooler:      ['cooler', 'racire', 'ventilator', 'aio'],
+  monitor:     ['monitor', 'ecran', 'display', '144hz', '4k'],
+  mouse:       ['mouse', 'soarece'],
+  keyboard:    ['tastatura', 'keyboard'],
+  headset:     ['casti', 'headset', 'headphone'],
+}
+
+function detectCatFromText(text, catsList) {
+  const lower = text.toLowerCase()
+  for (const [slug, kws] of Object.entries(CAT_KEYWORDS)) {
+    if (kws.some(kw => lower.includes(kw))) {
+      const cat = catsList.find(c => c.slug === slug)
+      if (cat) return cat
+    }
+  }
+  for (const cat of catsList) {
+    if (lower.includes(cat.name.toLowerCase())) return cat
+  }
+  return null
+}
+
+function extractPrice(text) {
+  const s = text.toLowerCase().trim()
+  if (/nu\s*conteaz|orice|fara\s*buget|nu\s*am\s*buget/.test(s))
+    return { min: undefined, max: undefined }
+  const toNum = v => parseFloat(v.replace(',', '.'))
+  const range = s.match(/(\d[\d.,]*)\s*[-–]\s*(\d[\d.,]*)/)
+    || s.match(/intre\s+(\d[\d.,]*)\s+si\s+(\d[\d.,]*)/)
+    || s.match(/(\d[\d.,]*)\s+pana\s+(?:la\s+)?(\d[\d.,]*)/)
+  if (range) return { min: toNum(range[1]), max: toNum(range[2]) }
+  const mx = s.match(/(?:maxim|max|pana\s+la|sub)\s*(\d[\d.,]*)/)
+  if (mx) return { min: undefined, max: toNum(mx[1]) }
+  const mn = s.match(/(?:minim|min|cel\s+putin|peste|de\s+la)\s*(\d[\d.,]*)/)
+  if (mn) return { min: toNum(mn[1]), max: undefined }
+  const num = s.match(/^(\d[\d.,]*)(?:\s*ron)?$/)
+  if (num) return { min: undefined, max: toNum(num[1]) }
+  return null
+}
 
 // ── Shared UI (outside ChatWidget — stable references, no remount) ──
 function BotMsg({ children }) {
@@ -105,20 +166,6 @@ function InfoSteps({ steps }) {
   )
 }
 
-function CheckList({ title, items }) {
-  return (
-    <div className="bg-white/[0.04] border border-white/10 rounded-xl p-3 flex flex-col gap-1.5">
-      <div className="text-muted text-[10px] uppercase tracking-wide font-bold mb-0.5">{title}</div>
-      {items.map((item, i) => (
-        <div key={i} className="flex items-start gap-2">
-          <span className="text-accent text-[11px] mt-0.5 shrink-0">✓</span>
-          <span className="text-primary text-[12px]">{item}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function BtnPrimary({ onClick, children }) {
   return (
     <button onClick={onClick}
@@ -149,239 +196,130 @@ export default function ChatWidget() {
 
   const [open, setOpen]             = useState(false)
   const [screen, setScreen]         = useState('home')
-  // cache[key]: undefined = not fetched, 'loading' = in progress, 'error' = failed, array/obj = data
   const [cache, setCache]           = useState({})
   const [selOrder, setSelOrder]     = useState(null)
   const [probStep, setProbStep]     = useState(null)
   const [svcInfo, setSvcInfo]       = useState(false)
   const [retInfo, setRetInfo]       = useState(false)
-  const [searchMode, setSearchMode]       = useState(null)   // null | 'ai' | 'manual'
-  const [aiInput, setAiInput]             = useState('')
-  const [aiQuick, setAiQuick]             = useState('')
-  const [aiMessages, setAiMessages]       = useState([])
-  const [aiBusy, setAiBusy]               = useState(false)
-  const [aiPhase, setAiPhase]             = useState('cat')   // 'cat' | 'followup'
-  const [aiDetected, setAiDetected]       = useState(null)   // {slug, catName, filters}
-  const [aiOffline, setAiOffline]         = useState(false)
-  const [manualCat, setManualCat]           = useState(null)
-  const [manualSearch, setManualSearch]     = useState('')
-  const [manualFilters, setManualFilters]   = useState({})
-  const [manualMaxPrice, setManualMaxPrice] = useState('')
-  const [manualResults, setManualResults]   = useState(null)
-  const [expandedFilter, setExpandedFilter] = useState(null)
-  const [chatSelProduct, setChatSelProduct] = useState(null)
-  const [copiedCode, setCopiedCode]         = useState(null)
-  const [allCatProducts, setAllCatProducts] = useState([])   // all prods in category (for faceting)
-  const bodyRef          = useRef(null)
-  const msgsRef          = useRef(null)
-  const liveTimerRef     = useRef(null)
-  const prevManualCatRef = useRef(null)
+  const [convMsgs, setConvMsgs]     = useState([])
+  const [convPhase, setConvPhase]   = useState('idle')
+  const [convCat, setConvCat]       = useState(null)
+  const [convMin, setConvMin]       = useState(undefined)
+  const [convMax, setConvMax]       = useState(undefined)
+  const [convInput, setConvInput]   = useState('')
+  const [convBusy, setConvBusy]       = useState(false)
+  const [convPriceMode, setConvPriceMode] = useState(null) // null | 'max' | 'range'
+  const [convPriceMax, setConvPriceMax]   = useState('')
+  const [convPriceMin, setConvPriceMin]   = useState('')
+  const [copiedCode, setCopiedCode] = useState(null)
+  const bodyRef    = useRef(null)
+  const msgsEndRef = useRef(null)
+
+  const catsData = cache['cats']
 
   useEffect(() => {
-    if (bodyRef.current)
+    if (screen === 'cautare') {
+      setTimeout(() => msgsEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 60)
+    } else if (bodyRef.current) {
       setTimeout(() => bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 50)
-  }, [screen, selOrder, probStep, svcInfo, retInfo, searchMode, manualCat, chatSelProduct])
-
-  useEffect(() => {
-    if (msgsRef.current)
-      msgsRef.current.scrollTop = msgsRef.current.scrollHeight
-  }, [aiMessages])
-
-  // Manual search effect: only loads allCatProducts for faceting when category changes
-  useEffect(() => {
-    if (!manualCat) {
-      prevManualCatRef.current = null
-      setAllCatProducts([])
-      return
     }
-    if (manualCat === prevManualCatRef.current) return
-    prevManualCatRef.current = manualCat
-    clearTimeout(liveTimerRef.current)
-    setManualResults(null)
-    setChatSelProduct(null)
-    chatAPI.search({ category_slug: manualCat, filters: {}, limit: 200 })
-      .then(res => setAllCatProducts(Array.isArray(res.data) ? res.data : []))
-      .catch(() => setAllCatProducts([]))
-  }, [manualCat])
+  }, [screen, selOrder, probStep, svcInfo, retInfo, convMsgs])
 
-  // Returns set of available values for a filter key given current other filters
-  const getAvailableValues = (filterKey, currentFilters, allProds) => {
-    if (!allProds.length) return null   // not loaded yet → don't restrict
-    const otherFilters = Object.fromEntries(Object.entries(currentFilters).filter(([k]) => k !== filterKey))
-    const matching = allProds.filter(p =>
-      Object.entries(otherFilters).every(([k, v]) => {
-        const val = p[k] ?? p.specs?.[k] ?? p.attributes?.[k] ?? p.specifications?.[k]
-        return val !== undefined && String(val).toLowerCase() === v
+  useEffect(() => {
+    if (screen === 'cautare' && convPhase === 'idle' && Array.isArray(catsData)) {
+      setConvMsgs([{ role: 'bot', type: 'intro', content: '' }])
+      setConvPhase('awaiting_cat')
+    }
+  }, [screen, catsData, convPhase])
+
+  const convReset = () => {
+    setConvMsgs([])
+    setConvPhase('idle')
+    setConvCat(null)
+    setConvMin(undefined)
+    setConvMax(undefined)
+    setConvInput('')
+    setConvBusy(false)
+    setConvPriceMode(null)
+    setConvPriceMax('')
+    setConvPriceMin('')
+  }
+
+  const convDoSearch = async (specs, cat, minP, maxP) => {
+    setConvBusy(true)
+    setConvMsgs(prev => [...prev, { role: 'bot', type: 'loading', content: '' }])
+    try {
+      const isGeneric = /^(orice|toate|nu\s*conteaza|nu\s*contează)$/i.test(specs.trim())
+      const res = await chatAPI.semanticSearch({
+        message:       isGeneric ? cat.name : specs,
+        category_slug: cat.slug,
+        filters:       {},
+        max_price:     maxP,
+        min_price:     minP,
+        limit:         8,
       })
-    )
-    const available = new Set()
-    matching.forEach(p => {
-      const val = p[filterKey] ?? p.specs?.[filterKey] ?? p.attributes?.[filterKey] ?? p.specifications?.[filterKey]
-      if (val != null) available.add(String(val).toLowerCase())
-    })
-    return available
-  }
-
-  // builds hint text from available filter keys
-  const buildHints = (filters) => {
-    const parts = []
-    if (filters.brand?.length)
-      parts.push(`brand (${filters.brand.slice(0, 3).join(', ')})`)
-    Object.entries(filters)
-      .filter(([k]) => k !== 'brand')
-      .slice(0, 2)
-      .forEach(([k, vals]) =>
-        parts.push(`${k.replace(/_/g, ' ')} (${vals.slice(0, 3).join(', ')})`)
-      )
-    return parts
-  }
-
-  // Phase 1: user picks a category → load filters → ask follow-up
-  const pickAiCategory = async (slug, catName) => {
-    if (aiBusy) return
-    setAiBusy(true)
-    setAiMessages([])
-    try {
-      const filRes = await chatAPI.filters(slug)
-      const avail  = filRes.data || {}
-      const hints  = buildHints(avail)
-      setAiDetected({ slug, catName, filters: avail })
-      setAiPhase('followup')
-      setAiMessages([{ id: Date.now(), role: 'bot', type: 'followup', catName, hints }])
+      const results = Array.isArray(res.data) ? res.data : (res.data?.results ?? [])
+      const aiMsg   = res.data?.message ?? null
+      const budgetDesc = maxP && minP ? `${minP}–${maxP} RON`
+        : maxP ? `maxim ${maxP} RON`
+        : minP ? `minim ${minP} RON`
+        : null
+      const noResultsMsg = budgetDesc
+        ? `Nu am găsit ${cat.name} cu bugetul ${budgetDesc}. Probabil bugetul este prea mic — încearcă un preț mai mare sau caută fără restricții.`
+        : `Nu am găsit produse cu aceste specificații în ${cat.name}. Încearcă alte cuvinte cheie.`
+      setConvMsgs(prev => {
+        const filtered = prev.filter(m => m.type !== 'loading')
+        return [...filtered, {
+          role: 'bot',
+          type: 'results',
+          content: results.length > 0
+            ? (aiMsg || `Am găsit ${results.length} produs${results.length !== 1 ? 'e' : ''} pentru ${cat.name}.`)
+            : noResultsMsg,
+          products: results,
+          cat,
+          minP,
+          maxP,
+        }]
+      })
+      setConvPhase('results')
     } catch {
-      setAiMessages([{ id: Date.now(), role: 'bot', type: 'error' }])
+      setConvMsgs(prev => {
+        const filtered = prev.filter(m => m.type !== 'loading')
+        return [...filtered, { role: 'bot', type: 'error', content: 'A apărut o eroare. Încearcă din nou.' }]
+      })
     } finally {
-      setAiBusy(false)
+      setConvBusy(false)
     }
   }
 
-  // Phase 2: receive preferences, extract filters, search
-  const runFollowup = async (q) => {
-    if (!aiDetected || aiBusy) return
-    const query = q.trim()
-    const { slug, catName } = aiDetected
-    setAiBusy(true)
-    setAiInput('')
-    const ts = Date.now()
-    setAiMessages(prev => [...prev,
-      { id: ts,     role: 'user', content: query || 'Orice' },
-      { id: ts + 1, role: 'bot',  type: 'searching' },
-    ])
-    try {
-      const SKIP = ['nu conteaza', 'nu contează', 'orice', 'toate', 'nu stiu', 'nu știu', 'oricare', 'fara', 'fără']
-      const skip = !query || SKIP.some(w => query.toLowerCase().includes(w))
-      let filters = {}, max_price, min_price
-      if (!skip) {
-        const ext = await chatAPI.extractFilters(`${catName} ${query}`)
-        filters   = ext.data?.filters   || {}
-        max_price = ext.data?.max_price  ?? undefined
-        min_price = ext.data?.min_price  ?? undefined
-      }
-      const res = await chatAPI.search({ category_slug: slug, filters, max_price, min_price, limit: 6 })
-      const results = Array.isArray(res.data) ? res.data : (res.data?.products ?? [])
-      if (!results.length && Object.keys(filters).length > 0) {
-        setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'empty_retry', slug, catName },
-        ])
-      } else if (results.length) {
-        setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters, max_price, min_price } },
-        ])
-      } else {
-        setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'empty', query: catName, slug, catName },
-        ])
-      }
-    } catch {
-      setAiMessages(prev => [...prev.slice(0, -1), { id: ts + 2, role: 'bot', type: 'error' }])
-    } finally {
-      setAiBusy(false)
-    }
-  }
+  const convHandleSubmit = async () => {
+    const text = convInput.trim()
+    if (!text || convBusy) return
+    setConvInput('')
 
-  // Search all products in a category (no filters) — used by empty_retry button
-  const searchAllInCategory = async (slug, catName) => {
-    if (aiBusy) return
-    setAiBusy(true)
-    const ts = Date.now()
-    setAiMessages(prev => [...prev, { id: ts, role: 'bot', type: 'searching' }])
-    try {
-      const res = await chatAPI.search({ category_slug: slug, filters: {}, limit: 6 })
-      const results = Array.isArray(res.data) ? res.data : []
-      if (results.length) {
-        setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 1, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters: {} } },
-        ])
-      } else {
-        setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 1, role: 'bot', type: 'empty', query: catName },
-        ])
-      }
-    } catch {
-      setAiMessages(prev => [...prev.slice(0, -1), { id: ts + 1, role: 'bot', type: 'error' }])
-    } finally {
-      setAiBusy(false)
-    }
-  }
-
-  // Quick search: user types full query → auto-detect category + price → show results
-  const runQuickSearch = async (q) => {
-    const query = q.trim()
-    if (!query || aiBusy) return
-    setAiBusy(true)
-    setAiQuick('')
-    setAiPhase('followup')
-    const ts = Date.now()
-    setAiMessages([
-      { id: ts,     role: 'user',    content: query },
-      { id: ts + 1, role: 'bot',     type: 'searching' },
-    ])
-    try {
-      const ext       = await chatAPI.extractFilters(query)
-      const slug      = ext.data?.category_slug
-      const filters   = ext.data?.filters   || {}
-      const max_price = ext.data?.max_price  ?? undefined
-      const min_price = ext.data?.min_price  ?? undefined
-
-      if (!slug) {
-        setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'no_cat',
-            price_hint: (max_price || min_price)
-              ? { max_price: max_price ?? null, min_price: min_price ?? null }
-              : null },
-        ])
-        setAiPhase('cat')
+    if (convPhase === 'awaiting_cat') {
+      setConvMsgs(prev => [...prev, { role: 'user', content: text }])
+      const cats = Array.isArray(catsData) ? catsData : []
+      const found = detectCatFromText(text, cats)
+      if (!found) {
+        setConvMsgs(prev => [...prev, {
+          role: 'bot',
+          content: `Nu am recunoscut categoria. Poți alege din: ${cats.map(c => c.name).join(', ')}.`,
+        }])
         return
       }
+      setConvCat(found)
+      setConvMsgs(prev => [...prev, {
+        role: 'bot', type: 'price_select',
+        content: `Am înțeles — cauți în categoria ${found.name}. Ce buget ai în vedere?`,
+      }])
+      setConvPhase('awaiting_price')
+      return
+    }
 
-      const cats    = cache['cats']
-      const catName = Array.isArray(cats) ? (cats.find(c => c.slug === slug)?.name || slug) : slug
-      setAiDetected({ slug, catName, filters: {} })
-      load(`filters_${slug}`, () => chatAPI.filters(slug))
-
-      const res     = await chatAPI.search({ category_slug: slug, filters, max_price, min_price, limit: 6 })
-      const results = Array.isArray(res.data) ? res.data : []
-
-      if (results.length) {
-        setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'results', results, extracted: { category_slug: slug, filters, max_price, min_price } },
-        ])
-      } else if (Object.keys(filters).length > 0 || max_price || min_price) {
-        setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'empty_retry', slug, catName },
-        ])
-      } else {
-        setAiMessages(prev => [...prev.slice(0, -1),
-          { id: ts + 2, role: 'bot', type: 'empty', query: catName, slug, catName },
-        ])
-      }
-    } catch {
-      setAiMessages(prev => [...prev.slice(0, -1),
-        { id: ts + 2, role: 'bot', type: 'error' },
-      ])
-      setAiPhase('cat')
-    } finally {
-      setAiBusy(false)
+    if (convPhase === 'awaiting_specs') {
+      setConvMsgs(prev => [...prev, { role: 'user', content: text }])
+      await convDoSearch(text, convCat, convMin, convMax)
     }
   }
 
@@ -401,19 +339,10 @@ export default function ChatWidget() {
     setTimeout(() => load(key, fetcher), 0)
   }
 
-  const resetManual = () => {
-    clearTimeout(liveTimerRef.current)
-    prevManualCatRef.current = null
-    setManualCat(null); setManualSearch(''); setManualFilters({}); setManualMaxPrice('')
-    setManualResults(null); setExpandedFilter(null); setChatSelProduct(null); setAllCatProducts([])
-  }
-
   const goTo = (s) => {
     setScreen(s); setSelOrder(null); setProbStep(null); setSvcInfo(false); setRetInfo(false)
-    if (s !== 'cautare') {
-      setAiInput(''); setAiMessages([]); setAiBusy(false); setAiPhase('cat'); setAiDetected(null)
-      setSearchMode(null); resetManual()
-    }
+    convReset()
+    if (s === 'cautare') load('cats', () => chatAPI.categories())
     if (!isAuthenticated) return
     const uid = user.id
     if (s === 'comenzi' || s === 'garantii') load('orders',   () => ordersAPI.getUserOrders(uid))
@@ -423,8 +352,7 @@ export default function ChatWidget() {
 
   const goHome = () => {
     setScreen('home'); setSelOrder(null); setProbStep(null); setSvcInfo(false); setRetInfo(false)
-    setAiInput(''); setAiMessages([]); setAiBusy(false); setAiPhase('cat'); setAiDetected(null)
-    setSearchMode(null); resetManual()
+    convReset()
   }
 
   // ── Inline helpers ───────────────────────────────────────
@@ -485,10 +413,9 @@ export default function ChatWidget() {
     </div>
   )
 
-  // ── SCREENS (render functions, not components — avoids React remount bug) ──
+  // ── SCREENS ──────────────────────────────────────────────────
 
   const renderCautare = () => {
-    // shared product card renderer (render fn, not component)
     const renderProductCard = (p) => {
       const hasDiscount = p.discount_percent > 0
       const img = p.image_url || p.image || p.images?.[0]?.url
@@ -523,676 +450,360 @@ export default function ChatWidget() {
       )
     }
 
-    // ── Mode selection ──────────────────────────────────────────
-    if (!searchMode) return (
-      <>
-        <BotMsg>Cum preferi să cauți produsul?</BotMsg>
-        <OptionBtn Icon={Robot} label="Căutare AI" color="#38bdf8"
-          sub="Descrie ce vrei în cuvinte proprii"
-          onClick={() => {
-            setSearchMode('ai')
-            load('cats', () => chatAPI.categories())
-            chatAPI.aiStatus().then(r => setAiOffline(!r.data?.available)).catch(() => setAiOffline(true))
-          }} />
-        <OptionBtn Icon={MagnifyingGlass} label="Căutare manuală cu filtre" color="#a78bfa"
-          sub="Alege categoria și filtrele dorite"
-          onClick={() => { setSearchMode('manual'); load('cats', () => chatAPI.categories()) }} />
-        <BtnSecondary onClick={goHome}>← Înapoi la meniu</BtnSecondary>
-      </>
+    const botAvatar = (
+      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-accent/25 to-accent/5
+                      border border-accent/30 flex items-center justify-center shrink-0 mt-0.5">
+        <Robot size={11} weight="duotone" className="text-accent" />
+      </div>
     )
 
-    // ── AI search (category pick → natural language → Ollama) ──
-    if (searchMode === 'ai') {
-      const CAT_META = {
-        cpu:         { Icon: Cpu,           color: '#38bdf8' },
-        gpu:         { Icon: Monitor,       color: '#a78bfa' },
-        ram:         { Icon: Memory,  color: '#00e5a0' },
-        motherboard: { Icon: Memory,  color: '#fb923c' },
-        storage:     { Icon: HardDrive,     color: '#f59e0b' },
-        psu:         { Icon: Lightning,     color: '#f87171' },
-        case:        { Icon: Package,       color: '#94a3b8' },
-        cooler:      { Icon: Wind,          color: '#38bdf8' },
-        monitor:     { Icon: Monitor,       color: '#00e5a0' },
-        mouse:       { Icon: Mouse,         color: '#a78bfa' },
-        keyboard:    { Icon: Keyboard,      color: '#fb923c' },
-        headset:     { Icon: Headphones,    color: '#f59e0b' },
-      }
+    const cats = Array.isArray(catsData) ? catsData : []
+    const lastIntroIdx = convMsgs.reduce((acc, m, j) => m.type === 'intro' ? j : acc, -1)
 
-      const renderMsg = (msg) => {
-        if (msg.role === 'user') return (
-          <div key={msg.id} className="flex justify-end">
-            <div className="max-w-[78%] px-3 py-2 rounded-2xl rounded-tr-sm
-                            bg-accent/20 border border-accent/30 text-primary text-[13px] leading-relaxed">
-              {msg.content}
-            </div>
-          </div>
-        )
-        if (msg.type === 'searching') return (
-          <div key={msg.id} className="flex items-start gap-2">
-            <div className="w-6 h-6 rounded-full bg-accent-dim border border-accent-border
-                            flex items-center justify-center shrink-0 mt-0.5">
-              <Robot size={13} weight="duotone" className="text-accent" />
-            </div>
-            <div className="bg-accent-dim border border-accent-border rounded-xl rounded-tl-sm
-                            px-3 py-2 flex items-center gap-2">
-              <CircleNotch size={13} className="animate-spin text-accent shrink-0" />
-              <span className="text-muted text-[13px]">Caut produse...</span>
-            </div>
-          </div>
-        )
-        if (msg.type === 'followup') return (
-          <div key={msg.id} className="flex flex-col gap-2">
-            <BotMsg>
-              Ai ales <strong>{msg.catName}</strong>. Ce preferințe ai?
-            </BotMsg>
-            {msg.hints.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pl-8">
-                {msg.hints.map((h, i) => (
-                  <span key={i} className="px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/15
-                                           text-secondary text-[11px]">{h}</span>
-                ))}
-                <span className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/10
-                                 text-muted text-[11px] italic">sau „orice"</span>
-              </div>
-            )}
-          </div>
-        )
-        if (msg.type === 'results') return (
-          <div key={msg.id} className="flex flex-col gap-1.5">
-            <BotMsg>
-              {msg.results.length} produs{msg.results.length !== 1 ? 'e' : ''} găsite
-              {(() => {
-                const chips = [
-                  ...Object.entries(msg.extracted?.filters || {})
-                    .map(([k, v]) => `${k.replace(/_/g, ' ')} ${v}`),
-                  msg.extracted?.max_price && `max ${msg.extracted.max_price} RON`,
-                  msg.extracted?.min_price && `min ${msg.extracted.min_price} RON`,
-                ].filter(Boolean)
-                return chips.length > 0
-                  ? <span className="text-muted text-[12px]"> · {chips.join(' · ')}</span>
-                  : null
-              })()}:
-            </BotMsg>
-            <div className="flex flex-col gap-1.5">{msg.results.map(p => renderProductCard(p))}</div>
-          </div>
-        )
-        if (msg.type === 'new_search') return null
-        if (msg.type === 'empty') return (
-          <div key={msg.id} className="flex flex-col gap-2">
-            <BotMsg>
-              Nu am găsit niciun produs conform cerințelor tale pentru <strong>{msg.catName || msg.query}</strong>.
-              Încearcă să modifici preferințele sau descrie altfel ce cauți.
-            </BotMsg>
-            <BtnSecondary onClick={() => {
-              if (aiDetected) {
-                const hints = buildHints(aiDetected.filters)
-                setAiMessages(prev => [...prev,
-                  { id: Date.now(), role: 'bot', type: 'followup', catName: aiDetected.catName, hints }
-                ])
-              }
-            }}>← Modifică preferințele</BtnSecondary>
-          </div>
-        )
-        if (msg.type === 'empty_retry') return (
-          <div key={msg.id} className="flex flex-col gap-2">
-            <BotMsg>
-              Nu am identificat produse cu specificațiile exacte solicitate în categoria{' '}
-              <strong>{msg.catName}</strong>. Dorești să vizualizezi toate produsele disponibile din această categorie?
-            </BotMsg>
-            <BtnSecondary onClick={() => searchAllInCategory(msg.slug, msg.catName)}>
-              Arată toate produsele din {msg.catName} →
-            </BtnSecondary>
-          </div>
-        )
-        if (msg.type === 'no_cat') return (
-          <BotMsg key={msg.id}>
-            Nu am înțeles tipul produsului
-            {msg.price_hint ? <span className="text-accent"> (preț detectat: {[
-              msg.price_hint.min_price && `min ${msg.price_hint.min_price}`,
-              msg.price_hint.max_price && `max ${msg.price_hint.max_price}`,
-            ].filter(Boolean).join(' – ')} RON)</span> : ''}.
-            {' '}Încearcă: <em>"procesor Intel sub 500 lei"</em>, <em>"placa video nvidia"</em>, <em>"RAM DDR5 32GB"</em>.
-          </BotMsg>
-        )
-        if (msg.type === 'error') return (
-          <BotMsg key={msg.id}>A apărut o eroare. Încearcă din nou.</BotMsg>
-        )
-        return null
-      }
-
-      // ── Phase: category picker ──────────────────────────────
-      if (aiPhase === 'cat') {
-        const cats = cache['cats']
-        const loading = cats === 'loading' || cats === undefined
-        const catsList = Array.isArray(cats) ? cats : []
-        return (
-          <div className="flex flex-col gap-3">
-            {aiOffline && (
-              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25
-                              rounded-xl px-3 py-2.5">
-                <Warning size={14} className="text-amber-400 shrink-0 mt-0.5" />
-                <span className="text-amber-300 text-[11px] leading-relaxed">
-                  Asistentul AI nu este disponibil momentan. Căutarea manuală cu filtre funcționează normal.
-                </span>
-              </div>
-            )}
-            <BotMsg>
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-[13px]">Bună! Sunt asistentul virtual.</span>
-                  <span className="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40
-                                   text-amber-400 text-[10px] font-bold shrink-0">BETA</span>
-                </div>
-                <span className="text-[13px]">Descrie ce cauți sau alege o categorie:</span>
-              </div>
-            </BotMsg>
-
-            {/* Quick search input */}
-            <form onSubmit={e => { e.preventDefault(); runQuickSearch(aiQuick) }}
-                  className="flex gap-2">
-              <input
-                value={aiQuick}
-                onChange={e => setAiQuick(e.target.value)}
-                placeholder='ex: "procesor Intel sub 500 lei"'
-                disabled={aiBusy}
-                className="flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
-                           text-primary text-[12px] outline-none placeholder:text-muted/40
-                           focus:border-accent/50 transition-colors disabled:opacity-50"
-              />
-              <button type="submit" disabled={aiBusy || !aiQuick.trim()}
-                      className="px-3 py-2 rounded-xl bg-accent text-base font-bold cursor-pointer
-                                 hover:shadow-glow-cyan transition-all shrink-0
-                                 disabled:opacity-40 disabled:cursor-not-allowed flex items-center">
-                {aiBusy
-                  ? <CircleNotch size={13} className="animate-spin" />
-                  : <MagnifyingGlass size={13} weight="bold" />}
-              </button>
-            </form>
-
-            <div className="flex items-center gap-2">
-              <div className="flex-1 h-px bg-white/[0.07]" />
-              <span className="text-muted text-[10px] uppercase tracking-wide">sau alege categoria</span>
-              <div className="flex-1 h-px bg-white/[0.07]" />
-            </div>
-
-            {loading ? <Spinner /> : (
-              <div className="grid grid-cols-2 gap-1.5">
-                {catsList.map(c => {
-                  const meta = CAT_META[c.slug] || { Icon: Package, color: '#94a3b8' }
-                  const { Icon, color } = meta
-                  return (
-                    <button key={c.slug}
-                            onClick={() => pickAiCategory(c.slug, c.name)}
-                            disabled={aiBusy}
-                            className="flex items-center gap-2 px-2 py-2 rounded-xl
-                                       bg-white/[0.04] border border-white/10 cursor-pointer text-left
-                                       hover:border-white/25 hover:bg-white/[0.08] transition-all
-                                       disabled:opacity-50">
-                      <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                           style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
-                        <Icon size={12} style={{ color }} />
-                      </div>
-                      <span className="text-primary text-[11px] font-semibold leading-tight">{c.name}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-            <BtnSecondary onClick={() => setSearchMode(null)}>← Înapoi la tipul de căutare</BtnSecondary>
-          </div>
-        )
-      }
-
-      // ── Phase: conversation (followup + results) ────────────
-      const hasResults = aiMessages.some(m => m.type === 'results')
-      const catLabel   = aiDetected?.catName || ''
+    if (convMsgs.length === 0) {
       return (
-        <div className="flex flex-col h-full -m-3">
-          {/* Category bar */}
-          <div className="shrink-0 px-3 py-2 border-b border-white/[0.06] flex items-center justify-between bg-white/[0.02]">
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted text-[11px]">Categorie:</span>
-              <span className="text-primary text-[11px] font-semibold">{catLabel}</span>
-            </div>
-            <button
-              onClick={() => { setAiPhase('cat'); setAiMessages([]); setAiDetected(null); setAiInput('') }}
-              className="text-accent text-[11px] cursor-pointer hover:underline flex items-center gap-1">
-              <ArrowLeft size={10} weight="bold" /> Schimbă
-            </button>
-          </div>
-
-          <div ref={msgsRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-3 min-h-0">
-            {aiMessages.map(msg => renderMsg(msg))}
-          </div>
-
-          {aiPhase === 'followup' && (
-            <div className="shrink-0 px-3 py-2.5 border-t border-white/[0.08] bg-base/60">
-              <div className="flex gap-2">
-                <input
-                  value={aiInput}
-                  onChange={e => setAiInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && runFollowup(aiInput)}
-                  placeholder={hasResults
-                    ? 'Rafinează: ex. max 500 RON, AMD, 32GB...'
-                    : 'Brand, specs, buget... sau „orice"'}
-                  disabled={aiBusy}
-                  autoFocus
-                  className="flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
-                             text-primary text-[13px] outline-none placeholder:text-muted/40
-                             focus:border-accent/50 transition-colors disabled:opacity-50"
-                />
-                <button onClick={() => runFollowup(aiInput)}
-                        disabled={aiBusy || !aiInput.trim()}
-                        className="px-3 py-2 rounded-xl bg-accent text-base font-bold cursor-pointer
-                                   hover:shadow-glow-cyan transition-all
-                                   disabled:opacity-40 disabled:cursor-not-allowed flex items-center shrink-0">
-                  {aiBusy
-                    ? <CircleNotch size={14} className="animate-spin" />
-                    : <MagnifyingGlass size={14} weight="bold" />}
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="flex items-center justify-center py-10">
+          <CircleNotch size={18} className="animate-spin text-accent" />
         </div>
       )
     }
 
-    // ── Manual search ───────────────────────────────────────────
-    if (searchMode === 'manual') {
-      const cats          = cache['cats']
-      const isCatsLoading = cats === 'loading' || cats === undefined
-      const isCatsError   = cats === 'error'
-      const catsList      = Array.isArray(cats) ? cats : []
-
-      const CAT_META = {
-        cpu:         { Icon: Cpu,        color: '#38bdf8' },
-        gpu:         { Icon: Monitor,    color: '#a78bfa' },
-        ram:         { Icon: Memory,     color: '#00e5a0' },
-        motherboard: { Icon: Memory,     color: '#fb923c' },
-        storage:     { Icon: HardDrive,  color: '#f59e0b' },
-        psu:         { Icon: Lightning,  color: '#f87171' },
-        case:        { Icon: Package,    color: '#94a3b8' },
-        cooler:      { Icon: Wind,       color: '#38bdf8' },
-        monitor:     { Icon: Monitor,    color: '#00e5a0' },
-        mouse:       { Icon: Mouse,      color: '#a78bfa' },
-        keyboard:    { Icon: Keyboard,   color: '#fb923c' },
-        headset:     { Icon: Headphones, color: '#f59e0b' },
-      }
-
-      // Step 1 — alege categoria
-      if (!manualCat) {
-        const pickCat = (slug) => {
-          setManualCat(slug)
-          setManualSearch('')
-          setManualFilters({})
-          setManualResults(null)
-          setExpandedFilter(null)
-          load(`filters_${slug}`, () => chatAPI.filters(slug))
-        }
-
-        const handleManualSearchSubmit = (e) => {
-          e.preventDefault()
-          const slug = detectSlug(manualSearch)
-          if (slug) { pickCat(slug); return }
-          const match = catsList.find(c =>
-            c.name.toLowerCase().includes(manualSearch.toLowerCase())
-          )
-          if (match) pickCat(match.slug)
-        }
-
-        const filtered = manualSearch.trim()
-          ? catsList.filter(c => {
-              const q = manualSearch.toLowerCase()
-              if (c.name.toLowerCase().includes(q)) return true
-              if (c.slug.includes(q)) return true
-              return detectSlug(q) === c.slug
-            })
-          : catsList
-
+    return convMsgs.map((msg, i) => {
+      if (msg.role === 'user') {
         return (
-        <>
-          <BotMsg>Alege categoria sau scrie ce cauți:</BotMsg>
-          <form onSubmit={handleManualSearchSubmit} className="flex gap-2">
-            <input
-              value={manualSearch}
-              onChange={e => setManualSearch(e.target.value)}
-              placeholder="ex: ram, placa video, mouse..."
-              className="flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
-                         text-primary text-[13px] outline-none placeholder:text-muted/40
-                         focus:border-accent/50 transition-colors"
-            />
-            <button type="submit"
-                    className="px-3 py-2 rounded-xl bg-accent text-base font-bold cursor-pointer
-                               hover:shadow-glow-cyan transition-all shrink-0">
-              <MagnifyingGlass size={14} weight="bold" />
-            </button>
-          </form>
-          {isCatsLoading ? <Spinner /> : isCatsError ? (
-            <ErrorBlock onRetry={() => retry('cats', () => chatAPI.categories())} />
-          ) : (
-            <div className="grid grid-cols-2 gap-1.5">
-              {filtered.map(c => {
-                const { Icon, color } = CAT_META[c.slug] || { Icon: Package, color: '#94a3b8' }
-                return (
-                  <button key={c.slug}
-                          onClick={() => pickCat(c.slug)}
-                          className="flex items-center gap-2 px-2 py-2 rounded-xl
-                                     bg-white/[0.04] border border-white/10 cursor-pointer text-left
-                                     hover:border-white/25 hover:bg-white/[0.08] transition-all">
-                    <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                         style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
-                      <Icon size={12} style={{ color }} />
-                    </div>
-                    <span className="text-primary text-[11px] font-semibold leading-tight">{c.name}</span>
-                  </button>
-                )
-              })}
+          <div key={i} className="flex justify-end">
+            <div className="bg-accent/15 border border-accent/25 rounded-2xl rounded-tr-sm
+                            px-3 py-2 text-[12px] text-primary leading-relaxed max-w-[80%]">
+              {msg.content}
             </div>
-          )}
-          <BtnSecondary onClick={() => setSearchMode(null)}>← Înapoi la tipul de căutare</BtnSecondary>
-        </>
+          </div>
         )
       }
 
-      // Step 2 — filtre cu faceting + buget + căutare manuală
-      const filterData       = cache[`filters_${manualCat}`]
-      const isFiltersLoading = filterData === 'loading' || filterData === undefined
-      const isFiltersError   = filterData === 'error'
-      const filters          = filterData && typeof filterData === 'object' && !Array.isArray(filterData) ? filterData : null
-      const catName          = catsList.find(c => c.slug === manualCat)?.name || manualCat
-      const activeFilterKeys = Object.keys(manualFilters)
-      const activeCount      = activeFilterKeys.length + (manualMaxPrice ? 1 : 0)
-
-      // Client-side count from cached products (for button label)
-      const approxCount = allCatProducts.length > 0
-        ? allCatProducts.filter(p => {
-            const mf = Object.entries(manualFilters).every(([k, v]) => {
-              const val = p[k] ?? p.specs?.[k] ?? p.attributes?.[k] ?? p.specifications?.[k]
-              return val != null && String(val).toLowerCase() === v
-            })
-            const mp = !manualMaxPrice || (p.price != null && p.price <= parseFloat(manualMaxPrice))
-            return mf && mp
-          }).length
-        : null
-
-      const runSearch = async () => {
-        setManualResults('loading')
-        setChatSelProduct(null)
-        try {
-          const maxP = manualMaxPrice ? parseFloat(manualMaxPrice) : undefined
-          const res  = await chatAPI.search({ category_slug: manualCat, filters: manualFilters, max_price: maxP, limit: 40 })
-          const prods = Array.isArray(res.data) ? res.data : []
-          setManualResults(prods.length === 0 ? 'empty' : prods)
-        } catch {
-          setManualResults('error')
-        }
+      if (msg.type === 'loading') {
+        return (
+          <div key={i} className="flex items-start gap-2.5">
+            {botAvatar}
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-tl-sm px-3 py-3">
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent/70 animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-accent/70 animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-accent/70 animate-bounce [animation-delay:300ms]" />
+              </div>
+            </div>
+          </div>
+        )
       }
 
-      // product detail view
-      if (chatSelProduct) {
-        const p = chatSelProduct
-        const hasDiscount = p.discount_percent > 0
-        const finalPrice  = hasDiscount
-          ? (p.price * (1 - p.discount_percent / 100)).toFixed(0)
-          : p.price
-        const img = p.image_url || p.image || p.images?.[0]?.url
-        const specs = p.specs || p.specifications || {}
+      if (msg.type === 'intro') {
+        const isActiveIntro = i === lastIntroIdx && convPhase === 'awaiting_cat'
         return (
-          <>
-            <div className="bg-white/[0.04] border border-white/10 rounded-xl overflow-hidden">
-              {img && (
-                <div className="w-full bg-white/5 flex items-center justify-center h-32 border-b border-white/[0.06]">
-                  <img src={img} alt={p.name} className="h-28 object-contain" />
+          <div key={i} className="flex items-start gap-2.5">
+            {botAvatar}
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-tl-sm
+                            px-3 py-2.5 text-[12px] text-primary leading-relaxed flex-1 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-primary font-semibold text-[12.5px]">Asistent virtual PCShop</span>
+                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40
+                                 text-amber-400 text-[9px] font-bold shrink-0">AI</span>
+              </div>
+              <p>Bună! Sunt un asistent bazat pe inteligență artificială și te pot ajuta să găsești produse PC. Pot face greșeli uneori, dar fac tot posibilul.</p>
+              <p className="text-secondary">Avem aceste categorii — apasă una sau scrie mai jos:</p>
+              {cats.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {cats.map(c => {
+                    const { Icon, color } = CAT_META[c.slug] || { Icon: Package, color: '#94a3b8' }
+                    return (
+                      <button key={c.slug}
+                              disabled={!isActiveIntro}
+                              onClick={() => {
+                                if (!isActiveIntro) return
+                                setConvCat(c)
+                                setConvMsgs(prev => [...prev,
+                                  { role: 'user', content: c.name },
+                                  { role: 'bot', type: 'price_select', content: `Am înțeles — cauți în categoria ${c.name}. Ce buget ai în vedere?` },
+                                ])
+                                setConvPhase('awaiting_price')
+                              }}
+                              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl
+                                         border transition-all
+                                         ${isActiveIntro
+                                           ? 'bg-white/[0.06] border-white/15 cursor-pointer hover:border-accent/40 hover:bg-accent/10'
+                                           : 'bg-white/[0.03] border-white/[0.06] cursor-default opacity-50'}`}>
+                        <div className="w-4 h-4 rounded-md flex items-center justify-center shrink-0"
+                             style={{ background: `${color}20` }}>
+                          <Icon size={9} style={{ color }} />
+                        </div>
+                        <span className="text-primary text-[11px] font-semibold">{c.name}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
-              <div className="p-3 flex flex-col gap-2">
-                <div className="text-primary font-semibold text-[13px] leading-snug">{p.name}</div>
-                <div className="flex items-center gap-2">
-                  <span className="text-accent font-mono font-bold text-[16px]">{finalPrice} RON</span>
-                  {hasDiscount && (
-                    <>
-                      <span className="text-muted text-[12px] line-through">{p.price} RON</span>
-                      <span className="px-1.5 py-0.5 rounded bg-success/15 border border-success/25
-                                       text-success text-[10px] font-bold">-{p.discount_percent}%</span>
-                    </>
-                  )}
-                </div>
-                {Object.keys(specs).length > 0 && (
-                  <div className="border-t border-white/[0.06] pt-2 flex flex-col gap-1">
-                    {Object.entries(specs).slice(0, 5).map(([k, v]) => (
-                      <div key={k} className="flex justify-between text-[11px]">
-                        <span className="text-muted capitalize">{k.replace(/_/g, ' ')}</span>
-                        <span className="text-primary font-medium">{String(v)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
-            <BtnPrimary onClick={() => navigate(`/product/${p.id}`)}>
-              Vezi pagina produsului →
-            </BtnPrimary>
-            <BtnSecondary onClick={() => setChatSelProduct(null)}>← Înapoi la rezultate</BtnSecondary>
-          </>
+          </div>
         )
       }
 
-      // Renderer for a single product row (used in results list)
-      const renderProdRow = (p) => {
-        const hasDiscount = p.discount_percent > 0
-        const img         = p.image_url || p.image || p.images?.[0]?.url
-        const finalPrice  = hasDiscount
-          ? (p.price * (1 - p.discount_percent / 100)).toFixed(0)
-          : p.price
+      if (msg.type === 'price_select') {
+        const lastPriceIdx = convMsgs.reduce((acc, m, j) => m.type === 'price_select' ? j : acc, -1)
+        const isActive = convPhase === 'awaiting_price' && i === lastPriceIdx
+
+        const specsMsg = `Ai vreo preferință de specificații? (ex: "AMD Ryzen 5 gaming", "8 nuclee") Sau scrie "orice" pentru toate produsele.`
+
+        const confirmMax = () => {
+          const val = parseFloat(convPriceMax)
+          if (!val || val <= 0) return
+          setConvMin(undefined); setConvMax(val)
+          setConvMsgs(prev => [...prev,
+            { role: 'user', content: `Maxim ${val} RON` },
+            { role: 'bot', content: `Înțeles — buget maxim ${val} RON.\n\n${specsMsg}` },
+          ])
+          setConvPhase('awaiting_specs')
+          setConvPriceMode(null); setConvPriceMax(''); setConvPriceMin('')
+        }
+
+        const confirmRange = () => {
+          const min = parseFloat(convPriceMin)
+          const max = parseFloat(convPriceMax)
+          if (!min || !max || min >= max) return
+          setConvMin(min); setConvMax(max)
+          setConvMsgs(prev => [...prev,
+            { role: 'user', content: `${min}–${max} RON` },
+            { role: 'bot', content: `Înțeles — buget ${min}–${max} RON.\n\n${specsMsg}` },
+          ])
+          setConvPhase('awaiting_specs')
+          setConvPriceMode(null); setConvPriceMax(''); setConvPriceMin('')
+        }
+
+        const confirmAny = () => {
+          setConvMin(undefined); setConvMax(undefined)
+          setConvMsgs(prev => [...prev,
+            { role: 'user', content: 'Orice preț' },
+            { role: 'bot', content: `Fără restricții de preț.\n\n${specsMsg}` },
+          ])
+          setConvPhase('awaiting_specs')
+          setConvPriceMode(null)
+        }
+
+        const btnRow = "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-left transition-all bg-white/[0.04] border"
+        const inputCls = "w-full bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2 text-primary text-[12.5px] outline-none placeholder:text-muted/35 focus:border-accent/50 transition-colors"
+
         return (
-          <button key={p.id} onClick={() => setChatSelProduct(p)}
-                  className="w-full flex items-center gap-2.5 bg-white/[0.04] border border-white/[0.07]
-                             rounded-xl p-2.5 cursor-pointer text-left
-                             hover:border-accent/35 hover:bg-white/[0.07] transition-all group">
-            {img
-              ? <img src={img} alt={p.name} className="w-9 h-9 object-contain rounded-lg bg-white/5 shrink-0" />
-              : <div className="w-9 h-9 rounded-lg bg-white/5 shrink-0 flex items-center justify-center">
-                  <Package size={14} className="text-muted/30" />
+          <div key={i} className="flex items-start gap-2.5">
+            {botAvatar}
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-tl-sm
+                            px-3 py-2.5 text-[12px] text-primary leading-relaxed flex-1 flex flex-col gap-2.5">
+              <span className="font-medium">{msg.content}</span>
+
+              {isActive && convPriceMode === null && (
+                <div className="flex flex-col gap-1.5">
+                  <button onClick={() => setConvPriceMode('max')}
+                          className={`${btnRow} border-white/10 hover:border-accent/40 hover:bg-accent/[0.08]`}>
+                    <div className="w-7 h-7 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0">
+                      <span className="text-accent text-[9px] font-bold">MAX</span>
+                    </div>
+                    <div>
+                      <div className="text-primary text-[11.5px] font-semibold leading-tight">Preț maxim</div>
+                      <div className="text-muted text-[10.5px]">ex: maxim 500 RON</div>
+                    </div>
+                  </button>
+                  <button onClick={() => setConvPriceMode('range')}
+                          className={`${btnRow} border-white/10 hover:border-accent/40 hover:bg-accent/[0.08]`}>
+                    <div className="w-7 h-7 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0">
+                      <span className="text-accent text-[10px] font-bold">↔</span>
+                    </div>
+                    <div>
+                      <div className="text-primary text-[11.5px] font-semibold leading-tight">Interval de preț</div>
+                      <div className="text-muted text-[10.5px]">ex: 300 – 1500 RON</div>
+                    </div>
+                  </button>
+                  <button onClick={confirmAny}
+                          className={`${btnRow} border-white/10 hover:border-success/40 hover:bg-success/[0.06]`}>
+                    <div className="w-7 h-7 rounded-lg bg-success/15 border border-success/30 flex items-center justify-center shrink-0">
+                      <span className="text-success text-[11px] font-bold">✓</span>
+                    </div>
+                    <div>
+                      <div className="text-primary text-[11.5px] font-semibold leading-tight">Orice preț</div>
+                      <div className="text-muted text-[10.5px]">fără restricții de buget</div>
+                    </div>
+                  </button>
                 </div>
-            }
-            <div className="flex-1 min-w-0">
-              <div className="text-primary text-[11.5px] font-semibold truncate leading-snug">{p.name}</div>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-accent font-mono font-bold text-[12px]">{finalPrice} RON</span>
-                {hasDiscount && <span className="text-muted text-[10px] line-through">{p.price} RON</span>}
-                {hasDiscount && (
-                  <span className="px-1 py-0.5 rounded bg-success/15 border border-success/25 text-success text-[9px] font-bold">
-                    -{p.discount_percent}%
-                  </span>
-                )}
-              </div>
+              )}
+
+              {isActive && convPriceMode === 'max' && (
+                <div className="flex flex-col gap-2">
+                  <input type="number" min="0" value={convPriceMax}
+                         onChange={e => setConvPriceMax(e.target.value)}
+                         onKeyDown={e => e.key === 'Enter' && confirmMax()}
+                         placeholder="Preț maxim (RON)" autoFocus className={inputCls} />
+                  <div className="flex gap-2">
+                    <button onClick={confirmMax}
+                            disabled={!convPriceMax || parseFloat(convPriceMax) <= 0}
+                            className="flex-1 py-2 rounded-xl bg-accent text-base text-[12px] font-bold
+                                       cursor-pointer hover:brightness-110 transition-all
+                                       disabled:opacity-40 disabled:cursor-not-allowed">
+                      Confirmă
+                    </button>
+                    <button onClick={() => { setConvPriceMode(null); setConvPriceMax('') }}
+                            className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10
+                                       text-secondary text-[12px] cursor-pointer hover:border-white/25 transition-all">
+                      ←
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {isActive && convPriceMode === 'range' && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <input type="number" min="0" value={convPriceMin}
+                           onChange={e => setConvPriceMin(e.target.value)}
+                           placeholder="De la (RON)" autoFocus
+                           className={`flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
+                                       text-primary text-[12.5px] outline-none placeholder:text-muted/35
+                                       focus:border-accent/50 transition-colors`} />
+                    <input type="number" min="0" value={convPriceMax}
+                           onChange={e => setConvPriceMax(e.target.value)}
+                           onKeyDown={e => e.key === 'Enter' && confirmRange()}
+                           placeholder="Până la (RON)"
+                           className={`flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
+                                       text-primary text-[12.5px] outline-none placeholder:text-muted/35
+                                       focus:border-accent/50 transition-colors`} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={confirmRange}
+                            disabled={!convPriceMin || !convPriceMax || parseFloat(convPriceMin) >= parseFloat(convPriceMax)}
+                            className="flex-1 py-2 rounded-xl bg-accent text-base text-[12px] font-bold
+                                       cursor-pointer hover:brightness-110 transition-all
+                                       disabled:opacity-40 disabled:cursor-not-allowed">
+                      Confirmă
+                    </button>
+                    <button onClick={() => { setConvPriceMode(null); setConvPriceMin(''); setConvPriceMax('') }}
+                            className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10
+                                       text-secondary text-[12px] cursor-pointer hover:border-white/25 transition-all">
+                      ←
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-            <CaretRight size={11} className="text-white/15 group-hover:text-accent/50 transition-colors shrink-0" />
-          </button>
+          </div>
         )
       }
 
-      const searchBtnLabel = approxCount === 0
-        ? 'Niciun produs disponibil'
-        : approxCount != null && activeCount > 0
-          ? `Caută — aprox. ${approxCount} produs${approxCount !== 1 ? 'e' : ''}`
-          : activeCount > 0 ? 'Caută cu filtrele selectate' : `Caută toate în ${catName}`
-
-      return (
-        <>
-
-            {/* Header + chips */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-primary text-[12.5px] font-semibold">{catName}</span>
-                {activeCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-accent/20 border border-accent/30
-                                   text-accent text-[10px] font-bold">{activeCount}</span>
-                )}
+      if (msg.type === 'results') {
+        const hasProducts = msg.products?.length > 0
+        const hasBudget   = msg.maxP || msg.minP
+        return (
+          <div key={i} className="flex flex-col gap-2">
+            <div className="flex items-start gap-2.5">
+              {botAvatar}
+              <div className={`rounded-2xl rounded-tl-sm px-3 py-2 text-[12px] leading-relaxed flex-1
+                              ${hasProducts
+                                ? 'bg-white/[0.04] border border-white/[0.08] text-primary'
+                                : 'bg-warning/10 border border-warning/30 text-warning'}`}>
+                {msg.content}
               </div>
-              {activeCount > 0 && (
-                <button onClick={() => { setManualFilters({}); setManualMaxPrice('') }}
-                        className="text-muted/50 text-[11px] cursor-pointer hover:text-danger/70 transition-colors">
-                  Șterge filtre
+            </div>
+            {hasProducts && (
+              <div className="flex flex-col gap-1.5 pl-[34px]">
+                {msg.products.map(p => renderProductCard(p))}
+              </div>
+            )}
+            <div className="flex flex-col gap-1.5 pl-[34px]">
+              {!hasProducts && (
+                <>
+                  <button
+                    onClick={() => {
+                      setConvMsgs(prev => [...prev, {
+                        role: 'bot',
+                        content: `Ce specificații vrei să cauți? (ex: "AMD Ryzen 5", "8 nuclee") Sau scrie "orice" pentru toate produsele.`,
+                      }])
+                      setConvPhase('awaiting_specs')
+                    }}
+                    className="w-full py-2 rounded-xl bg-accent/10 border border-accent/30
+                               text-accent text-[11.5px] font-semibold cursor-pointer
+                               hover:bg-accent/20 transition-all">
+                    Încearcă alte specificații
+                  </button>
+                  {hasBudget && (
+                    <button
+                      onClick={() => {
+                        setConvMin(undefined); setConvMax(undefined)
+                        setConvPriceMode(null); setConvPriceMax(''); setConvPriceMin('')
+                        setConvMsgs(prev => [...prev, {
+                          role: 'bot', type: 'price_select',
+                          content: `Ce buget ai în vedere?`,
+                        }])
+                        setConvPhase('awaiting_price')
+                      }}
+                      className="w-full py-2 rounded-xl bg-white/[0.04] border border-white/10
+                                 text-secondary text-[11.5px] font-medium cursor-pointer
+                                 hover:border-white/25 hover:text-primary transition-all">
+                      Schimbă bugetul
+                    </button>
+                  )}
+                </>
+              )}
+              {hasProducts && (
+                <button
+                  onClick={() => {
+                    setConvMin(undefined); setConvMax(undefined)
+                    setConvPriceMode(null); setConvPriceMax(''); setConvPriceMin('')
+                    setConvMsgs(prev => [...prev, {
+                      role: 'bot', type: 'price_select',
+                      content: `Ce buget ai în vedere?`,
+                    }])
+                    setConvPhase('awaiting_price')
+                  }}
+                  className="w-full py-1.5 rounded-xl bg-white/[0.04] border border-white/10
+                             text-secondary text-[11px] font-medium cursor-pointer
+                             hover:border-accent/30 hover:text-primary transition-all">
+                  Caută din nou
                 </button>
               )}
-            </div>
-
-            {activeCount > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {Object.entries(manualFilters).map(([k, v]) => (
-                  <button key={k}
-                          onClick={() => setManualFilters(prev => { const n = {...prev}; delete n[k]; return n })}
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/15 border border-accent/30
-                                     text-accent text-[11px] cursor-pointer hover:bg-accent/25 transition-all">
-                    <span className="capitalize">{k.replace(/_/g,' ')}: {v === 'true' ? 'Da' : v === 'false' ? 'Nu' : v}</span>
-                    <X size={9} weight="bold" />
-                  </button>
-                ))}
-                {manualMaxPrice && (
-                  <button onClick={() => setManualMaxPrice('')}
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/15 border border-success/30
-                                     text-success text-[11px] cursor-pointer hover:bg-success/25 transition-all">
-                    <span>max {manualMaxPrice} RON</span>
-                    <X size={9} weight="bold" />
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Buget maxim */}
-            <input
-              type="number" min="0"
-              value={manualMaxPrice}
-              onChange={e => setManualMaxPrice(e.target.value)}
-              placeholder="Buget maxim (RON) — opțional"
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2
-                         text-primary text-[12px] outline-none placeholder:text-muted/35
-                         focus:border-accent/40 transition-colors"
-            />
-
-            {/* Filtere acordion cu faceting */}
-            {isFiltersLoading ? <Spinner /> : isFiltersError ? (
-              <ErrorBlock onRetry={() => retry(`filters_${manualCat}`, () => chatAPI.filters(manualCat))} />
-            ) : filters && Object.keys(filters).length > 0 ? (
-              <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl overflow-hidden">
-                {Object.entries(filters).slice(0, 5).map(([key, vals], idx, arr) => {
-                  const selected = manualFilters[key]
-                  const isOpen   = expandedFilter === key
-                  const isLast   = idx === arr.length - 1
-                  const availSet = getAvailableValues(key, manualFilters, allCatProducts)
-                  return (
-                    <div key={key} className={!isLast ? 'border-b border-white/[0.05]' : ''}>
-                      <button onClick={() => setExpandedFilter(isOpen ? null : key)}
-                              className="w-full flex items-center justify-between px-3 py-2.5 cursor-pointer
-                                         hover:bg-white/[0.04] transition-colors">
-                        <span className="text-secondary text-[12px] capitalize font-medium">
-                          {key.replace(/_/g, ' ')}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          {selected && (
-                            <span className="px-2 py-0.5 rounded-full bg-accent/20 border border-accent/35
-                                             text-accent text-[10px] font-semibold max-w-[90px] truncate">
-                              {selected}
-                            </span>
-                          )}
-                          <CaretRight size={11} className={`text-muted/50 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
-                        </div>
-                      </button>
-                      {isOpen && (
-                        <div className="px-3 pb-3 flex flex-wrap gap-1.5 max-h-[168px] overflow-y-auto">
-                          {vals.map(val => {
-                            const strVal    = String(val)
-                            const strLower  = strVal.toLowerCase()
-                            const displayVal = strLower === 'true' ? 'Da' : strLower === 'false' ? 'Nu' : strVal
-                            const isSel     = selected === strLower
-                            const availNorm = !isNaN(parseFloat(strLower)) ? String(parseFloat(strLower)) : strLower
-                            const available = availSet === null || availSet.has(strLower) || availSet.has(availNorm) || isSel
-                            return (
-                              <button key={val}
-                                      disabled={!available}
-                                      onClick={() => {
-                                        if (!available) return
-                                        setManualFilters(prev => {
-                                          const next = { ...prev }
-                                          if (isSel) delete next[key]
-                                          else next[key] = availNorm
-                                          return next
-                                        })
-                                        setExpandedFilter(null)
-                                      }}
-                                      title={!available ? 'Niciun produs cu această valoare' : undefined}
-                                      className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all
-                                                 ${isSel
-                                                   ? 'bg-accent/20 border-accent/50 text-accent cursor-pointer'
-                                                   : available
-                                                     ? 'bg-white/[0.06] border-white/15 text-secondary cursor-pointer hover:border-white/30 hover:text-primary'
-                                                     : 'bg-white/[0.02] border-white/[0.05] text-muted/25 cursor-not-allowed line-through'
-                                                 }`}>
-                                {displayVal}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            ) : null}
-
-            {/* Rezultate */}
-            {manualResults === 'empty' && (
-              <div className="bg-danger/[0.06] border border-danger/20 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                <Warning size={14} className="text-danger shrink-0 mt-0.5" />
-                <span className="text-danger/90 text-[12px]">
-                  Niciun produs cu aceste filtre. Elimină un filtru sau mărește bugetul.
-                </span>
-              </div>
-            )}
-
-            {manualResults === 'error' && <ErrorBlock onRetry={runSearch} />}
-
-            {Array.isArray(manualResults) && (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted/60 text-[10.5px] uppercase tracking-wide font-bold">
-                    {manualResults.length} produs{manualResults.length !== 1 ? 'e' : ''} găsite
-                  </span>
-                  <span className="text-accent/60 text-[10.5px]">{catName}</span>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  {manualResults.map(p => renderProdRow(p))}
-                </div>
-              </>
-            )}
-
-          {/* ── Footer sticky — buton Caută + înapoi ── */}
-          <div className="sticky bottom-0 -mx-3.5 px-3.5 py-3 border-t border-white/[0.07] flex flex-col gap-2 bg-base">
-            {manualResults === 'loading' ? (
-              <div className="w-full py-2.5 rounded-xl bg-accent/10 border border-accent/20
-                              flex items-center justify-center gap-2">
-                <CircleNotch size={13} className="animate-spin text-accent shrink-0" />
-                <span className="text-accent text-[12.5px] font-medium">Se caută...</span>
-              </div>
-            ) : (
-              <button onClick={runSearch}
-                      disabled={approxCount === 0}
-                      className={`w-full py-2.5 rounded-xl text-[12.5px] font-bold tracking-wide
-                                 flex items-center justify-center gap-2 transition-all
-                                 ${approxCount === 0
-                                   ? 'bg-white/[0.04] border border-white/[0.08] text-muted/40 cursor-not-allowed'
-                                   : 'bg-accent text-base cursor-pointer hover:brightness-110 hover:shadow-glow-cyan active:scale-[0.98]'
-                                 }`}>
-                <MagnifyingGlass size={13} weight="bold" />
-                {searchBtnLabel}
+              <button
+                onClick={() => {
+                  setConvCat(null); setConvMin(undefined); setConvMax(undefined)
+                  setConvMsgs(prev => [...prev, { role: 'bot', type: 'intro', content: '' }])
+                  setConvPhase('awaiting_cat')
+                }}
+                className="w-full py-1.5 rounded-xl bg-white/[0.04] border border-white/10
+                           text-secondary text-[11px] font-medium cursor-pointer
+                           hover:border-accent/30 hover:text-primary transition-all">
+                Altă categorie
               </button>
-            )}
-            <BtnSecondary onClick={() => setManualCat(null)}>← Schimbă categoria</BtnSecondary>
+            </div>
           </div>
-        </>
+        )
+      }
+
+      if (msg.type === 'error') {
+        return (
+          <div key={i} className="flex items-start gap-2.5">
+            {botAvatar}
+            <div className="bg-danger/10 border border-danger/30 rounded-2xl rounded-tl-sm
+                            px-3 py-2 text-[12px] text-danger leading-relaxed">
+              {msg.content}
+            </div>
+          </div>
+        )
+      }
+
+      const lines = msg.content.split('\n').filter(Boolean)
+      return (
+        <div key={i} className="flex items-start gap-2.5">
+          {botAvatar}
+          <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-tl-sm
+                          px-3 py-2 text-[12px] text-primary leading-relaxed flex-1">
+            {lines.length > 1
+              ? <div className="flex flex-col gap-1">{lines.map((l, j) => <span key={j}>{l}</span>)}</div>
+              : msg.content}
+          </div>
+        </div>
       )
-    }
+    })
   }
 
   const renderHome = () => (
@@ -1699,7 +1310,6 @@ export default function ChatWidget() {
   const renderScreen = () => {
     if (selOrder) return renderComandaDetail(selOrder)
     switch (screen) {
-      case 'cautare':  return renderCautare()
       case 'comenzi':  return renderComenzi()
       case 'retururi': return renderRetururi()
       case 'service':  return renderService()
@@ -1714,27 +1324,18 @@ export default function ChatWidget() {
   const activeMenu  = MENU.find(m => m.id === screen)
   const headerTitle = selOrder
     ? `Comandă #${(selOrder.invoice_number || String(selOrder.id).slice(0, 8)).toUpperCase()}`
-    : chatSelProduct ? 'Detalii produs'
     : svcInfo ? 'Cerere service'
     : retInfo ? 'Inițiază retur'
     : screen === 'home' ? 'Asistent virtual'
     : activeMenu?.label || 'Asistent'
   const headerColor = selOrder ? '#a78bfa' : activeMenu?.color || 'var(--cyan)'
-  const showBack    = screen !== 'home' || !!selOrder || svcInfo || retInfo || !!chatSelProduct
+  const showBack    = screen !== 'home' || !!selOrder || svcInfo || retInfo
 
   const handleBack = () => {
     if (svcInfo)  { setSvcInfo(false); return }
     if (retInfo)  { setRetInfo(false); return }
     if (probStep) { setProbStep(null); return }
     if (selOrder) { setSelOrder(null); return }
-    if (screen === 'cautare' && chatSelProduct) { setChatSelProduct(null); return }
-    if (screen === 'cautare' && manualCat) { resetManual(); return }
-    if (screen === 'cautare' && searchMode === 'ai' && aiPhase === 'followup') {
-      setAiPhase('cat'); setAiMessages([]); setAiDetected(null); setAiInput(''); return
-    }
-    if (screen === 'cautare' && searchMode) {
-      setSearchMode(null); setAiPhase('cat'); setAiDetected(null); setAiInput(''); return
-    }
     goHome()
   }
 
@@ -1781,10 +1382,48 @@ export default function ChatWidget() {
           </div>
 
           {/* Body */}
-          {screen === 'cautare' && searchMode === 'ai'
-            ? <div className="flex-1 min-h-0 flex flex-col overflow-hidden">{renderScreen()}</div>
-            : <div ref={bodyRef} className="flex-1 overflow-y-auto p-3.5 flex flex-col gap-2.5">{renderScreen()}</div>
-          }
+          {screen === 'cautare' ? (
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+              <div ref={bodyRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
+                {renderCautare()}
+                <div ref={msgsEndRef} />
+              </div>
+              {convPhase !== 'idle' && convPhase !== 'results' && convPhase !== 'awaiting_price' && (
+                <div className="shrink-0 px-3 pb-3 pt-2 border-t border-white/[0.06]">
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      value={convInput}
+                      onChange={e => setConvInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') convHandleSubmit() }}
+                      placeholder={
+                        convPhase === 'awaiting_cat'   ? 'Scrie categoria (ex: procesor, GPU...)' :
+                        convPhase === 'awaiting_price' ? 'ex: maxim 500, 300-1500, nu contează' :
+                                                         'Descrie ce cauți...'
+                      }
+                      disabled={convBusy}
+                      className="flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
+                                 text-primary text-[12.5px] outline-none placeholder:text-muted/35
+                                 focus:border-accent/50 transition-colors disabled:opacity-50"
+                    />
+                    <button onClick={convHandleSubmit}
+                            disabled={convBusy || !convInput.trim()}
+                            className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center
+                                       cursor-pointer hover:brightness-110 transition-all shrink-0
+                                       disabled:opacity-40 disabled:cursor-not-allowed">
+                      {convBusy
+                        ? <CircleNotch size={13} className="animate-spin text-base" />
+                        : <CaretRight size={14} weight="bold" className="text-base" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div ref={bodyRef} className="flex-1 overflow-y-auto p-3.5 flex flex-col gap-2.5">
+              {renderScreen()}
+            </div>
+          )}
         </div>
       )}
 

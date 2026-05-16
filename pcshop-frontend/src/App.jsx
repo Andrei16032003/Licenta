@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { Scales, X as XIcon, Trash } from '@phosphor-icons/react'
 import { imgUrl } from './utils/imgUrl'
 import Navbar from './components/Navbar'
@@ -112,7 +112,9 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/configurator" element={<PCBuilder />} />
             <Route path="/builder" element={<PCBuilder />} />
+            <Route path="/pc-builder" element={<Navigate to="/builder" replace />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/prebuilt" element={<Chat />} />
             <Route path="/search" element={<Search />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/compare" element={<Compare />} />

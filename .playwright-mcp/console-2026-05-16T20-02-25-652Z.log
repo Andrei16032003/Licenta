@@ -1,0 +1,48 @@
+[  190111ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[  190112ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0
+[  310101ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0
+[  310101ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[  310102ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[  310102ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[  374098ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[  374098ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[  510818ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[  510818ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0
+[  510818ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[  510818ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[  550172ms] [ERROR] Access to fetch at 'https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games' from origin 'https://dominikloefflerniteo.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://dominikloefflerniteo.github.io/ctk-helper-jogoe/ctk/:0
+[  550172ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[  550173ms] [ERROR] Access to fetch at 'https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold' from origin 'https://dominikloefflerniteo.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://dominikloefflerniteo.github.io/ctk-helper-jogoe/ctk/:0
+[  550173ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[  550173ms] [ERROR] Access to fetch at 'https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver' from origin 'https://dominikloefflerniteo.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://dominikloefflerniteo.github.io/ctk-helper-jogoe/ctk/:0
+[  550173ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0
+[  550173ms] [ERROR] Access to fetch at 'https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze' from origin 'https://dominikloefflerniteo.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://dominikloefflerniteo.github.io/ctk-helper-jogoe/ctk/:0
+[  550173ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[  550258ms] [ERROR] Access to fetch at 'https://abacus.jasoncameron.dev/hit/ctk-helper-jogoe/games' from origin 'https://dominikloefflerniteo.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://dominikloefflerniteo.github.io/ctk-helper-jogoe/ctk/:0
+[  550258ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://abacus.jasoncameron.dev/hit/ctk-helper-jogoe/games:0
+[  550344ms] [ERROR] Access to fetch at 'https://abacus.jasoncameron.dev/hit/ctk-helper-jogoe/gold' from origin 'https://dominikloefflerniteo.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://dominikloefflerniteo.github.io/ctk-helper-jogoe/ctk/:0
+[  550345ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://abacus.jasoncameron.dev/hit/ctk-helper-jogoe/gold:0
+[  743049ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0
+[  743052ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[  743053ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[  743053ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[ 1092860ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[ 1092860ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[ 1092861ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[ 1092861ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0
+[ 1193738ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[ 1193817ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0
+[ 1193895ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[ 1193896ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[ 1284049ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[ 1284131ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[ 1284131ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0
+[ 1284131ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[ 1396129ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[ 1396129ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[ 1396129ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0
+[ 1396129ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[ 1630912ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/gold:0
+[ 1631316ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/bronze:0
+[ 1631317ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/games:0
+[ 1631317ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://abacus.jasoncameron.dev/get/ctk-helper-jogoe/silver:0

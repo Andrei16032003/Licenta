@@ -20,7 +20,7 @@ from app.models.retur import Retur
 from app.models.service import ServiceRequest
 from app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MAIL_USERNAME, MAIL_PASSWORD, MAIL_FROM
 from app.dependencies import require_role
-_require_clients = require_role("admin", "suport", "marketing", "manager")
+_require_clients = require_role("admin", "suport", "marketing", "manager", "garantii_service")
 
 router = APIRouter(prefix="/auth", tags=["Autentificare"])
 

@@ -8,7 +8,7 @@ from app.database import get_db
 from app.models.retur import Retur
 from app.models.product import Product, ProductImage
 from app.dependencies import require_role
-_require_retururi = require_role("admin", "suport", "manager")
+_require_retururi = require_role("admin", "suport", "manager", "garantii_service")
 from app.models.user import User
 from app.notifications import notify_retur_created, notify_retur_status
 

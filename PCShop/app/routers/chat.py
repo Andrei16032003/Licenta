@@ -7,7 +7,7 @@ import re
 
 from app.database import get_db
 from app.models.product import Product, Category
-from app.services.gemini_service import embed_query, generate_search_message
+from app.services.gemini_service import embed_query, generate_search_message, extract_filters as gemini_extract_filters
 
 router = APIRouter(prefix="/chat", tags=["Chat buget"])
 
@@ -794,26 +794,64 @@ class ChatExtractRequest(BaseModel):
 
 
 @router.post("/extract-filters")
-def chat_extract_filters(req: ChatExtractRequest, db: Session = Depends(get_db)):
+async def chat_extract_filters(req: ChatExtractRequest, db: Session = Depends(get_db)):
     categories = db.query(Category).all()
     slugs = [c.slug for c in categories]
-
     price_data = _extract_price(req.message)
-    slug = _detect_category_slug(req.message, slugs)
-    effective_slug = slug or req.context_slug
 
-    filters: dict = {}
-    if effective_slug:
-        products = get_products_by_slug(db, effective_slug)
-        brand = _extract_brand(req.message, products)
+    # Construieste filtrele disponibile per categorie pentru contextul Gemini
+    cat_filters: dict = {}
+    for cat in categories:
+        prods = get_products_by_slug(db, cat.slug)
+        f: dict = {}
+        brands = sorted({p.brand for p in prods if p.brand})
+        if brands:
+            f["brand"] = brands
+        spec_vals: dict = {}
+        for p in prods:
+            for k, v in (p.specs or {}).items():
+                if k in SKIP_FILTER_KEYS:
+                    continue
+                if isinstance(v, (str, int, float)):
+                    spec_vals.setdefault(k, set()).add(v)
+        for k, vals in spec_vals.items():
+            sv = sorted(str(v) for v in vals)
+            if len(sv) > 1:
+                f[k] = sv
+        cat_filters[cat.slug] = f
+
+    # Cu context_slug: detectam schimbare de categorie + extragem brand/specs in contextul curent
+    if req.context_slug:
+        gemini_result = await gemini_extract_filters(req.message, slugs, cat_filters)
+        detected_slug = (gemini_result or {}).get("category_slug")
+        if detected_slug and detected_slug != req.context_slug:
+            return {"category_slug": detected_slug,
+                    "filters": (gemini_result or {}).get("filters", {}),
+                    **price_data}
+        # Ramane in aceeasi categorie — extragem brand/specs cu regex ca fallback rapid
+        prods = get_products_by_slug(db, req.context_slug)
+        filters: dict = {}
+        brand = _extract_brand(req.message, prods)
         if brand:
             filters["brand"] = brand
-        filters.update(_extract_spec_keywords(req.message, effective_slug))
+        filters.update(_extract_spec_keywords(req.message, req.context_slug))
+        if gemini_result:
+            filters.update((gemini_result.get("filters") or {}))
+        return {"filters": filters, **price_data}
 
-    if not slug and not req.context_slug:
+    # Fara context: Gemini detecteaza categoria si filtrele
+    gemini_result = await gemini_extract_filters(req.message, slugs, cat_filters)
+    if gemini_result:
+        return {**gemini_result, **price_data}
+
+    # Fallback: keyword matching daca Gemini esueaza
+    slug = _detect_category_slug(req.message, slugs)
+    if not slug:
         return {**price_data} if price_data else {}
-
-    result = {"filters": filters, **price_data}
-    if slug:
-        result["category_slug"] = slug
-    return result
+    prods = get_products_by_slug(db, slug)
+    filters: dict = {}
+    brand = _extract_brand(req.message, prods)
+    if brand:
+        filters["brand"] = brand
+    filters.update(_extract_spec_keywords(req.message, slug))
+    return {"category_slug": slug, "filters": filters, **price_data}

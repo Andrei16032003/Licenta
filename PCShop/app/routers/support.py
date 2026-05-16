@@ -9,7 +9,7 @@ from app.models.support_note import SupportNote
 from app.dependencies import require_role
 from app.models.user import User
 
-_require_staff = require_role("admin", "manager", "achizitii", "marketing", "suport")
+_require_staff = require_role("admin", "manager", "achizitii", "marketing", "suport", "garantii_service")
 
 router = APIRouter(prefix="/support", tags=["Suport"])
 

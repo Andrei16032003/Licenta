@@ -1,0 +1,240 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "ALEX COMPUTERS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e9]
+        - generic [ref=e11]: ALEX COMPUTERS
+      - generic [ref=e13]:
+        - textbox "Caută produse, categorii..." [ref=e14]
+        - button [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+      - generic [ref=e18]:
+        - link "Autentificare Contul meu" [ref=e19] [cursor=pointer]:
+          - /url: /login
+          - button "Autentificare Contul meu" [ref=e20]:
+            - img [ref=e23]
+            - generic [ref=e25]:
+              - generic [ref=e26]: Autentificare
+              - generic [ref=e27]: Contul meu
+        - link "Lista ta Favorite" [ref=e30] [cursor=pointer]:
+          - /url: /wishlist
+          - button "Lista ta Favorite" [ref=e31]:
+            - img [ref=e33]
+            - generic [ref=e35]:
+              - generic [ref=e36]: Lista ta
+              - generic [ref=e37]: Favorite
+        - link "0 produse Coșul meu" [ref=e39] [cursor=pointer]:
+          - /url: /cart
+          - button "0 produse Coșul meu" [ref=e40]:
+            - img [ref=e42]
+            - generic [ref=e44]:
+              - generic [ref=e45]: 0 produse
+              - generic [ref=e46]: Coșul meu
+    - generic [ref=e48]:
+      - link "Acasă" [ref=e49] [cursor=pointer]:
+        - /url: /
+      - link "Catalog" [ref=e50] [cursor=pointer]:
+        - /url: /catalog
+      - link "PC Builder" [ref=e51] [cursor=pointer]:
+        - /url: /builder
+      - link "Prebuilt PC" [ref=e52] [cursor=pointer]:
+        - /url: /chat
+      - link "Promoții" [ref=e53] [cursor=pointer]:
+        - /url: /promotii
+      - link "FAQ" [ref=e54] [cursor=pointer]:
+        - /url: /faq
+      - link "Despre noi" [ref=e55] [cursor=pointer]:
+        - /url: /despre-noi
+      - link "Contact" [ref=e56] [cursor=pointer]:
+        - /url: /contact
+  - main [ref=e57]:
+    - generic [ref=e58]:
+      - generic [ref=e59]:
+        - img [ref=e61]
+        - heading "Construieste-ti PC-ul ideal" [level=1] [ref=e63]
+        - paragraph [ref=e64]: Selecteaza componentele — dropdown-urile se filtreaza automat pentru compatibilitate maxima
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - img [ref=e68]
+          - generic [ref=e70]: "8"
+          - generic [ref=e71]: Componente
+        - generic [ref=e72]:
+          - img [ref=e74]
+          - generic [ref=e76]: "11"
+          - generic [ref=e77]: Reguli verificate
+        - generic [ref=e78]:
+          - img [ref=e80]
+          - generic [ref=e82]: Auto
+          - generic [ref=e83]: Filtrare socket
+        - generic [ref=e84]:
+          - img [ref=e86]
+          - generic [ref=e88]: DDR4/5
+          - generic [ref=e89]: Compatibil RAM
+      - generic [ref=e90]:
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - img [ref=e93]
+            - text: Se incarca produsele...
+          - generic [ref=e95]:
+            - generic [ref=e96]:
+              - generic [ref=e97]:
+                - img [ref=e99]
+                - generic [ref=e103]: Procesor
+              - combobox [disabled] [ref=e104] [cursor=pointer]:
+                - option "Se incarca..." [selected]
+            - generic [ref=e105]:
+              - generic [ref=e106]:
+                - img [ref=e108]
+                - generic [ref=e112]: Placa video
+              - combobox [disabled] [ref=e113] [cursor=pointer]:
+                - option "Se incarca..." [selected]
+            - generic [ref=e114]:
+              - generic [ref=e115]:
+                - img [ref=e117]
+                - generic [ref=e121]: Placa de baza
+              - combobox [disabled] [ref=e122] [cursor=pointer]:
+                - option "Se incarca..." [selected]
+            - generic [ref=e123]:
+              - generic [ref=e124]:
+                - img [ref=e126]
+                - generic [ref=e130]: Memorie RAM
+              - combobox [disabled] [ref=e131] [cursor=pointer]:
+                - option "Se incarca..." [selected]
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - img [ref=e135]
+                - generic [ref=e139]: Sursa
+              - combobox [disabled] [ref=e140] [cursor=pointer]:
+                - option "Se incarca..." [selected]
+            - generic [ref=e141]:
+              - generic [ref=e142]:
+                - img [ref=e144]
+                - generic [ref=e148]: Carcasa
+              - combobox [disabled] [ref=e149] [cursor=pointer]:
+                - option "Se incarca..." [selected]
+            - generic [ref=e150]:
+              - generic [ref=e151]:
+                - img [ref=e153]
+                - generic [ref=e157]: Stocare
+              - combobox [disabled] [ref=e158] [cursor=pointer]:
+                - option "Se incarca..." [selected]
+            - generic [ref=e159]:
+              - generic [ref=e160]:
+                - img [ref=e162]
+                - generic [ref=e166]: Cooler
+              - combobox [disabled] [ref=e167] [cursor=pointer]:
+                - option "Se incarca..." [selected]
+        - generic [ref=e168]:
+          - generic [ref=e169]:
+            - img [ref=e171]
+            - generic [ref=e173]:
+              - heading "Sumar build" [level=3] [ref=e174]
+              - paragraph [ref=e175]: 0/8 componente selectate
+          - generic [ref=e178]:
+            - generic [ref=e179]:
+              - img [ref=e180]
+              - generic [ref=e182]: Procesor
+            - generic [ref=e183]:
+              - img [ref=e184]
+              - generic [ref=e186]: Placa video
+            - generic [ref=e187]:
+              - img [ref=e188]
+              - generic [ref=e190]: Placa de baza
+            - generic [ref=e191]:
+              - img [ref=e192]
+              - generic [ref=e194]: Memorie RAM
+            - generic [ref=e195]:
+              - img [ref=e196]
+              - generic [ref=e198]: Sursa
+            - generic [ref=e199]:
+              - img [ref=e200]
+              - generic [ref=e202]: Carcasa
+            - generic [ref=e203]:
+              - img [ref=e204]
+              - generic [ref=e206]: Stocare
+            - generic [ref=e207]:
+              - img [ref=e208]
+              - generic [ref=e210]: Cooler
+          - generic [ref=e211]:
+            - button "Verifica compatibilitate" [disabled] [ref=e212]:
+              - img [ref=e213]
+              - text: Verifica compatibilitate
+            - button "Adauga tot in cos" [disabled] [ref=e215]:
+              - img [ref=e216]
+              - text: Adauga tot in cos
+          - paragraph [ref=e218]:
+            - text: Selecteaza componentele din stanga.
+            - text: Dropdown-urile se filtreaza automat
+            - text: pentru a-ti arata doar optiunile
+            - text: compatibile cu ce ai ales deja.
+          - button "Reguli de compatibilitate" [ref=e220] [cursor=pointer]:
+            - img [ref=e221]
+            - text: Reguli de compatibilitate
+  - contentinfo [ref=e223]:
+    - generic [ref=e224]:
+      - generic [ref=e225]:
+        - link "ALEX COMPUTERS" [ref=e226] [cursor=pointer]:
+          - /url: /
+          - img [ref=e228]
+          - generic [ref=e230]: ALEX COMPUTERS
+        - paragraph [ref=e231]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e232]:
+          - link "aa387@student.ugal.ro" [ref=e233] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e234]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e237] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e238]
+            - text: 0770 648 476
+      - generic [ref=e241]:
+        - heading "Navigare" [level=4] [ref=e242]
+        - list [ref=e243]:
+          - listitem [ref=e244]:
+            - link "Catalog Produse" [ref=e245] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e246]
+              - text: Catalog Produse
+          - listitem [ref=e248]:
+            - link "PC Builder" [ref=e249] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e250]
+              - text: PC Builder
+          - listitem [ref=e252]:
+            - link "Prebuilt PC" [ref=e253] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e254]
+              - text: Prebuilt PC
+          - listitem [ref=e256]:
+            - link "FAQ" [ref=e257] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e258]
+              - text: FAQ
+      - generic [ref=e260]:
+        - heading "Informații" [level=4] [ref=e261]
+        - list [ref=e262]:
+          - listitem [ref=e263]:
+            - link "Despre Noi" [ref=e264] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e265]
+              - text: Despre Noi
+          - listitem [ref=e267]:
+            - link "Contact" [ref=e268] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e269]
+              - text: Contact
+          - listitem [ref=e271]:
+            - button "Termeni și Condiții" [ref=e272] [cursor=pointer]:
+              - img [ref=e273]
+              - text: Termeni și Condiții
+          - listitem [ref=e275]:
+            - button "Politică Confidențialitate" [ref=e276] [cursor=pointer]:
+              - img [ref=e277]
+              - text: Politică Confidențialitate
+        - paragraph [ref=e279]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e281]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e283] [cursor=pointer]:
+    - img [ref=e284]

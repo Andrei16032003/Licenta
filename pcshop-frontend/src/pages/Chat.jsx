@@ -152,8 +152,8 @@ export default function Chat() {
           <Robot size={30} weight="bold" className="text-dark" />
         </div>
         <h1 style={{ fontSize: '44px', fontWeight: '800', color: '#F1F5F9', marginBottom: '14px', letterSpacing: '-0.5px' }}>
-          Configuratie PC pe{' '}
-          <span style={{ background: 'linear-gradient(135deg, var(--cyan), var(--violet))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>bugetul tau</span>
+          Prebuilt PC{' '}
+          <span style={{ background: 'linear-gradient(135deg, var(--cyan), var(--violet))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>recomandat de AI</span>
         </h1>
         <p style={{ color: '#9CA3AF', fontSize: '18px', maxWidth: '560px', margin: '0 auto' }}>
           Spune-ne bugetul si ce folosesti PC-ul — iti recomandam configuratia optima

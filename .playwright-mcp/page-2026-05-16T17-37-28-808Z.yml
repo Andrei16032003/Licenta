@@ -1,0 +1,144 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "ALEX COMPUTERS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e9]
+        - generic [ref=e11]: ALEX COMPUTERS
+      - generic [ref=e13]:
+        - textbox "Caută produse, categorii..." [ref=e14]
+        - button [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+      - generic [ref=e18]:
+        - link "Autentificare Contul meu" [ref=e19] [cursor=pointer]:
+          - /url: /login
+          - button "Autentificare Contul meu" [ref=e20]:
+            - img [ref=e23]
+            - generic [ref=e25]:
+              - generic [ref=e26]: Autentificare
+              - generic [ref=e27]: Contul meu
+        - link "Lista ta Favorite" [ref=e30] [cursor=pointer]:
+          - /url: /wishlist
+          - button "Lista ta Favorite" [ref=e31]:
+            - img [ref=e33]
+            - generic [ref=e35]:
+              - generic [ref=e36]: Lista ta
+              - generic [ref=e37]: Favorite
+        - link "0 produse Coșul meu" [ref=e39] [cursor=pointer]:
+          - /url: /cart
+          - button "0 produse Coșul meu" [ref=e40]:
+            - img [ref=e42]
+            - generic [ref=e44]:
+              - generic [ref=e45]: 0 produse
+              - generic [ref=e46]: Coșul meu
+    - generic [ref=e48]:
+      - link "Acasă" [ref=e49] [cursor=pointer]:
+        - /url: /
+      - link "Catalog" [ref=e50] [cursor=pointer]:
+        - /url: /catalog
+      - link "PC Builder" [ref=e51] [cursor=pointer]:
+        - /url: /builder
+      - link "Prebuilt PC" [ref=e52] [cursor=pointer]:
+        - /url: /chat
+      - link "Promoții" [ref=e53] [cursor=pointer]:
+        - /url: /promotii
+        - text: Promoții
+      - link "FAQ" [ref=e55] [cursor=pointer]:
+        - /url: /faq
+      - link "Despre noi" [ref=e56] [cursor=pointer]:
+        - /url: /despre-noi
+      - link "Contact" [ref=e57] [cursor=pointer]:
+        - /url: /contact
+  - main [ref=e58]:
+    - generic [ref=e59]:
+      - generic [ref=e61]:
+        - img [ref=e63]
+        - heading "Promoții exclusive" [level=1] [ref=e65]
+        - paragraph [ref=e66]: Cele mai mari reduceri la componente PC. Stocuri limitate — profită acum!
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - generic [ref=e69]: "0"
+            - generic [ref=e70]: Produse în promoție
+          - generic [ref=e71]:
+            - generic [ref=e72]: 0%
+            - generic [ref=e73]: Reducere maximă
+          - generic [ref=e74]:
+            - generic [ref=e75]: 0 RON
+            - generic [ref=e76]: Total economii disponibile
+      - generic [ref=e77]:
+        - button "Toate (0)" [ref=e79] [cursor=pointer]
+        - generic [ref=e80]:
+          - img [ref=e81]
+          - combobox [ref=e83] [cursor=pointer]:
+            - option "Reducere maximă" [selected]
+            - 'option "Preț: mic → mare"'
+            - 'option "Preț: mare → mic"'
+            - option "Cele mai noi"
+      - img [ref=e85]
+  - contentinfo [ref=e87]:
+    - generic [ref=e88]:
+      - generic [ref=e89]:
+        - link "ALEX COMPUTERS" [ref=e90] [cursor=pointer]:
+          - /url: /
+          - img [ref=e92]
+          - generic [ref=e94]: ALEX COMPUTERS
+        - paragraph [ref=e95]: Componentele tale, configurate perfect. Livrare rapidă, garanție 24 luni.
+        - generic [ref=e96]:
+          - link "aa387@student.ugal.ro" [ref=e97] [cursor=pointer]:
+            - /url: mailto:aa387@student.ugal.ro
+            - img [ref=e98]
+            - text: aa387@student.ugal.ro
+          - link "0770 648 476" [ref=e101] [cursor=pointer]:
+            - /url: tel:0770648476
+            - img [ref=e102]
+            - text: 0770 648 476
+      - generic [ref=e105]:
+        - heading "Navigare" [level=4] [ref=e106]
+        - list [ref=e107]:
+          - listitem [ref=e108]:
+            - link "Catalog Produse" [ref=e109] [cursor=pointer]:
+              - /url: /catalog
+              - img [ref=e110]
+              - text: Catalog Produse
+          - listitem [ref=e112]:
+            - link "PC Builder" [ref=e113] [cursor=pointer]:
+              - /url: /builder
+              - img [ref=e114]
+              - text: PC Builder
+          - listitem [ref=e116]:
+            - link "Prebuilt PC" [ref=e117] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e118]
+              - text: Prebuilt PC
+          - listitem [ref=e120]:
+            - link "FAQ" [ref=e121] [cursor=pointer]:
+              - /url: /faq
+              - img [ref=e122]
+              - text: FAQ
+      - generic [ref=e124]:
+        - heading "Informații" [level=4] [ref=e125]
+        - list [ref=e126]:
+          - listitem [ref=e127]:
+            - link "Despre Noi" [ref=e128] [cursor=pointer]:
+              - /url: /despre-noi
+              - img [ref=e129]
+              - text: Despre Noi
+          - listitem [ref=e131]:
+            - link "Contact" [ref=e132] [cursor=pointer]:
+              - /url: /contact
+              - img [ref=e133]
+              - text: Contact
+          - listitem [ref=e135]:
+            - button "Termeni și Condiții" [ref=e136] [cursor=pointer]:
+              - img [ref=e137]
+              - text: Termeni și Condiții
+          - listitem [ref=e139]:
+            - button "Politică Confidențialitate" [ref=e140] [cursor=pointer]:
+              - img [ref=e141]
+              - text: Politică Confidențialitate
+        - paragraph [ref=e143]:
+          - text: © 2026 Alex Computers.
+          - text: Toate drepturile rezervate.
+    - paragraph [ref=e145]: Prețurile afișate includ TVA. Ofertele sunt valabile în limita stocului disponibil.
+  - button [ref=e147] [cursor=pointer]:
+    - img [ref=e148]

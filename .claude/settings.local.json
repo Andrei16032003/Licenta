@@ -49,7 +49,22 @@
       "PowerShell($r = Invoke-RestMethod \"http://127.0.0.1:8000/chat/filters/tastaturi\"; $r | Where-Object { $_.key -eq \"rgb\" } | ConvertTo-Json)",
       "PowerShell($r = Invoke-RestMethod \"http://127.0.0.1:8000/chat/filters/tastaturi\" -ErrorAction Stop; Write-Output \\($r | ConvertTo-Json -Depth 10\\))",
       "PowerShell(\\(Invoke-WebRequest \"http://127.0.0.1:8000/chat/filters/tastaturi\"\\).Content)",
-      "PowerShell($wc = New-Object System.Net.WebClient; $wc.DownloadString\\(\"http://127.0.0.1:8000/chat/filters/tastaturi\"\\))"
+      "PowerShell($wc = New-Object System.Net.WebClient; $wc.DownloadString\\(\"http://127.0.0.1:8000/chat/filters/tastaturi\"\\))",
+      "Bash(Get-ChildItem -Path \"c:\\\\Licenta\" -Recurse -Force)",
+      "Bash(Select-Object -First 50)",
+      "Bash(npx vite *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":5173 \")",
+      "mcp__plugin_playwright_playwright__browser_console_messages",
+      "Bash(python -m uvicorn app.main:app --host 127.0.0.1 --port 8000)",
+      "Bash(curl -s http://127.0.0.1:8000/)",
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "mcp__plugin_playwright_playwright__browser_press_key",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "mcp__plugin_playwright_playwright__browser_fill_form",
+      "Bash(python -c ' *)",
+      "Bash(python -m psycopg2)",
+      "Bash(.venv/Scripts/python.exe -c ' *)"
     ]
   }
 }
