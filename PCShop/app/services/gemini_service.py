@@ -16,7 +16,11 @@ CHAT_MODEL  = "models/gemini-2.5-flash"
 
 async def embed_text(text: str) -> list[float] | None:
     try:
-        result = client.models.embed_content(model=EMBED_MODEL, contents=text)
+        result = client.models.embed_content(
+            model=EMBED_MODEL,
+            contents=text,
+            config={"task_type": "RETRIEVAL_DOCUMENT"},
+        )
         return result.embeddings[0].values
     except Exception as e:
         print(f"    embed error: {e}")
@@ -24,7 +28,16 @@ async def embed_text(text: str) -> list[float] | None:
 
 
 async def embed_query(text: str) -> list[float] | None:
-    return await embed_text(text)
+    try:
+        result = client.models.embed_content(
+            model=EMBED_MODEL,
+            contents=text,
+            config={"task_type": "RETRIEVAL_QUERY"},
+        )
+        return result.embeddings[0].values
+    except Exception as e:
+        print(f"    embed_query error: {e}")
+        return None
 
 
 async def generate_search_message(query: str, category_name: str | None, product_names: list[str]) -> str:

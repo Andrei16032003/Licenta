@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -34,7 +35,7 @@ async def embed_with_retry(text: str) -> list[float] | None:
     return None
 
 
-async def index_all():
+async def index_all(force: bool = False):
     db = SessionLocal()
     try:
         products = (
@@ -44,9 +45,11 @@ async def index_all():
             .all()
         )
 
-        to_index = [p for p in products if p.embedding is None]
+        to_index = products if force else [p for p in products if p.embedding is None]
         already  = len(products) - len(to_index)
         print(f"Total: {len(products)} | Deja indexate: {already} | De indexat: {len(to_index)}", flush=True)
+        if force:
+            print("Mod FORCE activ — re-indexare completa cu task_type=RETRIEVAL_DOCUMENT", flush=True)
 
         for i, product in enumerate(to_index):
             category_name = product.category.name if product.category else ""
@@ -72,4 +75,5 @@ async def index_all():
 
 
 if __name__ == "__main__":
-    asyncio.run(index_all())
+    force = "--force" in sys.argv
+    asyncio.run(index_all(force=force))
