@@ -5,19 +5,23 @@ from app.config import MAIL_USERNAME, MAIL_PASSWORD, MAIL_FROM
 
 
 def _send(to_email: str, subject: str, html: str):
+    # Daca credentialele SMTP nu sunt configurate, nu trimite nimic
     if not MAIL_USERNAME or not MAIL_PASSWORD:
         return
+    # Construieste mesajul email in format HTML
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"]    = MAIL_FROM
     msg["To"]      = to_email
     msg.attach(MIMEText(html, "html"))
     try:
+        # Conectare la serverul SMTP Gmail prin SSL pe portul 465
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(MAIL_USERNAME, MAIL_PASSWORD)
             server.sendmail(MAIL_FROM, to_email, msg.as_string())
     except Exception:
-        pass  # nu blocam operatia daca emailul esueaza
+        # Eroarea de email nu blocheaza operatia principala
+        pass
 
 
 def _base(content: str) -> str:
@@ -32,7 +36,9 @@ def _base(content: str) -> str:
 
 
 def notify_order_placed(to_email: str, name: str, order_id: str, invoice: str, total: float, items: list, payment_method: str):
+    # Mapeaza tipul platii la o eticheta lizibila
     method_label = {"cod": "Ramburs la livrare", "card": "Card online", "transfer": "Transfer bancar"}.get(payment_method, payment_method)
+    # Genereaza randurile tabelului cu produsele comandate
     rows = "".join(
         f'<tr><td style="padding:8px 0;color:#94a3b8;font-size:13px">{i["name"]}</td>'
         f'<td style="padding:8px 0;text-align:right;color:#e2e8f0;font-size:13px">x{i["quantity"]} &mdash; {float(i["unit_price"]) * i["quantity"]:.2f} RON</td></tr>'
@@ -150,6 +156,7 @@ def notify_service_status(to_email: str, name: str, ticket: str, product_name: s
 
 
 def notify_back_in_stock(to_email: str, product_name: str, product_url: str, price: float):
+    # Trimis automat cand un produs indisponibil revine in stoc
     html = _base(f"""
       <h2 style="color:#00e5a0;margin-bottom:4px">Produsul este din nou disponibil!</h2>
       <p style="color:#94a3b8;font-size:14px">Produsul pe care l-ai urmărit a revenit în stoc.</p>

@@ -208,9 +208,6 @@ export default function ChatWidget() {
   const [convMax, setConvMax]       = useState(undefined)
   const [convInput, setConvInput]   = useState('')
   const [convBusy, setConvBusy]       = useState(false)
-  const [convPriceMode, setConvPriceMode] = useState(null) // null | 'max' | 'range'
-  const [convPriceMax, setConvPriceMax]   = useState('')
-  const [convPriceMin, setConvPriceMin]   = useState('')
   const [copiedCode, setCopiedCode] = useState(null)
   const bodyRef    = useRef(null)
   const msgsEndRef = useRef(null)
@@ -240,9 +237,33 @@ export default function ChatWidget() {
     setConvMax(undefined)
     setConvInput('')
     setConvBusy(false)
-    setConvPriceMode(null)
-    setConvPriceMax('')
-    setConvPriceMin('')
+  }
+
+  const BRAND_KEYWORDS = {
+    'Intel':  ['intel'],
+    'AMD':    ['amd', 'ryzen', 'radeon', 'threadripper'],
+    'NVIDIA': ['nvidia', 'geforce', 'rtx', 'gtx'],
+    'Samsung': ['samsung'],
+    'Corsair': ['corsair'],
+    'Kingston': ['kingston'],
+    'WD':      ['western digital', 'wd'],
+    'Seagate': ['seagate'],
+    'ASUS':    ['asus'],
+    'MSI':     ['msi'],
+    'Gigabyte': ['gigabyte'],
+    'DeepCool': ['deepcool'],
+    'Noctua':  ['noctua'],
+    'be quiet!': ['be quiet'],
+    'Seasonic': ['seasonic'],
+    'Crucial': ['crucial'],
+  }
+
+  const extractBrandFromText = (text) => {
+    const lower = text.toLowerCase()
+    for (const [brand, kws] of Object.entries(BRAND_KEYWORDS)) {
+      if (kws.some(kw => lower.includes(kw))) return brand
+    }
+    return null
   }
 
   const convDoSearch = async (specs, cat, minP, maxP) => {
@@ -250,13 +271,15 @@ export default function ChatWidget() {
     setConvMsgs(prev => [...prev, { role: 'bot', type: 'loading', content: '' }])
     try {
       const isGeneric = /^(orice|toate|nu\s*conteaza|nu\s*contează)$/i.test(specs.trim())
+      const detectedBrand = isGeneric ? null : extractBrandFromText(specs)
+      const filters = detectedBrand ? { brand: detectedBrand } : {}
       const res = await chatAPI.semanticSearch({
         message:       isGeneric ? cat.name : specs,
         category_slug: cat.slug,
-        filters:       {},
+        filters,
         max_price:     maxP,
         min_price:     minP,
-        limit:         8,
+        limit:         5,
       })
       const results = Array.isArray(res.data) ? res.data : (res.data?.results ?? [])
       const aiMsg   = res.data?.message ?? null
@@ -281,7 +304,7 @@ export default function ChatWidget() {
           maxP,
         }]
       })
-      setConvPhase('results')
+      setConvPhase('chatting')
     } catch {
       setConvMsgs(prev => {
         const filtered = prev.filter(m => m.type !== 'loading')
@@ -297,30 +320,43 @@ export default function ChatWidget() {
     if (!text || convBusy) return
     setConvInput('')
 
-    if (convPhase === 'awaiting_cat') {
-      setConvMsgs(prev => [...prev, { role: 'user', content: text }])
-      const cats = Array.isArray(catsData) ? catsData : []
-      const found = detectCatFromText(text, cats)
-      if (!found) {
-        setConvMsgs(prev => [...prev, {
-          role: 'bot',
-          content: `Nu am recunoscut categoria. Poți alege din: ${cats.map(c => c.name).join(', ')}.`,
-        }])
-        return
+    setConvMsgs(prev => [...prev, { role: 'user', content: text }])
+    const cats = Array.isArray(catsData) ? catsData : []
+
+    setConvBusy(true)
+    let targetCat = null
+    let minP = undefined
+    let maxP = undefined
+
+    try {
+      const res = await chatAPI.extractFilters(text, convCat?.slug)
+      const extracted = res.data || {}
+      if (extracted.category_slug) {
+        targetCat = cats.find(c => c.slug === extracted.category_slug)
       }
-      setConvCat(found)
+      if (!targetCat) {
+        targetCat = detectCatFromText(text, cats) || convCat
+      }
+      minP = extracted.min_price || undefined
+      maxP = extracted.max_price || undefined
+    } catch {
+      targetCat = convCat || detectCatFromText(text, cats)
+    } finally {
+      setConvBusy(false)
+    }
+
+    if (!targetCat) {
       setConvMsgs(prev => [...prev, {
-        role: 'bot', type: 'price_select',
-        content: `Am înțeles — cauți în categoria ${found.name}. Ce buget ai în vedere?`,
+        role: 'bot',
+        content: `Nu am recunoscut ce cauți. Încearcă să specifici o categorie: ${cats.map(c => c.name).join(', ')}.`,
       }])
-      setConvPhase('awaiting_price')
       return
     }
 
-    if (convPhase === 'awaiting_specs') {
-      setConvMsgs(prev => [...prev, { role: 'user', content: text }])
-      await convDoSearch(text, convCat, convMin, convMax)
-    }
+    setConvCat(targetCat)
+    setConvMin(minP)
+    setConvMax(maxP)
+    await convDoSearch(text, targetCat, minP, maxP)
   }
 
   const load = async (key, fetcher) => {
@@ -508,7 +544,7 @@ export default function ChatWidget() {
                                  text-amber-400 text-[9px] font-bold shrink-0">AI</span>
               </div>
               <p>Bună! Sunt un asistent bazat pe inteligență artificială și te pot ajuta să găsești produse PC. Pot face greșeli uneori, dar fac tot posibilul.</p>
-              <p className="text-secondary">Avem aceste categorii — apasă una sau scrie mai jos:</p>
+              <p className="text-secondary">Apasă o categorie sau descrie direct ce cauți (ex: <span className="text-accent/80 italic">"procesor AMD gaming sub 800 lei"</span>):</p>
               {cats.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 pt-0.5">
                   {cats.map(c => {
@@ -521,9 +557,9 @@ export default function ChatWidget() {
                                 setConvCat(c)
                                 setConvMsgs(prev => [...prev,
                                   { role: 'user', content: c.name },
-                                  { role: 'bot', type: 'price_select', content: `Am înțeles — cauți în categoria ${c.name}. Ce buget ai în vedere?` },
+                                  { role: 'bot', content: `Am înțeles — cauți în categoria ${c.name}. Descrie ce vrei (brand, specificații, preț):` },
                                 ])
-                                setConvPhase('awaiting_price')
+                                setConvPhase('chatting')
                               }}
                               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl
                                          border transition-all
@@ -545,152 +581,6 @@ export default function ChatWidget() {
         )
       }
 
-      if (msg.type === 'price_select') {
-        const lastPriceIdx = convMsgs.reduce((acc, m, j) => m.type === 'price_select' ? j : acc, -1)
-        const isActive = convPhase === 'awaiting_price' && i === lastPriceIdx
-
-        const specsMsg = `Ai vreo preferință de specificații? (ex: "AMD Ryzen 5 gaming", "8 nuclee") Sau scrie "orice" pentru toate produsele.`
-
-        const confirmMax = () => {
-          const val = parseFloat(convPriceMax)
-          if (!val || val <= 0) return
-          setConvMin(undefined); setConvMax(val)
-          setConvMsgs(prev => [...prev,
-            { role: 'user', content: `Maxim ${val} RON` },
-            { role: 'bot', content: `Înțeles — buget maxim ${val} RON.\n\n${specsMsg}` },
-          ])
-          setConvPhase('awaiting_specs')
-          setConvPriceMode(null); setConvPriceMax(''); setConvPriceMin('')
-        }
-
-        const confirmRange = () => {
-          const min = parseFloat(convPriceMin)
-          const max = parseFloat(convPriceMax)
-          if (!min || !max || min >= max) return
-          setConvMin(min); setConvMax(max)
-          setConvMsgs(prev => [...prev,
-            { role: 'user', content: `${min}–${max} RON` },
-            { role: 'bot', content: `Înțeles — buget ${min}–${max} RON.\n\n${specsMsg}` },
-          ])
-          setConvPhase('awaiting_specs')
-          setConvPriceMode(null); setConvPriceMax(''); setConvPriceMin('')
-        }
-
-        const confirmAny = () => {
-          setConvMin(undefined); setConvMax(undefined)
-          setConvMsgs(prev => [...prev,
-            { role: 'user', content: 'Orice preț' },
-            { role: 'bot', content: `Fără restricții de preț.\n\n${specsMsg}` },
-          ])
-          setConvPhase('awaiting_specs')
-          setConvPriceMode(null)
-        }
-
-        const btnRow = "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-left transition-all bg-white/[0.04] border"
-        const inputCls = "w-full bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2 text-primary text-[12.5px] outline-none placeholder:text-muted/35 focus:border-accent/50 transition-colors"
-
-        return (
-          <div key={i} className="flex items-start gap-2.5">
-            {botAvatar}
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl rounded-tl-sm
-                            px-3 py-2.5 text-[12px] text-primary leading-relaxed flex-1 flex flex-col gap-2.5">
-              <span className="font-medium">{msg.content}</span>
-
-              {isActive && convPriceMode === null && (
-                <div className="flex flex-col gap-1.5">
-                  <button onClick={() => setConvPriceMode('max')}
-                          className={`${btnRow} border-white/10 hover:border-accent/40 hover:bg-accent/[0.08]`}>
-                    <div className="w-7 h-7 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0">
-                      <span className="text-accent text-[9px] font-bold">MAX</span>
-                    </div>
-                    <div>
-                      <div className="text-primary text-[11.5px] font-semibold leading-tight">Preț maxim</div>
-                      <div className="text-muted text-[10.5px]">ex: maxim 500 RON</div>
-                    </div>
-                  </button>
-                  <button onClick={() => setConvPriceMode('range')}
-                          className={`${btnRow} border-white/10 hover:border-accent/40 hover:bg-accent/[0.08]`}>
-                    <div className="w-7 h-7 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0">
-                      <span className="text-accent text-[10px] font-bold">↔</span>
-                    </div>
-                    <div>
-                      <div className="text-primary text-[11.5px] font-semibold leading-tight">Interval de preț</div>
-                      <div className="text-muted text-[10.5px]">ex: 300 – 1500 RON</div>
-                    </div>
-                  </button>
-                  <button onClick={confirmAny}
-                          className={`${btnRow} border-white/10 hover:border-success/40 hover:bg-success/[0.06]`}>
-                    <div className="w-7 h-7 rounded-lg bg-success/15 border border-success/30 flex items-center justify-center shrink-0">
-                      <span className="text-success text-[11px] font-bold">✓</span>
-                    </div>
-                    <div>
-                      <div className="text-primary text-[11.5px] font-semibold leading-tight">Orice preț</div>
-                      <div className="text-muted text-[10.5px]">fără restricții de buget</div>
-                    </div>
-                  </button>
-                </div>
-              )}
-
-              {isActive && convPriceMode === 'max' && (
-                <div className="flex flex-col gap-2">
-                  <input type="number" min="0" value={convPriceMax}
-                         onChange={e => setConvPriceMax(e.target.value)}
-                         onKeyDown={e => e.key === 'Enter' && confirmMax()}
-                         placeholder="Preț maxim (RON)" autoFocus className={inputCls} />
-                  <div className="flex gap-2">
-                    <button onClick={confirmMax}
-                            disabled={!convPriceMax || parseFloat(convPriceMax) <= 0}
-                            className="flex-1 py-2 rounded-xl bg-accent text-base text-[12px] font-bold
-                                       cursor-pointer hover:brightness-110 transition-all
-                                       disabled:opacity-40 disabled:cursor-not-allowed">
-                      Confirmă
-                    </button>
-                    <button onClick={() => { setConvPriceMode(null); setConvPriceMax('') }}
-                            className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10
-                                       text-secondary text-[12px] cursor-pointer hover:border-white/25 transition-all">
-                      ←
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {isActive && convPriceMode === 'range' && (
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-2">
-                    <input type="number" min="0" value={convPriceMin}
-                           onChange={e => setConvPriceMin(e.target.value)}
-                           placeholder="De la (RON)" autoFocus
-                           className={`flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
-                                       text-primary text-[12.5px] outline-none placeholder:text-muted/35
-                                       focus:border-accent/50 transition-colors`} />
-                    <input type="number" min="0" value={convPriceMax}
-                           onChange={e => setConvPriceMax(e.target.value)}
-                           onKeyDown={e => e.key === 'Enter' && confirmRange()}
-                           placeholder="Până la (RON)"
-                           className={`flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2
-                                       text-primary text-[12.5px] outline-none placeholder:text-muted/35
-                                       focus:border-accent/50 transition-colors`} />
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={confirmRange}
-                            disabled={!convPriceMin || !convPriceMax || parseFloat(convPriceMin) >= parseFloat(convPriceMax)}
-                            className="flex-1 py-2 rounded-xl bg-accent text-base text-[12px] font-bold
-                                       cursor-pointer hover:brightness-110 transition-all
-                                       disabled:opacity-40 disabled:cursor-not-allowed">
-                      Confirmă
-                    </button>
-                    <button onClick={() => { setConvPriceMode(null); setConvPriceMin(''); setConvPriceMax('') }}
-                            className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10
-                                       text-secondary text-[12px] cursor-pointer hover:border-white/25 transition-all">
-                      ←
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )
-      }
 
       if (msg.type === 'results') {
         const hasProducts = msg.products?.length > 0
@@ -711,69 +601,10 @@ export default function ChatWidget() {
                 {msg.products.map(p => renderProductCard(p))}
               </div>
             )}
-            <div className="flex flex-col gap-1.5 pl-[34px]">
-              {!hasProducts && (
-                <>
-                  <button
-                    onClick={() => {
-                      setConvMsgs(prev => [...prev, {
-                        role: 'bot',
-                        content: `Ce specificații vrei să cauți? (ex: "AMD Ryzen 5", "8 nuclee") Sau scrie "orice" pentru toate produsele.`,
-                      }])
-                      setConvPhase('awaiting_specs')
-                    }}
-                    className="w-full py-2 rounded-xl bg-accent/10 border border-accent/30
-                               text-accent text-[11.5px] font-semibold cursor-pointer
-                               hover:bg-accent/20 transition-all">
-                    Încearcă alte specificații
-                  </button>
-                  {hasBudget && (
-                    <button
-                      onClick={() => {
-                        setConvMin(undefined); setConvMax(undefined)
-                        setConvPriceMode(null); setConvPriceMax(''); setConvPriceMin('')
-                        setConvMsgs(prev => [...prev, {
-                          role: 'bot', type: 'price_select',
-                          content: `Ce buget ai în vedere?`,
-                        }])
-                        setConvPhase('awaiting_price')
-                      }}
-                      className="w-full py-2 rounded-xl bg-white/[0.04] border border-white/10
-                                 text-secondary text-[11.5px] font-medium cursor-pointer
-                                 hover:border-white/25 hover:text-primary transition-all">
-                      Schimbă bugetul
-                    </button>
-                  )}
-                </>
-              )}
-              {hasProducts && (
-                <button
-                  onClick={() => {
-                    setConvMin(undefined); setConvMax(undefined)
-                    setConvPriceMode(null); setConvPriceMax(''); setConvPriceMin('')
-                    setConvMsgs(prev => [...prev, {
-                      role: 'bot', type: 'price_select',
-                      content: `Ce buget ai în vedere?`,
-                    }])
-                    setConvPhase('awaiting_price')
-                  }}
-                  className="w-full py-1.5 rounded-xl bg-white/[0.04] border border-white/10
-                             text-secondary text-[11px] font-medium cursor-pointer
-                             hover:border-accent/30 hover:text-primary transition-all">
-                  Caută din nou
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  setConvCat(null); setConvMin(undefined); setConvMax(undefined)
-                  setConvMsgs(prev => [...prev, { role: 'bot', type: 'intro', content: '' }])
-                  setConvPhase('awaiting_cat')
-                }}
-                className="w-full py-1.5 rounded-xl bg-white/[0.04] border border-white/10
-                           text-secondary text-[11px] font-medium cursor-pointer
-                           hover:border-accent/30 hover:text-primary transition-all">
-                Altă categorie
-              </button>
+            <div className="pl-[34px]">
+              <p className="text-muted/50 text-[10.5px] italic">
+                Scrie orice mai jos pentru a continua căutarea...
+              </p>
             </div>
           </div>
         )
@@ -1388,7 +1219,7 @@ export default function ChatWidget() {
                 {renderCautare()}
                 <div ref={msgsEndRef} />
               </div>
-              {convPhase !== 'idle' && convPhase !== 'results' && convPhase !== 'awaiting_price' && (
+              {convPhase !== 'idle' && (
                 <div className="shrink-0 px-3 pb-3 pt-2 border-t border-white/[0.06]">
                   <div className="flex gap-2 items-center">
                     <input
@@ -1397,9 +1228,7 @@ export default function ChatWidget() {
                       onChange={e => setConvInput(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') convHandleSubmit() }}
                       placeholder={
-                        convPhase === 'awaiting_cat'   ? 'Scrie categoria (ex: procesor, GPU...)' :
-                        convPhase === 'awaiting_price' ? 'ex: maxim 500, 300-1500, nu contează' :
-                                                         'Descrie ce cauți...'
+                        'Scrie ce cauți (ex: procesor AMD sub 800 lei, SSD NVMe...)'
                       }
                       disabled={convBusy}
                       className="flex-1 bg-white/[0.06] border border-white/15 rounded-xl px-3 py-2

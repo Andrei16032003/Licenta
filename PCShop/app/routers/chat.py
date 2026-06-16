@@ -62,7 +62,7 @@ def filter_brand(products, pref):
     return filtered if filtered else products
 
 def check_compatibility(selected: dict) -> list:
-    """Verifica compatibilitatea intre componentele selectate."""
+    # Verifica 11 reguli de compatibilitate hardware intre componentele selectate
     warnings = []
     cpu         = selected.get("cpu")
     motherboard = selected.get("motherboard")
@@ -72,22 +72,22 @@ def check_compatibility(selected: dict) -> list:
     case        = selected.get("case")
     cooler      = selected.get("cooler")
 
-    # Regula 1: CPU socket == Motherboard socket
+    # Regula 1: socket-ul CPU trebuie sa corespunda cu socket-ul placii de baza
     if cpu and motherboard:
         cpu_socket = (cpu.specs or {}).get("socket")
         mb_socket  = (motherboard.specs or {}).get("socket")
         if cpu_socket and mb_socket and cpu_socket != mb_socket:
             warnings.append(f"Socket incompatibil: CPU {cpu_socket} vs MB {mb_socket}")
 
-    # Regula 2: RAM type == Motherboard memory_type
+    # Regula 2: tipul memoriei RAM trebuie sa fie compatibil cu placa de baza
     if ram and motherboard:
         ram_type  = (ram.specs or {}).get("type")
         mb_memory = (motherboard.specs or {}).get("memory_type")
         if ram_type and mb_memory and ram_type != mb_memory:
             warnings.append(f"RAM incompatibil: {ram_type} vs {mb_memory}")
 
-    # Regula 3: Consum total vs PSU wattage
-    total_power = 50  # overhead baza
+    # Regula 3: consumul total CPU+GPU nu trebuie sa depaseasca wattajul sursei
+    total_power = 50  # overhead baza sistem
     if cpu:
         total_power += (cpu.specs or {}).get("tdp", 0)
     if gpu:
@@ -99,7 +99,7 @@ def check_compatibility(selected: dict) -> list:
         elif psu_wattage < total_power * 1.2:
             warnings.append(f"PSU la limita: recomandat minim {int(total_power * 1.2)}W")
 
-    # Regula 4: GPU lungime vs Carcasa
+    # Regula 4: lungimea GPU-ului trebuie sa incapa fizic in carcasa
     if gpu and case:
         gpu_length   = (gpu.specs or {}).get("length_mm", 0)
         case_max_gpu = (case.specs or {}).get("max_gpu_length_mm", 9999)
@@ -259,10 +259,10 @@ def suggest_config(budget: float, use_case: str, brand_pref: str, db: Session) -
         "cooler":      get_products_by_slug(db, "cooler"),
     }
 
+    # Alocare procentuala a bugetului per componenta in functie de cazul de utilizare
     if is_gaming:
         alloc = {"gpu": 0.35, "cpu": 0.20, "motherboard": 0.12, "ram": 0.10,
                  "psu": 0.08, "cooler": 0.05, "case": 0.05, "storage": 0.05}
-        # CPU primul → socket cunoscut → rezerva corecta pentru cooler/MB; GPU ia restul bugetului
         order = ["cpu", "motherboard", "ram", "gpu", "cooler", "psu", "case", "storage"]
     elif is_video:
         alloc = {"cpu": 0.30, "gpu": 0.20, "ram": 0.18, "motherboard": 0.12,
@@ -284,7 +284,7 @@ def suggest_config(budget: float, use_case: str, brand_pref: str, db: Session) -
     selected  = {}
     remaining = budget
 
-    # ── PASS 1: selectie initiala compatibila ─────────────────
+    # ── PASS 1: selectie initiala compatibila — fiecare componenta filtrata dupa cele deja alese
     for i, slug in enumerate(order):
         pool = get_compatible_pool(slug, selected, base_pools)
 
@@ -329,8 +329,8 @@ def suggest_config(budget: float, use_case: str, brand_pref: str, db: Session) -
             selected[slug] = product
             remaining -= float(product.price)
 
-    # ── PASS 2: upgrade iterativ cu bugetul ramas ──────────────────────
-    # Ruleaza DOAR daca toate 8 componente sunt selectate; continua pana bugetul e epuizat
+    # ── PASS 2: upgrade iterativ — incearca sa imbunatateasca componentele cu bugetul ramas
+    # Ruleaza doar daca toate 8 componente au fost selectate in Pass 1
     if remaining > 10 and len(selected) == len(REQUIRED_SLUGS):
         for _ in range(8):          # max 8 iteratii — evita bucla infinita
             any_upgrade = False

@@ -1,5 +1,6 @@
 import os
 import json
+import asyncio
 from google import genai
 from dotenv import load_dotenv
 
@@ -11,10 +12,12 @@ client = genai.Client(
 )
 
 EMBED_MODEL = "models/gemini-embedding-001"
-CHAT_MODEL  = "models/gemini-2.5-flash"
+CHAT_MODEL  = "models/gemini-1.5-flash"
 
 
 async def embed_text(text: str) -> list[float] | None:
+    # Genereaza un vector de 3072 dimensiuni pentru un document (produs)
+    # task_type RETRIEVAL_DOCUMENT optimizeaza embedding-ul pentru indexare
     try:
         result = client.models.embed_content(
             model=EMBED_MODEL,
@@ -28,6 +31,8 @@ async def embed_text(text: str) -> list[float] | None:
 
 
 async def embed_query(text: str) -> list[float] | None:
+    # Genereaza un vector de 3072 dimensiuni pentru o interogare de cautare
+    # task_type RETRIEVAL_QUERY optimizeaza embedding-ul pentru cautare semantica
     try:
         result = client.models.embed_content(
             model=EMBED_MODEL,
@@ -40,27 +45,29 @@ async def embed_query(text: str) -> list[float] | None:
         return None
 
 
+async def _generate_with_retry(prompt: str, retries: int = 2) -> str | None:
+    for attempt in range(retries + 1):
+        try:
+            response = client.models.generate_content(model=CHAT_MODEL, contents=prompt)
+            return response.text.strip()
+        except Exception as e:
+            msg = str(e)
+            if attempt < retries and ("503" in msg or "UNAVAILABLE" in msg or "429" in msg):
+                await asyncio.sleep(2 ** attempt)
+                continue
+            print(f"    gemini error: {e}")
+            return None
+    return None
+
+
 async def generate_search_message(query: str, category_name: str | None, product_names: list[str]) -> str:
     n = len(product_names)
-    sample = ", ".join(product_names[:3])
-    prompt = (
-        f"Ești asistentul unui shop de componente PC. Utilizatorul a căutat: \"{query}\".\n"
-        f"{'Categoria detectată: ' + category_name + '.' if category_name else 'Nu s-a detectat o categorie specifică.'}\n"
-        f"{'Au fost găsite ' + str(n) + ' produse. Primele: ' + sample + '.' if n > 0 else 'Nu s-a găsit niciun produs.'}\n\n"
-        f"Scrie un mesaj scurt (1-2 propoziții) în română care:\n"
-        f"- Dacă căutarea conținea ceva inexistent sau greșit (ex: 'ddr7', 'rtx 9090'), menționează că nu există și ce ai găsit în schimb\n"
-        f"- Dacă nu s-a găsit nimic, sugerează să încerce altceva sau să schimbe filtrele\n"
-        f"- Dacă s-au găsit produse normale, fii scurt și util (ex: 'Iată cele mai relevante procesoare AMD:')\n"
-        f"Răspunde DOAR cu mesajul, fără ghilimele."
-    )
-    try:
-        response = client.models.generate_content(model=CHAT_MODEL, contents=prompt)
-        return response.text.strip()
-    except Exception as e:
-        print(f"    generate_search_message error: {e}")
-        if n > 0:
-            return f"Am găsit {n} produse relevante pentru căutarea ta."
-        return "Nu am găsit produse pentru această căutare. Încearcă să modifici filtrele."
+    cat = category_name or "produse"
+    if n == 0:
+        return f"Nu am găsit {cat} pentru \"{query}\". Încearcă alte cuvinte cheie sau fără filtre de preț."
+    if n == 1:
+        return f"Am găsit 1 produs relevant pentru \"{query}\":"
+    return f"Iată cele mai relevante {cat} pentru \"{query}\":"
 
 
 async def extract_filters(message: str, slugs: list[str], cat_filters: dict) -> dict | None:
@@ -119,9 +126,10 @@ async def extract_filters(message: str, slugs: list[str], cat_filters: dict) -> 
             f"Dacă nu ești sigur de categorie, returnează {{}}."
         )
 
+    text_out = await _generate_with_retry(prompt)
+    if not text_out:
+        return None
     try:
-        response = client.models.generate_content(model=CHAT_MODEL, contents=prompt)
-        text_out = response.text.strip()
         start = text_out.find("{")
         end   = text_out.rfind("}") + 1
         if start == -1 or end == 0:
@@ -131,5 +139,5 @@ async def extract_filters(message: str, slugs: list[str], cat_filters: dict) -> 
             result["category_slug"] = slug_hint
         return result
     except Exception as e:
-        print(f"    extract error: {e}")
+        print(f"    extract parse error: {e}")
         return None

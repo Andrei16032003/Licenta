@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pcshop
+      POSTGRES_PASSWORD: pcshop
+      POSTGRES_DB: pcshop
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pcshop"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./PCShop
+    restart: unless-stopped
+    env_file: ./PCShop/.env
+    environment:
+      DATABASE_URL: postgresql://pcshop:pcshop@db:5432/pcshop
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./pcshop-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  uploads:
